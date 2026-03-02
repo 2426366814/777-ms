@@ -77,12 +77,37 @@ class AutoManager {
                 try {
                     const result = await reviewService.autoScheduleReviews(user.user_id);
                     logger.info(`Auto-scheduled ${result.scheduled} reviews for user ${user.user_id}`);
+                    
+                    await this.sendReviewReminder(user.user_id);
                 } catch (err) {
                     logger.error(`Failed to schedule reviews for user ${user.user_id}:`, err.message);
                 }
             }
         } catch (error) {
             logger.error('Auto review schedule failed:', error);
+        }
+    }
+
+    async sendReviewReminder(userId) {
+        try {
+            const dueReviews = await db.query(
+                `SELECT COUNT(*) as count FROM review_queue 
+                 WHERE user_id = ? AND next_review <= NOW() AND status = 'pending'`,
+                [userId]
+            );
+
+            const count = dueReviews[0]?.count || 0;
+            if (count > 0) {
+                await db.query(
+                    `INSERT INTO notifications (user_id, type, title, content, created_at)
+                     VALUES (?, 'review', '复习提醒', ?, NOW())
+                     ON DUPLICATE KEY UPDATE content = VALUES(content), created_at = NOW()`,
+                    [userId, `您有 ${count} 条记忆需要复习`]
+                );
+                logger.info(`Sent review reminder to user ${userId}: ${count} items due`);
+            }
+        } catch (error) {
+            logger.warn('Failed to send review reminder:', error.message);
         }
     }
 

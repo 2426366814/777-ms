@@ -6,6 +6,10 @@
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
+const LLMService = require('./LLMService');
+
+const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER || 'deepseek';
+const AUTO_TAG_ENABLED = process.env.AUTO_TAG_ENABLED !== 'false';
 
 class MemoryService {
     constructor() {
@@ -361,6 +365,154 @@ class MemoryService {
             categories: stats[0]?.categories || 0,
             topTags: tags
         };
+    }
+
+    async generateAutoTags(content) {
+        if (!AUTO_TAG_ENABLED) {
+            return [];
+        }
+
+        try {
+            const prompt = `为以下记忆内容生成3-5个相关标签（只返回标签，用逗号分隔，不要其他内容）：
+
+记忆内容: ${content.substring(0, 500)}
+
+标签:`;
+
+            const response = await LLMService.chat('system', DEFAULT_PROVIDER, [
+                { role: 'user', content: prompt }
+            ], { maxTokens: 50 });
+
+            const tags = response.content
+                .split(/[,，、\n]/)
+                .map(t => t.trim().replace(/^#/, ''))
+                .filter(t => t.length > 0 && t.length <= 20)
+                .slice(0, 5);
+
+            return tags;
+        } catch (error) {
+            logger.warn('Auto-tag generation failed:', error.message);
+            return [];
+        }
+    }
+
+    async createMemoryWithAutoTags(userId, data) {
+        const { content, category = 'general', tags = [], importance = 5, metadata = {} } = data;
+        
+        let finalTags = tags;
+        if (tags.length === 0 && AUTO_TAG_ENABLED) {
+            finalTags = await this.generateAutoTags(content);
+            logger.info(`Auto-generated tags for memory: ${finalTags.join(', ')}`);
+        }
+        
+        let finalCategory = category;
+        if (category === 'general' && AUTO_TAG_ENABLED) {
+            finalCategory = await this.autoCategorize(content);
+            logger.info(`Auto-categorized memory as: ${finalCategory}`);
+        }
+        
+        let finalMetadata = metadata;
+        if (content.length > 200 && AUTO_TAG_ENABLED) {
+            const summary = await this.generateSummary(content);
+            if (summary) {
+                finalMetadata = { ...metadata, summary };
+                logger.info(`Generated summary for memory`);
+            }
+        }
+        
+        const memory = await this.createMemory(userId, {
+            content,
+            category: finalCategory,
+            tags: finalTags,
+            importance,
+            metadata: finalMetadata
+        });
+        
+        if (memory && memory.id) {
+            this.autoLinkRelated(userId, memory.id, content).catch(err => 
+                logger.warn('Auto-link failed:', err.message)
+            );
+        }
+        
+        return memory;
+    }
+
+    async autoCategorize(content) {
+        try {
+            const prompt = `为以下记忆内容选择一个最合适的分类（只返回分类名称，不要其他内容）：
+
+可选分类：工作、学习、生活、健康、财务、社交、娱乐、技术、其他
+
+记忆内容: ${content.substring(0, 300)}
+
+分类:`;
+
+            const response = await LLMService.chat('system', DEFAULT_PROVIDER, [
+                { role: 'user', content: prompt }
+            ], { maxTokens: 10 });
+
+            const category = response.content.trim();
+            const validCategories = ['工作', '学习', '生活', '健康', '财务', '社交', '娱乐', '技术', '其他', 'work', 'study', 'life', 'health', 'finance', 'social', 'entertainment', 'tech', 'other'];
+            
+            return validCategories.includes(category.toLowerCase()) ? category : 'general';
+        } catch (error) {
+            logger.warn('Auto-categorization failed:', error.message);
+            return 'general';
+        }
+    }
+
+    async generateSummary(content) {
+        try {
+            const prompt = `为以下内容生成一个简短的摘要（不超过50字）：
+
+${content.substring(0, 500)}
+
+摘要:`;
+
+            const response = await LLMService.chat('system', DEFAULT_PROVIDER, [
+                { role: 'user', content: prompt }
+            ], { maxTokens: 100 });
+
+            return response.content.trim().substring(0, 100);
+        } catch (error) {
+            logger.warn('Summary generation failed:', error.message);
+            return null;
+        }
+    }
+
+    async autoLinkRelated(userId, memoryId, content) {
+        try {
+            const related = await this.searchRelevantMemories(userId, content, 5);
+            
+            for (const rel of related) {
+                if (rel.id !== memoryId) {
+                    await db.query(
+                        `INSERT IGNORE INTO memory_links (memory_id, related_id, similarity, created_at)
+                         VALUES (?, ?, ?, NOW())`,
+                        [memoryId, rel.id, rel.relevance || 0.5]
+                    );
+                }
+            }
+            
+            if (related.length > 0) {
+                logger.info(`Auto-linked memory ${memoryId} with ${related.length} related memories`);
+            }
+        } catch (error) {
+            logger.warn('Auto-link failed:', error.message);
+        }
+    }
+
+    async getRelatedMemories(memoryId, limit = 5) {
+        const links = await db.query(
+            `SELECT m.id, m.content, m.category, ml.similarity 
+             FROM memory_links ml 
+             JOIN memories m ON ml.related_id = m.id 
+             WHERE ml.memory_id = ? 
+             ORDER BY ml.similarity DESC 
+             LIMIT ?`,
+            [memoryId, limit]
+        );
+        return links;
     }
 }
 
