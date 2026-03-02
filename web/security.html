@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全设置 - 777-MS</title>
+    <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <span class="sidebar-logo-text">777-MS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>概览</a>
+                <a href="/chat" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>对话</a>
+                <a href="/intelligence" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>智能功能</a>
+                <a href="/review" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆复习</a>
+                <a href="/visualization" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>数据可视化</a>
+                <a href="/security" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>安全设置</a>
+                <a href="/providers" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>LLM路由</a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
+                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">安全设置</h1>
+            </header>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showPanel('login')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>登录日志</button>
+                <button class="tab" onclick="showPanel('encryption')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>数据加密</button>
+                <button class="tab" onclick="showPanel('backup')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>自动备份</button>
+                <button class="tab" onclick="showPanel('llm')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>LLM配置</button>
+            </div>
+
+            <div id="login-panel" class="panel">
+                <div class="grid grid-3 mb-4">
+                    <div class="stat-card"><div class="stat-value" id="totalLogins">0</div><div class="stat-label">总登录次数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="uniqueIps">0</div><div class="stat-label">不同IP</div></div>
+                    <div class="stat-card"><div class="stat-value" id="activeDays">0</div><div class="stat-label">活跃天数</div></div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">登录记录</h3></div>
+                    <div id="loginLogs" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="encryption-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">加密设置</h3></div>
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">1</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">敏感记忆加密</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">启用后，标记为敏感的记忆将被加密存储</div>
+                        </div>
+                        <div id="encryptionToggle" style="width:52px;height:28px;background:var(--bg-tertiary);border-radius:14px;position:relative;cursor:pointer;flex-shrink:0;" onclick="toggleEncryption()"><div style="position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform 0.3s;"></div></div>
+                    </div>
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">2</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">自动检测敏感内容</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">AI自动识别并加密包含敏感信息的记忆</div>
+                        </div>
+                        <div id="autoEncryptToggle" style="width:52px;height:28px;background:var(--bg-tertiary);border-radius:14px;position:relative;cursor:pointer;flex-shrink:0;" onclick="toggleAutoEncrypt()"><div style="position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform 0.3s;"></div></div>
+                    </div>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-header"><h3 class="card-title">加密密钥管理</h3></div>
+                    <p class="text-muted mb-2">您的加密密钥用于保护敏感记忆。请妥善保管，丢失后将无法恢复加密数据。</p>
+                    <div class="flex gap-2">
+                        <button class="btn btn-secondary btn-sm" onclick="exportKey()">导出密钥备份</button>
+                        <button class="btn btn-secondary btn-sm" onclick="showKeyModal()">导入密钥</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="backup-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">备份计划</h3></div>
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">1</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">每日自动备份</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">每天凌晨 3:00 自动备份数据库</div>
+                        </div>
+                        <span class="badge badge-success flex-shrink-0">已启用</span>
+                    </div>
+                    <div class="mt-2">
+                        <label class="text-muted" style="font-size:14px;" for="retentionDays">保留天数</label>
+                        <input type="number" class="input" value="30" id="retentionDays" style="max-width:200px;">
+                    </div>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-header"><h3 class="card-title">手动备份</h3></div>
+                    <div class="flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" onclick="createBackup()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>创建备份</button>
+                        <button class="btn btn-secondary" onclick="exportUserData()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>导出我的数据</button>
+                    </div>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-header"><h3 class="card-title">备份列表</h3></div>
+                    <div id="backupList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="llm-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">LLM 提供商配置</h3></div>
+                    <p class="text-muted mb-2">配置您的 LLM API 密钥，用于智能记忆提取、标签生成等功能。</p>
+                    <div id="llmProviders"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+
+        if (!token) window.location.href = '/';
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        async function api(e, o = {}) { const r = await fetch(API_BASE + e, { ...o, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...o.headers } }); return r.json(); }
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name + '-panel').style.display = 'block';
+            event.target.closest('.tab').classList.add('active');
+            const loaders = { login: loadLoginLogs, backup: loadBackups, llm: loadLLMProviders };
+            if (loaders[name]) loaders[name]();
+        }
+
+        async function loadLoginLogs() {
+            const stats = await api('/logs/login/stats');
+            if (stats.success) {
+                document.getElementById('totalLogins').textContent = stats.stats?.total_logins || 0;
+                document.getElementById('uniqueIps').textContent = stats.stats?.unique_ips || 0;
+                document.getElementById('activeDays').textContent = stats.stats?.active_days || 0;
+            }
+            const data = await api('/logs/login');
+            if (data.success) {
+                const logs = data.logs || [];
+                const el = document.getElementById('loginLogs');
+                el.className = '';
+                el.innerHTML = logs.length ? logs.map((log, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="font-family:'Fira Code',monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${log.ip_address || ''}">${log.ip_address}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${new Date(log.login_at).toLocaleString()} · ${log.device_type || 'Unknown'} · ${log.browser || 'Unknown'}</div>
+                        </div>
+                        <span class="badge ${log.status === 'success' ? 'badge-success' : 'badge-danger'} flex-shrink-0">${log.status}</span>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无登录记录</p></div>';
+            }
+        }
+
+        function toggleEncryption() {
+            const toggle = document.getElementById('encryptionToggle');
+            const dot = toggle.querySelector('div');
+            const isActive = toggle.style.background.includes('linear-gradient');
+            if (isActive) {
+                toggle.style.background = 'var(--bg-tertiary)';
+                dot.style.transform = 'translateX(0)';
+                showToast('已禁用敏感记忆加密');
+            } else {
+                toggle.style.background = 'linear-gradient(135deg, #22C55E, #06B6D4)';
+                dot.style.transform = 'translateX(24px)';
+                showToast('已启用敏感记忆加密');
+            }
+        }
+
+        function toggleAutoEncrypt() {
+            const toggle = document.getElementById('autoEncryptToggle');
+            const dot = toggle.querySelector('div');
+            const isActive = toggle.style.background.includes('linear-gradient');
+            if (isActive) {
+                toggle.style.background = 'var(--bg-tertiary)';
+                dot.style.transform = 'translateX(0)';
+                showToast('已禁用自动检测');
+            } else {
+                toggle.style.background = 'linear-gradient(135deg, #22C55E, #06B6D4)';
+                dot.style.transform = 'translateX(24px)';
+                showToast('已启用自动检测');
+            }
+        }
+
+        async function loadBackups() {
+            const data = await api('/backup/list');
+            if (data.success) {
+                const backups = data.backups || [];
+                const el = document.getElementById('backupList');
+                el.className = '';
+                el.innerHTML = backups.length ? backups.map((b, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${b.file || ''}">${b.file}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${(b.size / 1024 / 1024).toFixed(2)} MB · ${new Date(b.created).toLocaleString()}</div>
+                        </div>
+                        <div class="flex gap-1 flex-shrink-0">
+                            <button class="btn btn-secondary btn-sm" onclick="restoreBackup('${b.file}')">恢复</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBackup('${b.file}')">删除</button>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无备份</p></div>';
+            }
+        }
+
+        async function createBackup() {
+            showToast('正在创建备份...');
+            const data = await api('/backup/create', { method: 'POST', body: JSON.stringify({ type: 'manual' }) });
+            if (data.success) { showToast('备份创建成功'); loadBackups(); } else showToast('备份创建失败');
+        }
+
+        function exportUserData() { showToast('正在导出数据...'); window.location.href = `${API_BASE}/backup/export?token=${token}`; }
+        async function restoreBackup(file) { if (!confirm('确定要恢复此备份吗？')) return; const data = await api('/backup/restore/' + encodeURIComponent(file), { method: 'POST' }); showToast(data.success ? '恢复成功' : '恢复失败'); }
+        async function deleteBackup(file) { if (!confirm('确定要删除此备份吗？')) return; const data = await api('/backup/' + encodeURIComponent(file), { method: 'DELETE' }); if (data.success) { showToast('备份已删除'); loadBackups(); } }
+
+        async function loadLLMProviders() {
+            const data = await api('/llm/providers');
+            if (data.success) {
+                const providers = data.providers?.slice(0, 6) || [];
+                const el = document.getElementById('llmProviders');
+                el.className = '';
+                el.innerHTML = providers.length ? providers.map((p, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.displayName || p.id}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">模型: ${(p.models || []).slice(0, 3).join(', ')}${p.models?.length > 3 ? '...' : ''}</div>
+                        </div>
+                        <span class="badge badge-info flex-shrink-0" id="status-${p.id}">未配置</span>
+                        <input type="password" class="input flex-shrink-0" style="width:150px;" placeholder="API Key" id="key-${p.id}" aria-label="API Key">
+                        <div class="flex gap-1 flex-shrink-0">
+                            <button class="btn btn-primary btn-sm" onclick="saveLLMConfig('${p.id}')">保存</button>
+                            <button class="btn btn-secondary btn-sm" onclick="testLLM('${p.id}')">测试</button>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无LLM提供商</p></div>';
+            }
+        }
+
+        async function saveLLMConfig(provider) {
+            const key = document.getElementById('key-' + provider).value;
+            if (!key) { showToast('请输入 API Key'); return; }
+            const data = await api('/llm/config/' + provider, { method: 'POST', body: JSON.stringify({ apiKey: key }) });
+            if (data.success) {
+                showToast('配置已保存');
+                document.getElementById('status-' + provider).textContent = '已配置';
+                document.getElementById('status-' + provider).className = 'badge badge-success';
+            }
+        }
+
+        async function testLLM(provider) {
+            showToast('正在测试连接...');
+            const data = await api('/llm/test/' + provider, { method: 'POST' });
+            showToast(data.success ? '连接成功' : '连接失败');
+        }
+
+        function exportKey() { showToast('密钥导出功能开发中...'); }
+        function showKeyModal() { showToast('密钥导入功能开发中...'); }
+
+        loadLoginLogs();
+    </script>
+</body>
+</html>

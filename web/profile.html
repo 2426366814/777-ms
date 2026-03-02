@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人资料 - 777-MS</title>
+    <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <span class="sidebar-logo-text">777-MS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>概览</a>
+                <a href="/chat" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>对话</a>
+                <a href="/intelligence" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>智能功能</a>
+                <a href="/review" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆复习</a>
+                <a href="/visualization" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>数据可视化</a>
+                <a href="/security" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>安全设置</a>
+                <a href="/providers" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>LLM路由</a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
+                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">个人资料</h1>
+            </header>
+
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            基本信息
+                        </h3>
+                    </div>
+                    <form id="profileForm" onsubmit="event.preventDefault(); updateProfile();">
+                        <div class="mb-2">
+                            <label for="username" class="text-muted" style="font-size:14px;">用户名</label>
+                            <input type="text" class="input" id="username" name="username" placeholder="用户名" autocomplete="username">
+                            <div id="usernameError" class="text-danger mt-1" style="font-size:12px;display:none;"></div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="email" class="text-muted" style="font-size:14px;">邮箱</label>
+                            <input type="email" class="input" id="email" name="email" placeholder="邮箱" autocomplete="email">
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">保存修改</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            修改密码
+                        </h3>
+                    </div>
+                    <form id="passwordForm" onsubmit="event.preventDefault(); changePassword();">
+                        <div class="mb-2">
+                            <label for="currentPassword" class="text-muted" style="font-size:14px;">当前密码</label>
+                            <div style="position:relative;">
+                                <input type="password" class="input" id="currentPassword" name="currentPassword" placeholder="当前密码" autocomplete="current-password" style="padding-right:40px;">
+                                <button type="button" onclick="togglePassword('currentPassword')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;">
+                                    <svg id="currentPassword-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="newPassword" class="text-muted" style="font-size:14px;">新密码</label>
+                            <div style="position:relative;">
+                                <input type="password" class="input" id="newPassword" name="newPassword" placeholder="新密码 (至少6位)" autocomplete="new-password" style="padding-right:40px;">
+                                <button type="button" onclick="togglePassword('newPassword')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;">
+                                    <svg id="newPassword-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="confirmPassword" class="text-muted" style="font-size:14px;">确认新密码</label>
+                            <div style="position:relative;">
+                                <input type="password" class="input" id="confirmPassword" name="confirmPassword" placeholder="确认新密码" autocomplete="new-password" style="padding-right:40px;">
+                                <button type="button" onclick="togglePassword('confirmPassword')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px;">
+                                    <svg id="confirmPassword-eye" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">修改密码</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                        API 密钥
+                    </h3>
+                    <button class="btn btn-primary btn-sm" onclick="generateApiKey()">生成新密钥</button>
+                </div>
+                <div id="newApiKeyDisplay" style="display:none;padding:16px;background:rgba(34,197,94,0.1);border-radius:8px;margin-bottom:16px;">
+                    <div class="text-muted mb-1" style="font-size:12px;">新的 API Key (请妥善保存，只显示一次)</div>
+                    <code id="newApiKey" style="font-size:14px;color:var(--accent-green);"></code>
+                    <button class="btn btn-secondary btn-sm ml-2" onclick="copyApiKey()" style="margin-left:8px;">复制</button>
+                </div>
+                <div id="apiKeysList" class="loading"><div class="spinner"></div></div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        账户统计
+                    </h3>
+                </div>
+                <div class="grid grid-4">
+                    <div class="stat-card"><div class="stat-value" id="memoryCount">0</div><div class="stat-label">记忆条数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="sessionCount">0</div><div class="stat-label">会话数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="apiCallCount">0</div><div class="stat-label">API调用</div></div>
+                    <div class="stat-card"><div class="stat-value" id="accountAge">0</div><div class="stat-label">账户天数</div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token) window.location.href = '/';
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        async function api(e, o = {}) { const r = await fetch(API_BASE + e, { ...o, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...o.headers } }); return r.json(); }
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+        
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const eye = document.getElementById(inputId + '-eye');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eye.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+            } else {
+                input.type = 'password';
+                eye.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+            }
+        }
+
+        async function loadProfile() {
+            document.getElementById('username').value = user.username || '';
+            document.getElementById('email').value = user.email || '';
+            
+            const mem = await api('/memories?limit=1');
+            const sess = await api('/sessions?limit=1');
+            document.getElementById('memoryCount').textContent = mem.data?.pagination?.total || 0;
+            document.getElementById('sessionCount').textContent = sess.data?.pagination?.total || 0;
+            
+            if (user.createdAt) {
+                const days = Math.floor((Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+                document.getElementById('accountAge').textContent = days;
+            }
+        }
+
+        async function updateProfile() {
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!username) { showToast('用户名不能为空'); return; }
+            if (!email) { showToast('邮箱不能为空'); return; }
+            
+            const data = await api('/users/profile', {
+                method: 'PUT',
+                body: JSON.stringify({ username, email })
+            });
+            
+            if (data.success) {
+                user.username = username;
+                user.email = email;
+                localStorage.setItem('user', JSON.stringify(user));
+                showToast('资料更新成功');
+                document.getElementById('usernameError').style.display = 'none';
+            } else if (data.message?.includes('已存在') || data.message?.includes('duplicate')) {
+                document.getElementById('usernameError').textContent = '该用户名已被使用';
+                document.getElementById('usernameError').style.display = 'block';
+            } else {
+                showToast(data.message || '更新失败');
+            }
+        }
+
+        async function changePassword() {
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!currentPassword) { showToast('请输入当前密码'); return; }
+            if (!newPassword || newPassword.length < 6) { showToast('新密码至少6位'); return; }
+            if (newPassword !== confirmPassword) { showToast('两次密码不一致'); return; }
+            
+            const data = await api('/users/password', {
+                method: 'PUT',
+                body: JSON.stringify({ currentPassword, newPassword })
+            });
+            
+            if (data.success) {
+                showToast('密码修改成功');
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+            } else {
+                showToast(data.message || '密码修改失败');
+            }
+        }
+
+        async function loadApiKeys() {
+            const data = await api('/users/apikeys');
+            const apiKeys = data.data?.apiKeys || [];
+            const el = document.getElementById('apiKeysList');
+            el.className = '';
+            if (data.success && apiKeys.length) {
+                el.innerHTML = apiKeys.map((k, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:32px;height:32px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.875rem;color:#fff;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${k.apiKey || ''}">${(k.apiKey || '').substring(0, 24)}${(k.apiKey || '').length > 24 ? '...' : ''}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">创建: ${k.createdAt ? new Date(k.createdAt).toLocaleString() : '-'} · 最后使用: ${k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleString() : '从未'}</div>
+                        </div>
+                        <button class="btn btn-danger btn-sm flex-shrink-0" onclick="revokeApiKey('${k.id}')">撤销</button>
+                    </div>
+                `).join('');
+            } else {
+                el.innerHTML = '<div class="empty-state"><p>暂无API密钥</p></div>';
+            }
+        }
+
+        async function generateApiKey() {
+            const data = await api('/users/apikey', { method: 'POST' });
+            if (data.success && data.data?.apiKey) {
+                document.getElementById('newApiKey').textContent = data.data.apiKey;
+                document.getElementById('newApiKeyDisplay').style.display = 'block';
+                showToast('API密钥已生成');
+                loadApiKeys();
+            }
+        }
+
+        function copyApiKey() {
+            const key = document.getElementById('newApiKey').textContent;
+            navigator.clipboard.writeText(key).then(() => showToast('已复制到剪贴板'));
+        }
+
+        async function revokeApiKey(id) {
+            if (!confirm('确定撤销此密钥？')) return;
+            const data = await api('/users/apikeys/' + id, { method: 'DELETE' });
+            if (data.success) { showToast('已撤销'); loadApiKeys(); }
+        }
+
+        loadProfile();
+        loadApiKeys();
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+/**
+ * 新用户引导样式
+ */
+
+.onboarding-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.onboarding-highlight {
+    position: relative;
+}
+
+.onboarding-target {
+    position: relative;
+    z-index: 10001;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.5), 0 0 0 9999px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+}
+
+.onboarding-tooltip {
+    background: var(--bg-card, #1a1a2e);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: onboarding-fadeIn 0.3s ease;
+}
+
+.onboarding-tooltip.center {
+    margin: 0 auto;
+}
+
+.onboarding-tooltip.right {
+    position: absolute;
+    left: calc(100% + 20px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.onboarding-tooltip.left {
+    position: absolute;
+    right: calc(100% + 20px);
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.onboarding-tooltip.top {
+    position: absolute;
+    bottom: calc(100% + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.onboarding-tooltip.bottom {
+    position: absolute;
+    top: calc(100% + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.onboarding-header {
+    margin-bottom: 16px;
+}
+
+.onboarding-step {
+    display: inline-block;
+    background: var(--accent-primary, #6366f1);
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.onboarding-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary, #ffffff);
+}
+
+.onboarding-content {
+    margin: 0 0 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-secondary, #94a3b8);
+}
+
+.onboarding-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.onboarding-actions button {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.onboarding-actions .btn-back {
+    background: transparent;
+    border: 1px solid var(--border-color, #334155);
+    color: var(--text-secondary, #94a3b8);
+}
+
+.onboarding-actions .btn-back:hover {
+    background: var(--bg-hover, #1e293b);
+}
+
+.onboarding-actions .btn-skip {
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #64748b);
+}
+
+.onboarding-actions .btn-skip:hover {
+    color: var(--text-secondary, #94a3b8);
+}
+
+.onboarding-actions .btn-next {
+    background: var(--accent-primary, #6366f1);
+    border: none;
+    color: white;
+}
+
+.onboarding-actions .btn-next:hover {
+    background: var(--accent-secondary, #818cf8);
+}
+
+@keyframes onboarding-fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/**
+ * 快捷键帮助样式
+ */
+
+.hotkeys-help-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hotkeys-help-content {
+    background: var(--bg-card, #1a1a2e);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.hotkeys-help-content h3 {
+    margin: 0 0 20px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary, #ffffff);
+}
+
+.hotkeys-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.hotkeys-table tr {
+    border-bottom: 1px solid var(--border-color, #334155);
+}
+
+.hotkeys-table tr:last-child {
+    border-bottom: none;
+}
+
+.hotkeys-table td {
+    padding: 12px 8px;
+}
+
+.hotkey-key {
+    width: 40%;
+}
+
+.hotkey-key kbd {
+    display: inline-block;
+    background: var(--bg-tertiary, #0f172a);
+    border: 1px solid var(--border-color, #334155);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-family: monospace;
+    font-size: 13px;
+    color: var(--text-primary, #ffffff);
+}
+
+.hotkey-desc {
+    color: var(--text-secondary, #94a3b8);
+    font-size: 14px;
+}
+
+.hotkeys-note {
+    margin: 20px 0 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted, #64748b);
+}

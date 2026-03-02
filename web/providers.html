@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM路由管理 - 777-MS</title>
+    <link rel="stylesheet" href="styles.css?v=20260228-v2">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .hero-section {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(59,130,246,0.1) 100%);
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+        .hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #22C55E 0%, #3B82F6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+        .stat-icon.green { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+        .stat-icon.blue { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+        .stat-icon.purple { background: rgba(168,85,247,0.15); color: #A855F7; }
+        .stat-icon.orange { background: rgba(249,115,22,0.15); color: #F97316; }
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .provider-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .provider-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .provider-card:hover {
+            border-color: var(--accent-green);
+        }
+        .provider-card.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(0,255,170,0.05);
+        }
+        .provider-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .provider-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .provider-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--accent-cyan);
+        }
+        .provider-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .provider-url {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .provider-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .provider-status.active { background: rgba(34,197,94,0.15); color: var(--accent-green); }
+        .provider-status.inactive { background: rgba(239,68,68,0.15); color: #EF4444; }
+        .provider-status.testing { background: rgba(249,115,22,0.15); color: #F97316; }
+        .provider-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .provider-metric {
+            text-align: center;
+        }
+        .provider-metric-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .provider-metric-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .provider-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .provider-actions button {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-edit {
+            background: rgba(59,130,246,0.15);
+            color: var(--accent-blue);
+            border: 1px solid transparent;
+        }
+        .btn-edit:hover {
+            background: rgba(59,130,246,0.25);
+        }
+        .btn-config {
+            background: rgba(0,255,170,0.15);
+            color: var(--accent-cyan);
+            border: 1px solid transparent;
+        }
+        .btn-config:hover {
+            background: rgba(0,255,170,0.25);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+        .form-hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .api-key-input {
+            display: flex;
+            gap: 8px;
+        }
+        .api-key-input input {
+            flex: 1;
+        }
+        .api-key-input button {
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .model-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .model-tag {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.75rem;
+        }
+        .model-tag button {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+        .model-tag button:hover {
+            color: var(--accent-red);
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border: none;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+        }
+        .btn-danger {
+            background: rgba(239,68,68,0.15);
+            color: #EF4444;
+            border: 1px solid transparent;
+        }
+        .btn-danger:hover {
+            background: rgba(239,68,68,0.25);
+        }
+        .add-provider-card {
+            background: var(--card-bg);
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+        .add-provider-card:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+        .preset-providers {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .preset-provider {
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .preset-provider:hover {
+            border-color: var(--accent-cyan);
+        }
+        .preset-provider.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(0,255,170,0.1);
+        }
+        .preset-provider-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+        .preset-provider-url {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .chart-container {
+            position: relative;
+            height: 280px;
+            margin-top: 16px;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .section-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab:hover {
+            background: var(--bg-tertiary);
+        }
+        .tab.active {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+        }
+        .panel {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>777-MS</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    仪表盘
+                </a>
+                <a href="/chat" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    对话记忆
+                </a>
+                <a href="/review" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    复习系统
+                </a>
+                <a href="/intelligence" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    智能提取
+                </a>
+                <a href="/visualization" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                    可视化
+                </a>
+                <a href="/providers" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    LLM路由
+                </a>
+                <a href="/api-docs" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    API文档
+                </a>
+                <a href="/admin" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    系统管理
+                </a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    个人资料
+                </a>
+                <button class="nav-item logout-btn" onclick="logout()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    退出登录
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="hero-section">
+                <h1 class="hero-title">LLM 提供商管理</h1>
+                <p class="hero-subtitle">配置和管理您的 LLM 提供商，支持多提供商负载均衡和故障转移</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+                    </div>
+                    <div class="stat-value" id="totalProviders">0</div>
+                    <div class="stat-label">活跃提供商</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    </div>
+                    <div class="stat-value" id="totalModels">0</div>
+                    <div class="stat-label">可用模型</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="stat-value" id="avgLatency">0ms</div>
+                    <div class="stat-label">平均延迟</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="stat-value" id="avgSuccess">0%</div>
+                    <div class="stat-label">成功率</div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showPanel('providers')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
+                    提供商管理
+                </button>
+                <button class="tab" onclick="showPanel('monitoring')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                    性能监控
+                </button>
+                <button class="tab" onclick="showPanel('routing')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
+                    路由策略
+                </button>
+            </div>
+
+            <div id="providers-panel" class="panel">
+                <div class="provider-grid" id="providersList">
+                    <div class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="monitoring-panel" class="panel" style="display:none;">
+                <h2 class="section-title">性能监控</h2>
+                <p class="section-desc">实时监控所有提供商的性能指标</p>
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">延迟分布 (P50/P95/P99)</h3></div>
+                    <div class="chart-container"><canvas id="latencyChart"></canvas></div>
+                </div>
+            </div>
+
+            <div id="routing-panel" class="panel" style="display:none;">
+                <h2 class="section-title">路由策略</h2>
+                <p class="section-desc">选择适合您需求的路由策略</p>
+                <div id="strategiesList"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="providerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">添加提供商</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="presetSection">
+                    <label class="form-label">快速选择预设提供商</label>
+                    <div class="preset-providers" id="presetProviders"></div>
+                </div>
+                
+                <form id="providerForm">
+                    <input type="hidden" id="providerId" name="providerId">
+                    
+                    <div class="form-group">
+                        <label for="providerName" class="form-label">提供商名称 *</label>
+                        <input type="text" class="form-input" id="providerName" name="providerName" placeholder="例如: OpenAI" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="providerDisplayName" class="form-label">显示名称</label>
+                        <input type="text" class="form-input" id="providerDisplayName" name="providerDisplayName" placeholder="可选，用于界面显示">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="providerBaseUrl" class="form-label">API 基础地址 *</label>
+                        <input type="url" class="form-input" id="providerBaseUrl" name="providerBaseUrl" placeholder="例如: https://api.openai.com/v1" required>
+                        <p class="form-hint">LLM API 的基础 URL 地址</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="providerApiKey" class="form-label">API Key</label>
+                        <div class="api-key-input">
+                            <input type="password" class="form-input" id="providerApiKey" name="providerApiKey" placeholder="输入 API Key" autocomplete="off">
+                            <button type="button" onclick="toggleApiKeyVisibility()" aria-label="显示/隐藏API Key">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        <p class="form-hint">API Key 将被安全存储，用于认证请求</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="providerDefaultModel" class="form-label">默认模型</label>
+                        <input type="text" class="form-input" id="providerDefaultModel" name="providerDefaultModel" placeholder="例如: gpt-4">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="providerModels" class="form-label">可用模型列表</label>
+                        <input type="text" class="form-input" id="providerModels" name="providerModels" placeholder="用逗号分隔，例如: gpt-4, gpt-3.5-turbo">
+                        <p class="form-hint">输入模型名称，用逗号分隔</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label checkbox-label">
+                            <input type="checkbox" id="providerActive" name="providerActive" checked> 启用此提供商
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-danger" id="deleteBtn" style="display:none;" onclick="deleteProvider()">删除</button>
+                <button class="btn btn-primary" onclick="saveProvider()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1/providers';
+        let token = localStorage.getItem('token');
+        let charts = {};
+        let allProviders = [];
+        let editingProvider = null;
+
+        if (!token) window.location.href = '/';
+
+        const presetProviders = [
+            { name: 'OpenAI', baseUrl: 'https://api.openai.com/v1', models: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
+            { name: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1', models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'] },
+            { name: 'Google AI', baseUrl: 'https://generativelanguage.googleapis.com/v1beta', models: ['gemini-pro', 'gemini-pro-vision'] },
+            { name: 'Azure OpenAI', baseUrl: 'https://YOUR_RESOURCE.openai.azure.com', models: ['gpt-4', 'gpt-35-turbo'] },
+            { name: 'DeepSeek', baseUrl: 'https://api.deepseek.com/v1', models: ['deepseek-chat', 'deepseek-coder'] },
+            { name: 'Moonshot', baseUrl: 'https://api.moonshot.cn/v1', models: ['moonshot-v1-8k', 'moonshot-v1-32k'] },
+            { name: 'Zhipu AI', baseUrl: 'https://open.bigmodel.cn/api/paas/v4', models: ['glm-4', 'glm-3-turbo'] },
+            { name: 'Ollama', baseUrl: 'http://localhost:11434/v1', models: ['llama2', 'codellama', 'mistral'] }
+        ];
+
+        function showToast(msg) { 
+            const t = document.getElementById('toast'); 
+            t.textContent = msg; 
+            t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 2000); 
+        }
+        
+        async function api(e, o = {}) { 
+            const r = await fetch(API_BASE + e, { 
+                ...o, 
+                headers: { 
+                    'Authorization': 'Bearer ' + token, 
+                    'Content-Type': 'application/json', 
+                    ...o.headers 
+                } 
+            }); 
+            return r.json(); 
+        }
+
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name + '-panel').style.display = 'block';
+            event.target.closest('.tab').classList.add('active');
+            const loaders = { 
+                providers: loadProviders, 
+                monitoring: loadMonitoring, 
+                routing: loadRouting
+            };
+            if (loaders[name]) loaders[name]();
+        }
+
+        async function loadProviders() {
+            const [providersRes, statusRes] = await Promise.all([
+                api('/providers/all'),
+                api('/status')
+            ]);
+            
+            if (providersRes.success) {
+                allProviders = providersRes.providers || [];
+                const providerStats = statusRes.providerStats || {};
+                
+                document.getElementById('totalProviders').textContent = allProviders.filter(p => p.is_active).length;
+                document.getElementById('totalModels').textContent = allProviders.reduce((sum, p) => {
+                    try {
+                        const models = typeof p.models === 'string' ? JSON.parse(p.models) : (p.models || []);
+                        return sum + models.length;
+                    } catch { return sum; }
+                }, 0);
+                
+                let totalLatency = 0, totalSuccess = 0, count = 0;
+                for (const [id, metrics] of Object.entries(providerStats)) {
+                    totalLatency += metrics.avgLatency || 0;
+                    totalSuccess += (metrics.successRate || 0) * 100;
+                    count++;
+                }
+                document.getElementById('avgLatency').textContent = count > 0 ? Math.round(totalLatency / count) + 'ms' : '0ms';
+                document.getElementById('avgSuccess').textContent = count > 0 ? Math.round(totalSuccess / count) + '%' : '0%';
+                
+                let html = allProviders.map((p, index) => {
+                    const metrics = providerStats[p.id] || {};
+                    const models = typeof p.models === 'string' ? [] : (p.models || []);
+                    return `
+                        <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                            <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                            <div class="list-item-content" style="flex:1;min-width:0;">
+                                <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.display_name || p.name || ''}">${p.display_name || p.name}</div>
+                                <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.base_url}</div>
+                            </div>
+                            <div class="flex gap-1 flex-shrink-0">
+                                <button class="btn btn-secondary btn-sm" onclick="editProvider('${p.id}')">编辑</button>
+                                <button class="btn btn-secondary btn-sm" onclick="configProvider('${p.id}')">配置API</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                html += `
+                    <div class="add-provider-card" onclick="openAddModal()">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        <p style="margin-top: 12px;">添加新提供商</p>
+                    </div>
+                `;
+                
+                document.getElementById('providersList').innerHTML = html;
+            }
+        }
+
+        async function loadMonitoring() {
+            const status = await api('/status');
+            if (status.success) {
+                initLatencyChart(status.providerStats || {});
+            }
+        }
+
+        function initLatencyChart(providerStats) {
+            const ctx = document.getElementById('latencyChart').getContext('2d');
+            if (charts.latency) charts.latency.destroy();
+            
+            const labels = Object.keys(providerStats);
+            const p50Data = labels.map(id => providerStats[id].p50 || 0);
+            const p95Data = labels.map(id => providerStats[id].p95 || 0);
+            const p99Data = labels.map(id => providerStats[id].p99 || 0);
+            
+            charts.latency = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'P50', data: p50Data, backgroundColor: 'rgba(34,197,94,0.7)' },
+                        { label: 'P95', data: p95Data, backgroundColor: 'rgba(59,130,246,0.7)' },
+                        { label: 'P99', data: p99Data, backgroundColor: 'rgba(249,115,22,0.7)' }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true, title: { display: true, text: '延迟 (ms)' } } }
+                }
+            });
+        }
+
+        async function loadRouting() {
+            const strategies = await api('/strategies');
+            if (strategies.success) {
+                document.getElementById('strategiesList').innerHTML = `
+                    <div class="list-container">
+                        ${strategies.strategies.map((s, index) => `
+                            <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" onclick="selectStrategy('${s.id}')">
+                                <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                                <div class="list-item-content" style="flex:1;min-width:0;">
+                                    <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.name}</div>
+                                    <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.description}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        function selectStrategy(id) {
+            showToast(`已选择策略: ${id}`);
+        }
+
+        function openAddModal() {
+            editingProvider = null;
+            document.getElementById('modalTitle').textContent = '添加提供商';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('presetSection').style.display = 'block';
+            document.getElementById('providerForm').reset();
+            document.getElementById('providerActive').checked = true;
+            
+            const el = document.getElementById('presetProviders');
+            el.className = '';
+            el.innerHTML = presetProviders.map((p, index) => `
+                <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" onclick="selectPreset('${p.name}')">
+                    <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                    <div class="list-item-content" style="flex:1;min-width:0;">
+                        <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>
+                        <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.baseUrl}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('providerModal').classList.add('active');
+        }
+
+        async function editProvider(id) {
+            const provider = allProviders.find(p => p.id === id);
+            if (!provider) return;
+            
+            editingProvider = provider;
+            document.getElementById('modalTitle').textContent = '编辑提供商';
+            document.getElementById('deleteBtn').style.display = 'block';
+            document.getElementById('presetSection').style.display = 'none';
+            
+            document.getElementById('providerId').value = provider.id;
+            document.getElementById('providerName').value = provider.name;
+            document.getElementById('providerDisplayName').value = provider.display_name || '';
+            document.getElementById('providerBaseUrl').value = provider.base_url;
+            document.getElementById('providerDefaultModel').value = provider.default_model || '';
+            
+            try {
+                const models = typeof provider.models === 'string' ? JSON.parse(provider.models) : (provider.models || []);
+                document.getElementById('providerModels').value = models.join(', ');
+            } catch {
+                document.getElementById('providerModels').value = '';
+            }
+            
+            document.getElementById('providerActive').checked = provider.is_active;
+            
+            const apiKeyRes = await api(`/providers/${id}/api-key`);
+            document.getElementById('providerApiKey').value = apiKeyRes.apiKey || '';
+            
+            document.getElementById('providerModal').classList.add('active');
+        }
+
+        function configProvider(id) {
+            editProvider(id);
+        }
+
+        function selectPreset(name) {
+            const preset = presetProviders.find(p => p.name === name);
+            if (preset) {
+                document.getElementById('providerName').value = preset.name;
+                document.getElementById('providerDisplayName').value = preset.name;
+                document.getElementById('providerBaseUrl').value = preset.baseUrl;
+                document.getElementById('providerDefaultModel').value = preset.models[0] || '';
+                document.getElementById('providerModels').value = preset.models.join(', ');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('providerModal').classList.remove('active');
+        }
+
+        function toggleApiKeyVisibility() {
+            const input = document.getElementById('providerApiKey');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        async function saveProvider() {
+            const id = document.getElementById('providerId').value;
+            const name = document.getElementById('providerName').value;
+            const display_name = document.getElementById('providerDisplayName').value;
+            const base_url = document.getElementById('providerBaseUrl').value;
+            const api_key = document.getElementById('providerApiKey').value;
+            const default_model = document.getElementById('providerDefaultModel').value;
+            const modelsStr = document.getElementById('providerModels').value;
+            const is_active = document.getElementById('providerActive').checked;
+            
+            if (!name || !base_url) {
+                showToast('请填写必填项');
+                return;
+            }
+            
+            const models = modelsStr.split(',').map(m => m.trim()).filter(m => m);
+            
+            const data = {
+                name,
+                display_name,
+                base_url,
+                api_key,
+                default_model,
+                models,
+                is_active
+            };
+            
+            let res;
+            if (editingProvider) {
+                res = await api(`/providers/${editingProvider.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+            } else {
+                res = await api('/providers', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+            
+            if (res.success) {
+                showToast(editingProvider ? '提供商更新成功' : '提供商创建成功');
+                closeModal();
+                loadProviders();
+            } else {
+                showToast(res.message || '操作失败');
+            }
+        }
+
+        async function deleteProvider() {
+            if (!editingProvider || !confirm('确定要删除此提供商吗？')) return;
+            
+            const res = await api(`/providers/${editingProvider.id}`, { method: 'DELETE' });
+            if (res.success) {
+                showToast('提供商已删除');
+                closeModal();
+                loadProviders();
+            } else {
+                showToast(res.message || '删除失败');
+            }
+        }
+
+        loadProviders();
+    </script>
+</body>
+</html>

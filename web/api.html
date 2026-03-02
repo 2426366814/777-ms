@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 文档 - 777-MS 记忆系统</title>
+    <link rel="stylesheet" href="styles.css?v=20260228-v2">
+    <style>
+        .api-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
+        .api-header { margin-bottom: 32px; }
+        .api-header h1 { font-size: 28px; margin-bottom: 8px; }
+        .api-header p { color: var(--text-secondary); }
+        .api-base-url { 
+            background: var(--bg-secondary); 
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+        .api-base-url code {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            color: var(--accent-cyan);
+        }
+        .copy-btn {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .copy-btn:hover { opacity: 0.9; }
+        .api-section { margin-bottom: 32px; }
+        .api-section h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .endpoint-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(255,255,255,0.02);
+            cursor: pointer;
+        }
+        .endpoint-header:hover { background: rgba(255,255,255,0.04); }
+        .method-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            min-width: 60px;
+            text-align: center;
+        }
+        .method-get { background: #2ea043; color: white; }
+        .method-post { background: #238636; color: white; }
+        .method-put { background: #d29922; color: #1a1a1a; }
+        .method-delete { background: #da3633; color: white; }
+        .endpoint-path {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+            flex: 1;
+        }
+        .endpoint-desc { color: var(--text-secondary); font-size: 13px; }
+        .endpoint-body {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: none;
+        }
+        .endpoint-body.active { display: block; }
+        .code-block {
+            background: #0d1117;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            overflow-x: auto;
+            position: relative;
+        }
+        .code-block code {
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            color: #c9d1d9;
+        }
+        .code-block .copy-code {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #8b949e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .code-block .copy-code:hover { color: white; background: rgba(255,255,255,0.2); }
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+        .param-table th, .param-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .param-table th {
+            background: rgba(255,255,255,0.02);
+            font-weight: 600;
+        }
+        .param-type { color: var(--accent-cyan); font-family: 'Fira Code', monospace; }
+        .param-required { color: var(--accent-red); font-size: 11px; }
+        .tutorial-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+        .tutorial-section h3 { font-size: 16px; margin-bottom: 12px; }
+        .tutorial-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .tutorial-tab {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .tutorial-tab.active {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+        }
+        .tutorial-content { display: none; }
+        .tutorial-content.active { display: block; }
+        .api-key-section {
+            background: linear-gradient(135deg, rgba(0,255,170,0.1), rgba(0,200,255,0.1));
+            border: 1px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .api-key-section h3 { color: var(--accent-cyan); margin-bottom: 12px; }
+        .api-key-display {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: var(--bg-primary);
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        .api-key-display code {
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-cyan);
+            flex: 1;
+        }
+        .chevron { transition: transform 0.2s; }
+        .chevron.rotated { transform: rotate(180deg); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>777-MS</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    仪表盘
+                </a>
+                <a href="/chat" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    对话记忆
+                </a>
+                <a href="/review" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    复习系统
+                </a>
+                <a href="/intelligence" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    智能提取
+                </a>
+                <a href="/visualization" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                    可视化
+                </a>
+                <a href="/providers" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    LLM路由
+                </a>
+                <a href="/api-docs" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    API文档
+                </a>
+                <a href="/admin" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    系统管理
+                </a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    个人资料
+                </a>
+                <button class="nav-item logout-btn" onclick="logout()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    退出登录
+                </button>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="api-container">
+                <div class="api-header">
+                    <h1>API 文档</h1>
+                    <p>777-MS 记忆系统对外 API 接口文档，支持与 Trae、Cursor 等 IDE 集成</p>
+                </div>
+                
+                <div class="api-key-section">
+                    <h3>您的 API Key</h3>
+                    <p>使用此 API Key 进行身份验证，请妥善保管</p>
+                    <div class="api-key-display">
+                        <code id="apiKey">加载中...</code>
+                        <button class="copy-btn" onclick="copyApiKey()">复制</button>
+                        <button class="copy-btn" onclick="regenerateApiKey()" style="background: var(--accent-red);">重新生成</button>
+                    </div>
+                </div>
+                
+                <div class="api-base-url">
+                    <div>
+                        <span style="color: var(--text-secondary); margin-right: 8px;">API 基础地址:</span>
+                        <code id="baseUrl"></code>
+                    </div>
+                    <button class="copy-btn" onclick="copyBaseUrl()">复制</button>
+                </div>
+                
+                <div class="api-section">
+                    <h2>认证接口</h2>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-post">POST</span>
+                            <span class="endpoint-path">/api/auth/login</span>
+                            <span class="endpoint-desc">用户登录获取 Token</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求参数</h4>
+                            <table class="param-table">
+                                <tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+                                <tr><td>username</td><td class="param-type">string</td><td class="param-required">必填</td><td>用户名</td></tr>
+                                <tr><td>password</td><td class="param-type">string</td><td class="param-required">必填</td><td>密码</td></tr>
+                            </table>
+                            <h4>请求示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>curl -X POST {{baseUrl}}/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"your_username","password":"your_password"}'</code>
+                            </div>
+                            <h4>响应示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>{
+  "success": true,
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "user": { "id": 1, "username": "your_username" }
+}</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-post">POST</span>
+                            <span class="endpoint-path">/api/auth/register</span>
+                            <span class="endpoint-desc">用户注册</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求参数</h4>
+                            <table class="param-table">
+                                <tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+                                <tr><td>username</td><td class="param-type">string</td><td class="param-required">必填</td><td>用户名（唯一）</td></tr>
+                                <tr><td>password</td><td class="param-type">string</td><td class="param-required">必填</td><td>密码</td></tr>
+                                <tr><td>email</td><td class="param-type">string</td><td>可选</td><td>邮箱地址</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="api-section">
+                    <h2>记忆管理接口</h2>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-get">GET</span>
+                            <span class="endpoint-path">/api/memories</span>
+                            <span class="endpoint-desc">获取记忆列表</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求头</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>Authorization: Bearer YOUR_API_KEY</code>
+                            </div>
+                            <h4>查询参数</h4>
+                            <table class="param-table">
+                                <tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+                                <tr><td>page</td><td class="param-type">number</td><td>可选</td><td>页码，默认1</td></tr>
+                                <tr><td>limit</td><td class="param-type">number</td><td>可选</td><td>每页数量，默认20</td></tr>
+                                <tr><td>search</td><td class="param-type">string</td><td>可选</td><td>搜索关键词</td></tr>
+                                <tr><td>tags</td><td class="param-type">string</td><td>可选</td><td>标签过滤（逗号分隔）</td></tr>
+                            </table>
+                            <h4>请求示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>curl -X GET "{{baseUrl}}/api/memories?limit=10" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-post">POST</span>
+                            <span class="endpoint-path">/api/memories</span>
+                            <span class="endpoint-desc">创建新记忆</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求参数</h4>
+                            <table class="param-table">
+                                <tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+                                <tr><td>content</td><td class="param-type">string</td><td class="param-required">必填</td><td>记忆内容</td></tr>
+                                <tr><td>title</td><td class="param-type">string</td><td>可选</td><td>记忆标题</td></tr>
+                                <tr><td>tags</td><td class="param-type">array</td><td>可选</td><td>标签数组</td></tr>
+                                <tr><td>importance</td><td class="param-type">number</td><td>可选</td><td>重要性 1-5</td></tr>
+                                <tr><td>category</td><td class="param-type">string</td><td>可选</td><td>分类</td></tr>
+                            </table>
+                            <h4>请求示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>curl -X POST "{{baseUrl}}/api/memories" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "今天学习了 Node.js 的异步编程模式",
+    "title": "Node.js 学习笔记",
+    "tags": ["编程", "Node.js", "学习"],
+    "importance": 4
+  }'</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-get">GET</span>
+                            <span class="endpoint-path">/api/memories/:id</span>
+                            <span class="endpoint-desc">获取单个记忆详情</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>curl -X GET "{{baseUrl}}/api/memories/123" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-put">PUT</span>
+                            <span class="endpoint-path">/api/memories/:id</span>
+                            <span class="endpoint-desc">更新记忆</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>curl -X PUT "{{baseUrl}}/api/memories/123" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "更新后的内容", "importance": 5}'</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-delete">DELETE</span>
+                            <span class="endpoint-path">/api/memories/:id</span>
+                            <span class="endpoint-desc">删除记忆</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>curl -X DELETE "{{baseUrl}}/api/memories/123" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="api-section">
+                    <h2>智能搜索接口</h2>
+                    
+                    <div class="endpoint-card">
+                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                            <span class="method-badge method-post">POST</span>
+                            <span class="endpoint-path">/api/search</span>
+                            <span class="endpoint-desc">语义搜索记忆</span>
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <div class="endpoint-body">
+                            <h4>请求参数</h4>
+                            <table class="param-table">
+                                <tr><th>参数名</th><th>类型</th><th>必填</th><th>说明</th></tr>
+                                <tr><td>query</td><td class="param-type">string</td><td class="param-required">必填</td><td>搜索查询</td></tr>
+                                <tr><td>limit</td><td class="param-type">number</td><td>可选</td><td>返回数量限制</td></tr>
+                                <tr><td>threshold</td><td class="param-type">number</td><td>可选</td><td>相似度阈值 0-1</td></tr>
+                            </table>
+                            <h4>请求示例</h4>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>curl -X POST "{{baseUrl}}/api/search" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "关于编程的学习笔记", "limit": 5}'</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="api-section">
+                    <h2>IDE 集成教程</h2>
+                    
+                    <div class="tutorial-section">
+                        <h3>与 Trae IDE 集成</h3>
+                        <div class="tutorial-tabs">
+                            <button class="tutorial-tab active" onclick="switchTab(this, 'trae-config')">配置方式</button>
+                            <button class="tutorial-tab" onclick="switchTab(this, 'trae-mcp')">MCP 协议</button>
+                        </div>
+                        <div class="tutorial-content active" id="trae-config">
+                            <p>在 Trae IDE 中配置 777-MS 记忆系统：</p>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>// 在 ~/.trae-cn/settings.json 中添加
+{
+  "memory": {
+    "enabled": true,
+    "apiUrl": "{{baseUrl}}",
+    "apiKey": "YOUR_API_KEY"
+  }
+}</code>
+                            </div>
+                            <p style="margin-top: 12px; color: var(--text-secondary);">配置完成后，Trae 会自动将对话中的重要信息存储到记忆系统。</p>
+                        </div>
+                        <div class="tutorial-content" id="trae-mcp">
+                            <p>通过 MCP 协议集成：</p>
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>// 在 ~/.trae-cn/mcp-config.json 中添加
+{
+  "mcpServers": {
+    "777-ms-memory": {
+      "command": "node",
+      "args": ["path/to/777-ms/mcp-server.js"],
+      "env": {
+        "API_URL": "{{baseUrl}}",
+        "API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}</code>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-section">
+                        <h3>与 Cursor IDE 集成</h3>
+                        <div class="code-block">
+                            <button class="copy-code" onclick="copyCode(this)">复制</button>
+                            <code>// 在 Cursor 设置中添加自定义 API
+{
+  "cursor.ai.customApis": {
+    "memory": {
+      "url": "{{baseUrl}}/api",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      },
+      "endpoints": {
+        "search": "/search",
+        "create": "/memories",
+        "list": "/memories"
+      }
+    }
+  }
+}</code>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-section">
+                        <h3>与 VS Code 集成</h3>
+                        <div class="code-block">
+                            <button class="copy-code" onclick="copyCode(this)">复制</button>
+                            <code>// 安装扩展后，在 settings.json 中配置
+{
+  "memoryExtension.apiUrl": "{{baseUrl}}",
+  "memoryExtension.apiKey": "YOUR_API_KEY",
+  "memoryExtension.autoSave": true,
+  "memoryExtension.contextAware": true
+}</code>
+                        </div>
+                    </div>
+                    
+                    <div class="tutorial-section">
+                        <h3>通用 HTTP 调用示例</h3>
+                        <div class="tutorial-tabs">
+                            <button class="tutorial-tab active" onclick="switchTab(this, 'http-js')">JavaScript</button>
+                            <button class="tutorial-tab" onclick="switchTab(this, 'http-python')">Python</button>
+                            <button class="tutorial-tab" onclick="switchTab(this, 'http-curl')">cURL</button>
+                        </div>
+                        <div class="tutorial-content active" id="http-js">
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code>// JavaScript/Node.js 示例
+const API_URL = '{{baseUrl}}';
+const API_KEY = 'YOUR_API_KEY';
+
+// 创建记忆
+async function createMemory(content) {
+  const response = await fetch(`${API_URL}/api/memories`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ content })
+  });
+  return response.json();
+}
+
+// 搜索记忆
+async function searchMemories(query) {
+  const response = await fetch(`${API_URL}/api/search`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query })
+  });
+  return response.json();
+}</code>
+                            </div>
+                        </div>
+                        <div class="tutorial-content" id="http-python">
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code># Python 示例
+import requests
+
+API_URL = '{{baseUrl}}'
+API_KEY = 'YOUR_API_KEY'
+HEADERS = {
+    'Authorization': f'Bearer {API_KEY}',
+    'Content-Type': 'application/json'
+}
+
+# 创建记忆
+def create_memory(content):
+    response = requests.post(
+        f'{API_URL}/api/memories',
+        headers=HEADERS,
+        json={'content': content}
+    )
+    return response.json()
+
+# 搜索记忆
+def search_memories(query):
+    response = requests.post(
+        f'{API_URL}/api/search',
+        headers=HEADERS,
+        json={'query': query}
+    )
+    return response.json()</code>
+                            </div>
+                        </div>
+                        <div class="tutorial-content" id="http-curl">
+                            <div class="code-block">
+                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <code># 创建记忆
+curl -X POST "{{baseUrl}}/api/memories" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"content": "记忆内容"}'
+
+# 搜索记忆
+curl -X POST "{{baseUrl}}/api/search" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "搜索关键词"}'
+
+# 获取记忆列表
+curl -X GET "{{baseUrl}}/api/memories" \
+  -H "Authorization: Bearer YOUR_API_KEY"</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        const token = localStorage.getItem('token');
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        if (!token) {
+            window.location.href = '/';
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+        
+        function getBaseUrl() {
+            return window.location.origin;
+        }
+        
+        document.getElementById('baseUrl').textContent = getBaseUrl();
+        
+        async function loadApiKey() {
+            try {
+                const response = await fetch('/api/v1/users/apikeys', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success && data.data?.apiKeys?.length > 0) {
+                    const latestKey = data.data.apiKeys[0];
+                    document.getElementById('apiKey').textContent = latestKey.apiKey || '未生成';
+                } else {
+                    document.getElementById('apiKey').textContent = '未生成';
+                }
+            } catch (err) {
+                document.getElementById('apiKey').textContent = '加载失败';
+            }
+        }
+        
+        loadApiKey();
+        
+        function copyApiKey() {
+            const apiKey = document.getElementById('apiKey').textContent;
+            navigator.clipboard.writeText(apiKey);
+            alert('API Key 已复制到剪贴板');
+        }
+        
+        async function regenerateApiKey() {
+            if (!confirm('重新生成 API Key 后，旧的 Key 将失效，确定继续？')) return;
+            try {
+                const response = await fetch('/api/v1/users/apikey', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success && data.data?.apiKey) {
+                    document.getElementById('apiKey').textContent = data.data.apiKey;
+                    alert('API Key 已重新生成');
+                }
+            } catch (err) {
+                alert('重新生成失败');
+            }
+        }
+        
+        function copyBaseUrl() {
+            navigator.clipboard.writeText(getBaseUrl());
+            alert('API 地址已复制到剪贴板');
+        }
+        
+        function toggleEndpoint(header) {
+            const body = header.nextElementSibling;
+            const chevron = header.querySelector('.chevron');
+            body.classList.toggle('active');
+            chevron.classList.toggle('rotated');
+        }
+        
+        function copyCode(btn) {
+            const code = btn.parentElement.querySelector('code').textContent.replace(/\{\{baseUrl\}\}/g, getBaseUrl());
+            navigator.clipboard.writeText(code);
+            btn.textContent = '已复制!';
+            setTimeout(() => btn.textContent = '复制', 1500);
+        }
+        
+        function switchTab(btn, contentId) {
+            const section = btn.closest('.tutorial-section');
+            section.querySelectorAll('.tutorial-tab').forEach(t => t.classList.remove('active'));
+            section.querySelectorAll('.tutorial-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(contentId).classList.add('active');
+        }
+        
+        document.querySelectorAll('.code-block code').forEach(code => {
+            code.textContent = code.textContent.replace(/\{\{baseUrl\}\}/g, getBaseUrl());
+        });
+    </script>
+</body>
+</html>

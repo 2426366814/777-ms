@@ -1,0 +1,58 @@
+# 环境变量 - 包含敏感信息
+.env
+.env.local
+.env.production
+.env.*.local
+
+# 依赖目录
+node_modules/
+
+# 日志文件
+logs/
+*.log
+npm-debug.log*
+
+# 上传文件
+uploads/
+backups/
+
+# IDE配置
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+
+# 测试覆盖率
+coverage/
+
+# 构建输出
+dist/
+build/
+
+# PM2
+.pm2/
+
+# 数据库文件
+*.sql
+*.sqlite
+*.db
+
+# 密钥文件
+*.pem
+*.key
+*.crt
+
+# 压缩文件
+*.zip
+*.tar.gz
+*.rar

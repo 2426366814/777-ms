@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - 777-MS Memory System</title>
+    <meta name="description" content="777-MS Dashboard - 管理您的AI记忆、知识库和API密钥。查看统计数据，管理记忆条目，配置系统设置。">
+    <meta name="robots" content="noindex, nofollow">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: https:; connect-src 'self' https:;">
+    <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <span class="sidebar-logo-text">777-MS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>概览</a>
+                <a href="/chat" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>对话</a>
+                <a href="/intelligence" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>智能功能</a>
+                <a href="/review" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆复习</a>
+                <a href="/knowledge" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>知识库</a>
+                <a href="/visualization" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>数据可视化</a>
+                <a href="/security" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>安全设置</a>
+                <a href="/providers" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>LLM路由</a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
+                <a href="/admin" class="nav-item" id="adminLink" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>管理后台</a>
+                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="page-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="refreshAll()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                        刷新
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-4 mb-4">
+                <div class="stat-card"><div class="stat-value" id="memoryCount">0</div><div class="stat-label">记忆条数</div></div>
+                <div class="stat-card"><div class="stat-value" id="knowledgeCount">0</div><div class="stat-label">知识库</div></div>
+                <div class="stat-card"><div class="stat-value" id="sessionCount">0</div><div class="stat-label">会话数</div></div>
+                <div class="stat-card"><div class="stat-value" id="tagCount">0</div><div class="stat-label">标签种类</div></div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showPanel('memories')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆管理</button>
+                <button class="tab" onclick="showPanel('knowledge')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>知识库</button>
+                <button class="tab" onclick="showPanel('api')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>API密钥</button>
+            </div>
+
+            <div id="memories-panel" class="panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">记忆管理</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddMemory()">添加记忆</button>
+                    </div>
+                    <div id="addMemoryForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
+                        <textarea class="input mb-2" id="memoryContent" placeholder="输入记忆内容..." rows="3"></textarea>
+                        <div class="grid grid-2 gap-2 mb-2">
+                            <input type="text" class="input" id="memoryTags" placeholder="标签 (逗号分隔)">
+                            <input type="number" class="input" id="memoryImportance" placeholder="重要性 1-10" min="1" max="10" value="5">
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-primary" onclick="createMemory()">保存</button>
+                            <button class="btn btn-secondary" onclick="hideAddMemory()">取消</button>
+                        </div>
+                    </div>
+                    <input type="text" class="input" id="memorySearch" placeholder="搜索记忆..." onkeyup="searchMemories()" style="margin:16px;width:calc(100% - 32px);">
+                    <div id="memoriesList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="editMemoryModal" class="modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;">
+                <div class="modal-content" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--bg-color);padding:24px;border-radius:8px;min-width:400px;max-width:600px;">
+                    <h3 style="margin:0 0 16px 0;">编辑记忆</h3>
+                    <input type="hidden" id="editMemoryId">
+                    <textarea class="input mb-2" id="editMemoryContent" placeholder="记忆内容..." rows="4" style="width:100%;"></textarea>
+                    <div class="grid grid-2 gap-2 mb-2">
+                        <input type="text" class="input" id="editMemoryTags" placeholder="标签 (逗号分隔)" style="width:100%;">
+                        <input type="number" class="input" id="editMemoryImportance" placeholder="重要性 1-10" min="1" max="10" style="width:100%;">
+                    </div>
+                    <div class="flex gap-2" style="justify-content:flex-end;">
+                        <button class="btn btn-secondary" onclick="closeEditMemory()">取消</button>
+                        <button class="btn btn-primary" onclick="updateMemory()">保存</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="knowledge-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">知识库</h3>
+                        <button class="btn btn-primary btn-sm" onclick="showAddKnowledge()">添加知识</button>
+                    </div>
+                    <div id="addKnowledgeForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
+                        <input type="text" class="input mb-2" id="knowledgeTitle" placeholder="知识标题">
+                        <textarea class="input mb-2" id="knowledgeContent" placeholder="知识内容..." rows="4"></textarea>
+                        <div class="grid grid-2 gap-2 mb-2">
+                            <input type="text" class="input" id="knowledgeCategory" placeholder="分类">
+                            <input type="text" class="input" id="knowledgeTags" placeholder="标签 (逗号分隔)">
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-primary" onclick="createKnowledge()">保存</button>
+                            <button class="btn btn-secondary" onclick="hideAddKnowledge()">取消</button>
+                        </div>
+                    </div>
+                    <div id="knowledgeList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="api-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">API 密钥管理</h3>
+                        <button class="btn btn-primary btn-sm" onclick="generateApiKey()">生成新密钥</button>
+                    </div>
+                    <div style="padding:16px;background:var(--bg-secondary);border-bottom:1px solid var(--border-color);">
+                        <div class="text-muted mb-1">API 端点地址</div>
+                        <code style="font-size:14px;color:var(--accent-blue);">https://memory.91wz.org/api/v1</code>
+                        <div class="text-muted mt-2 mb-1">使用示例 (cURL)</div>
+                        <pre style="background:var(--bg-card);padding:8px;border-radius:4px;font-size:12px;overflow-x:auto;">curl https://memory.91wz.org/api/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"gpt-4","messages":[{"role":"user","content":"Hello"}]}'</pre>
+                    </div>
+                    <div id="newApiKeyDisplay" style="display:none;padding:16px;background:rgba(34,197,94,0.1);border-bottom:1px solid var(--border-color);">
+                        <div class="text-muted mb-1">新的 API Key (请妥善保存，只显示一次)</div>
+                        <code id="newApiKey" style="font-size:14px;color:var(--accent-green);"></code>
+                    </div>
+                    <div id="apiKeysList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (!token) window.location.href = '/';
+        if (user.role === 'admin') document.getElementById('adminLink').style.display = 'flex';
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        function escapeHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+        async function api(e, o = {}) { const r = await fetch(API_BASE + e, { ...o, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...o.headers } }); return r.json(); }
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name + '-panel').style.display = 'block';
+            event.target.closest('.tab').classList.add('active');
+            const loaders = { memories: loadMemories, knowledge: loadKnowledge, api: loadApiKeys };
+            if (loaders[name]) loaders[name]();
+        }
+
+        async function refreshAll() {
+            showToast('正在刷新...');
+            const mem = await api('/memories');
+            const know = await api('/knowledge');
+            const sess = await api('/sessions');
+            document.getElementById('memoryCount').textContent = mem.data?.pagination?.total || 0;
+            document.getElementById('knowledgeCount').textContent = know.data?.pagination?.total || 0;
+            document.getElementById('sessionCount').textContent = sess.data?.pagination?.total || 0;
+            document.getElementById('tagCount').textContent = mem.data?.tags?.length || 0;
+        }
+
+        function showAddMemory() { document.getElementById('addMemoryForm').style.display = 'block'; }
+        function hideAddMemory() { document.getElementById('addMemoryForm').style.display = 'none'; }
+        function showAddKnowledge() { document.getElementById('addKnowledgeForm').style.display = 'block'; }
+        function hideAddKnowledge() { document.getElementById('addKnowledgeForm').style.display = 'none'; }
+
+        async function loadMemories() {
+            const data = await api('/memories');
+            if (data.success) {
+                const memories = data.data?.memories || [];
+                const el = document.getElementById('memoriesList');
+                el.className = '';
+                el.innerHTML = memories.length ? memories.map((m, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:32px;height:32px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.875rem;color:#fff;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" title="${escapeHtml(m.content || '')}">${escapeHtml((m.content || '').substring(0, 80))}${(m.content || '').length > 80 ? '...' : ''}</div>
+                            <div class="list-item-meta">重要性 ${m.importance || 5} · ${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</div>
+                        </div>
+                        <div class="flex gap-1 flex-shrink-0">
+                            <button class="btn btn-secondary btn-sm" onclick="showEditMemory('${m.id}', '${escapeHtml((m.content || '').replace(/'/g, "\\'"))}', '${(m.tags || []).join(',')}', ${m.importance || 5})">编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteMemory('${m.id}')">删除</button>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无记忆</p></div>';
+            }
+        }
+
+        async function createMemory() {
+            const content = document.getElementById('memoryContent').value;
+            if (!content) { showToast('请输入记忆内容'); return; }
+            const data = await api('/memories', { method: 'POST', body: JSON.stringify({ content, tags: document.getElementById('memoryTags').value.split(',').filter(t => t.trim()), importance: parseInt(document.getElementById('memoryImportance').value) || 5 }) });
+            if (data.success) { showToast('记忆创建成功'); hideAddMemory(); loadMemories(); refreshAll(); }
+        }
+
+        async function deleteMemory(id) {
+            if (!confirm('确定删除？')) return;
+            const data = await api('/memories/' + id, { method: 'DELETE' });
+            if (data.success) { showToast('已删除'); loadMemories(); refreshAll(); }
+        }
+
+        function showEditMemory(id, content, tags, importance) {
+            document.getElementById('editMemoryId').value = id;
+            document.getElementById('editMemoryContent').value = content;
+            document.getElementById('editMemoryTags').value = tags;
+            document.getElementById('editMemoryImportance').value = importance;
+            document.getElementById('editMemoryModal').style.display = 'block';
+        }
+
+        function closeEditMemory() {
+            document.getElementById('editMemoryModal').style.display = 'none';
+        }
+
+        async function updateMemory() {
+            const id = document.getElementById('editMemoryId').value;
+            const content = document.getElementById('editMemoryContent').value;
+            if (!content) { showToast('请输入记忆内容'); return; }
+            const data = await api('/memories/' + id, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    content,
+                    tags: document.getElementById('editMemoryTags').value.split(',').filter(t => t.trim()),
+                    importance: parseInt(document.getElementById('editMemoryImportance').value) || 5
+                })
+            });
+            if (data.success) {
+                showToast('记忆更新成功');
+                closeEditMemory();
+                loadMemories();
+            } else {
+                showToast(data.error?.message || '更新失败');
+            }
+        }
+
+        function searchMemories() {
+            const q = document.getElementById('memorySearch').value.toLowerCase();
+            document.querySelectorAll('#memoriesList .list-item').forEach(item => { item.style.display = item.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+        }
+
+        async function loadKnowledge() {
+            const data = await api('/knowledge');
+            if (data.success) {
+                const knowledge = data.data?.knowledge || [];
+                const el = document.getElementById('knowledgeList');
+                el.className = '';
+                el.innerHTML = knowledge.length ? knowledge.map((k, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:32px;height:32px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.875rem;color:#fff;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" title="${escapeHtml(k.title || '')}">${escapeHtml((k.title || '无标题').substring(0, 50))}${(k.title || '').length > 50 ? '...' : ''}</div>
+                            <div class="list-item-meta">${escapeHtml(k.category || '-')} · ${k.createdAt ? new Date(k.createdAt).toLocaleString() : ''}</div>
+                        </div>
+                        <button class="btn btn-danger btn-sm flex-shrink-0" onclick="deleteKnowledge('${k.id}')">删除</button>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无知识</p></div>';
+            }
+        }
+
+        async function createKnowledge() {
+            const title = document.getElementById('knowledgeTitle').value;
+            const content = document.getElementById('knowledgeContent').value;
+            if (!title || !content) { showToast('请填写标题和内容'); return; }
+            const data = await api('/knowledge', { method: 'POST', body: JSON.stringify({ title, content, category: document.getElementById('knowledgeCategory').value, tags: document.getElementById('knowledgeTags').value.split(',').filter(t => t.trim()) }) });
+            if (data.success) { showToast('知识创建成功'); hideAddKnowledge(); loadKnowledge(); refreshAll(); }
+        }
+
+        async function deleteKnowledge(id) {
+            if (!confirm('确定删除？')) return;
+            const data = await api('/knowledge/' + id, { method: 'DELETE' });
+            if (data.success) { showToast('已删除'); loadKnowledge(); refreshAll(); }
+        }
+
+        async function loadApiKeys() {
+            const data = await api('/users/apikeys');
+            const apiKeys = data.data?.apiKeys || [];
+            const el = document.getElementById('apiKeysList');
+            el.className = '';
+            if (data.success && apiKeys.length) {
+                el.innerHTML = apiKeys.map((k, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:32px;height:32px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.875rem;color:#fff;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="font-family:monospace;word-break:break-all;" title="${k.apiKey || ''}">${(k.apiKey || '').substring(0, 24)}${(k.apiKey || '').length > 24 ? '...' : ''}</div>
+                            <div class="list-item-meta">创建: ${k.createdAt ? new Date(k.createdAt).toLocaleString() : '-'} · 最后使用: ${k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleString() : '从未'}</div>
+                        </div>
+                        <button class="btn btn-danger btn-sm flex-shrink-0" onclick="revokeApiKey('${k.id}')">撤销</button>
+                    </div>
+                `).join('');
+            } else {
+                el.innerHTML = '<div class="empty-state"><p>暂无API密钥</p></div>';
+            }
+        }
+
+        async function generateApiKey() {
+            const data = await api('/users/apikey', { method: 'POST' });
+            if (data.success && data.data?.apiKey) {
+                const apiKey = data.data.apiKey;
+                const apiUrl = window.location.origin + '/api/v1';
+                document.getElementById('newApiKey').innerHTML = `
+                    <div style="margin-bottom:8px;"><strong>API Key:</strong></div>
+                    <div style="background:var(--bg-card);padding:8px;border-radius:4px;margin-bottom:12px;font-family:monospace;word-break:break-all;">${apiKey}</div>
+                    <div style="margin-bottom:8px;"><strong>完整使用示例:</strong></div>
+                    <pre style="background:var(--bg-card);padding:8px;border-radius:4px;font-size:11px;overflow-x:auto;white-space:pre-wrap;">curl ${apiUrl}/chat/completions \\
+  -H "Authorization: Bearer ${apiKey}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4","messages":[{"role":"user","content":"Hello"}]}'</pre>
+                `;
+                document.getElementById('newApiKeyDisplay').style.display = 'block';
+                showToast('API密钥已生成');
+                loadApiKeys();
+            }
+        }
+
+        async function revokeApiKey(id) {
+            if (!confirm('确定撤销此密钥？')) return;
+            const data = await api('/users/apikeys/' + id, { method: 'DELETE' });
+            if (data.success) { showToast('已撤销'); loadApiKeys(); }
+        }
+
+        refreshAll();
+        loadMemories();
+    </script>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>777-MS Memory System - OpenAI Compatible API Gateway</title>
+    <meta name="description" content="777-MS智能记忆管理系统 - 通过模仿人脑的智能记忆管理，提供真正无限的上下文窗口长度。LLM自动管理记忆、知识库自动载入、艾宾浩斯智能复习。">
+    <meta name="keywords" content="AI记忆管理,LLM记忆,无限上下文,OpenAI API,知识库,艾宾浩斯复习,智能对话,AI助手">
+    <meta name="author" content="777-MS">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://memory.91wz.org/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="777-MS Memory System - 无限上下文智能记忆平台">
+    <meta property="og:description" content="通过模仿人脑的智能记忆管理系统，提供真正无限的上下文窗口长度。LLM自动管理记忆、知识库自动载入、艾宾浩斯智能复习。">
+    <meta property="og:url" content="https://memory.91wz.org/">
+    <meta property="og:site_name" content="777-MS Memory System">
+    <meta property="og:locale" content="zh_CN">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="777-MS Memory System - 无限上下文智能记忆平台">
+    <meta name="twitter:description" content="通过模仿人脑的智能记忆管理系统，提供真正无限的上下文窗口长度。">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: https:; connect-src 'self' https:;">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --bg-card-hover: #22222e;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --text-muted: #71717a;
+            --accent-blue: #3b82f6;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f97316;
+            --border-color: #27272a;
+            --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --gradient-glow: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+        
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-ghost {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+        }
+        
+        .btn-ghost:hover {
+            color: var(--text-primary);
+        }
+        
+        .btn-primary {
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--bg-card);
+            border-color: var(--text-muted);
+        }
+        
+        .hero {
+            padding: 160px 24px 80px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 800px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            background: var(--gradient-glow);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 50px;
+            font-size: 13px;
+            color: var(--accent-blue);
+            margin-bottom: 24px;
+        }
+        
+        .hero-badge i {
+            font-size: 12px;
+        }
+        
+        .hero h1 {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero h1 span {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        
+        .btn-large {
+            padding: 14px 28px;
+            font-size: 15px;
+        }
+        
+        .trust-badges {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            padding-top: 32px;
+            border-top: 1px solid var(--border-color);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .trust-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        
+        .trust-badge img {
+            height: 20px;
+            opacity: 0.6;
+        }
+        
+        .features {
+            padding: 80px 24px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+        
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-4px);
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .feature-icon.blue {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent-blue);
+        }
+        
+        .feature-icon.purple {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--accent-purple);
+        }
+        
+        .feature-icon.cyan {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
+        }
+        
+        .feature-card h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .stats {
+            padding: 60px 24px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 24px;
+        }
+        
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .code-section {
+            padding: 80px 24px;
+        }
+        
+        .code-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .code-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .code-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .code-tab {
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .code-tab.active {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
+        
+        .code-block {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .code-block-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .code-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .code-dot.red { background: #ff5f56; }
+        .code-dot.yellow { background: #ffbd2e; }
+        .code-dot.green { background: #27ca40; }
+        
+        .code-block pre {
+            padding: 20px;
+            margin: 0;
+            font-family: 'Fira Code', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            overflow-x: auto;
+            color: var(--text-secondary);
+        }
+        
+        .code-block code {
+            font-family: inherit;
+        }
+        
+        .code-keyword { color: var(--accent-purple); }
+        .code-string { color: var(--accent-green); }
+        .code-comment { color: var(--text-muted); }
+        .code-function { color: var(--accent-blue); }
+        .code-number { color: var(--accent-orange); }
+        
+        footer {
+            padding: 40px 24px;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+        
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+        
+        .footer-copyright {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+            }
+            
+            .trust-badges {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon"><i class="bi bi-cpu"></i></div>
+                777-MS
+            </a>
+            <div class="nav-links">
+                <a href="/docs">文档</a>
+                <a href="/pricing">定价</a>
+                <a href="/api">API</a>
+                <a href="/dashboard">控制台</a>
+            </div>
+            <div class="nav-buttons">
+                <a href="/login" class="btn btn-ghost">登录</a>
+                <a href="/register" class="btn btn-primary">免费开始</a>
+            </div>
+        </div>
+    </nav>
+    
+    <section class="hero">
+        <div class="container">
+            <div class="hero-badge">
+                <i class="bi bi-lightning-fill"></i>
+                AI 智能记忆管理系统
+            </div>
+            <h1>无限上下文<br><span>智能记忆平台</span></h1>
+            <p class="hero-subtitle">
+                通过模仿人脑的智能记忆管理系统，提供真正无限的上下文窗口长度。
+                LLM自动管理记忆、知识库自动载入、艾宾浩斯智能复习，让AI拥有持久记忆。
+            </p>
+            <div class="hero-buttons">
+                <a href="/register" class="btn btn-primary btn-large">
+                    <i class="bi bi-rocket-takeoff"></i>
+                    免费开始使用
+                </a>
+                <a href="/docs" class="btn btn-outline btn-large">
+                    <i class="bi bi-book"></i>
+                    查看文档
+                </a>
+            </div>
+            <div class="trust-badges">
+                <div class="trust-badge">
+                    <i class="bi bi-shield-check"></i>
+                    数据完全隔离
+                </div>
+                <div class="trust-badge">
+                    <i class="bi bi-robot"></i>
+                    LLM自动管理
+                </div>
+                <div class="trust-badge">
+                    <i class="bi bi-infinity"></i>
+                    无限上下文
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="features">
+        <div class="container">
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon blue">
+                        <i class="bi bi-brain"></i>
+                    </div>
+                    <h3>智能记忆管理</h3>
+                    <p>
+                        LLM自动提取、分类、存储重要信息。对话时自动载入相关记忆，
+                        实现真正无限的上下文窗口。
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon purple">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h3>艾宾浩斯复习</h3>
+                    <p>
+                        基于遗忘曲线的智能复习系统，自动安排复习计划。
+                        LLM自动生成复习问题，确保长期记忆保持。
+                    </p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon cyan">
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <h3>知识库自动载入</h3>
+                    <p>
+                        支持多种文件格式自动转化，知识库内容自动关联对话。
+                        向量化语义搜索，精准检索相关知识。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="stats">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">上下文窗口长度</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">23+</div>
+                    <div class="stat-label">支持的LLM提供商</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">用户数据隔离</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">自动</div>
+                    <div class="stat-label">记忆管理</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="code-section">
+        <div class="code-container">
+            <div class="code-header">
+                <h2 class="code-title">快速开始</h2>
+                <div class="code-tabs">
+                    <div class="code-tab active">cURL</div>
+                    <div class="code-tab">Python</div>
+                    <div class="code-tab">Node.js</div>
+                </div>
+            </div>
+            <div class="code-block">
+                <div class="code-block-header">
+                    <div class="code-dot red"></div>
+                    <div class="code-dot yellow"></div>
+                    <div class="code-dot green"></div>
+                </div>
+                <pre><code><span class="code-comment"># 只需更改 base_url，即可使用所有 OpenAI SDK</span>
+<span class="code-keyword">curl</span> https://memory.91wz.org/api/v1/chat/completions \
+  -H <span class="code-string">"Content-Type: application/json"</span> \
+  -H <span class="code-string">"Authorization: Bearer YOUR_API_KEY"</span> \
+  -d <span class="code-string">'{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'</span></code></pre>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="/docs">文档</a>
+                <a href="/api">API 参考</a>
+                <a href="/status">服务状态</a>
+                <a href="/privacy">隐私政策</a>
+            </div>
+            <div class="footer-copyright">
+                © 2025 777-MS Memory System. All rights reserved.
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        document.querySelectorAll('.code-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

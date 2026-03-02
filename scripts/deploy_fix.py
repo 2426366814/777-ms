@@ -1,0 +1,33 @@
+import paramiko
+
+ssh = paramiko.SSHClient()
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+try:
+    ssh.connect('134.185.111.25', port=1022, username='root', password='C^74+ek@dN', timeout=30)
+    print('SSH connected successfully!')
+    
+    # 上传修复后的 admin.html
+    sftp = ssh.open_sftp()
+    local = r'e:/ai本地应用/记忆体/777-ms/web/admin.html'
+    remote = '/home/wwwroot/memory.91wz.org/web/admin.html'
+    sftp.put(local, remote)
+    print(f'Uploaded: {remote}')
+    sftp.close()
+    
+    # 上传修复后的 admin.js
+    sftp = ssh.open_sftp()
+    local = r'e:/ai本地应用/记忆体/777-ms/src/routes/admin.js'
+    remote = '/home/wwwroot/memory.91wz.org/src/routes/admin.js'
+    sftp.put(local, remote)
+    print(f'Uploaded: {remote}')
+    sftp.close()
+    
+    # 重启服务
+    stdin, stdout, stderr = ssh.exec_command('pm2 restart 777-ms')
+    print(stdout.read().decode())
+    
+    print('Done!')
+    ssh.close()
+except Exception as e:
+    print(f'Error: {e}')

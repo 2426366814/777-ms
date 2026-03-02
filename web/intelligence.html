@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能功能 - 777-MS</title>
+    <link rel="stylesheet" href="styles.css?v=20260301-v3">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .provider-select {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .provider-select .list-item {
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .provider-option {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+        .provider-option:hover {
+            background: var(--bg-tertiary);
+        }
+        .provider-option.selected {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+        }
+        .model-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            margin-bottom: 12px;
+        }
+        .model-select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+        .extract-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .auto-tag-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .toggle-switch.active {
+            background: var(--accent-cyan);
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s;
+        }
+        .toggle-switch.active::after {
+            left: 23px;
+        }
+        .memory-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .memory-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .memory-type {
+            padding: 2px 8px;
+            background: rgba(0,255,170,0.1);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--accent-cyan);
+        }
+        .memory-importance {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .memory-content {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .memory-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .memory-tag {
+            padding: 2px 8px;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        .llm-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+        }
+        .status-dot.error {
+            background: var(--accent-red);
+        }
+        .status-dot.loading {
+            background: var(--accent-orange);
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>777-MS</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    仪表盘
+                </a>
+                <a href="/chat" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    对话记忆
+                </a>
+                <a href="/review" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    复习系统
+                </a>
+                <a href="/intelligence" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    智能提取
+                </a>
+                <a href="/knowledge" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    知识库
+                </a>
+                <a href="/visualization" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                    可视化
+                </a>
+                <a href="/providers" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    LLM路由
+                </a>
+                <a href="/api-docs" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    API文档
+                </a>
+                <a href="/admin" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    系统管理
+                </a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    个人资料
+                </a>
+                <button class="nav-item logout-btn" onclick="logout()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    退出登录
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="knowledge-header">
+                <h1>智能提取</h1>
+                <button class="btn btn-secondary" onclick="refreshData()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                    刷新
+                </button>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value" id="nodeCount">0</div>
+                    <div class="stat-label">记忆节点</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="edgeCount">0</div>
+                    <div class="stat-label">关系连接</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="entityCount">0</div>
+                    <div class="stat-label">实体数量</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="extractCount">0</div>
+                    <div class="stat-label">提取次数</div>
+                </div>
+            </div>
+
+            <div class="llm-status">
+                <div class="status-dot" id="llmStatusDot"></div>
+                <span id="llmStatusText">正在检查 LLM 提供商...</span>
+                <a href="/providers" style="margin-left: auto; color: var(--accent-cyan); font-size: 0.875rem;">配置提供商</a>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showPanel('extract')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                    记忆提取
+                </button>
+                <button class="tab" onclick="showPanel('tags')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    智能标签
+                </button>
+                <button class="tab" onclick="showPanel('importance')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    重要性评估
+                </button>
+                <button class="tab" onclick="showPanel('entities')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    实体管理
+                </button>
+                <button class="tab" onclick="showPanel('graph')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    知识图谱
+                </button>
+            </div>
+
+            <div id="extract-panel" class="panel">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">从对话提取记忆</h3>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">选择 LLM 提供商</label>
+                            <div class="provider-select" id="providerSelect"></div>
+                            <select class="model-select" id="modelSelect">
+                                <option value="">选择模型</option>
+                            </select>
+                        </div>
+                        
+                        <div class="auto-tag-toggle">
+                            <div class="toggle-switch active" id="autoTagToggle" onclick="toggleAutoTag()"></div>
+                            <span>自动生成标签</span>
+                        </div>
+                        
+                        <textarea class="form-input form-textarea" id="extractInput" placeholder="粘贴对话内容，AI将自动提取有价值的记忆..." rows="8"></textarea>
+                        
+                        <div class="extract-actions">
+                            <button class="btn btn-primary" onclick="extractMemories()" id="extractBtn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
+                                提取记忆
+                            </button>
+                            <button class="btn btn-secondary" onclick="clearExtract()">清空</button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">提取结果预览</h3>
+                            <span id="extractCountBadge" style="display:none;" class="badge badge-success">0 条</span>
+                        </div>
+                        <div id="extractPreview" style="max-height: 400px; overflow-y: auto;">
+                            <div class="empty-state">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3;"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
+                                <p>提取的记忆将显示在这里</p>
+                            </div>
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border-color);">
+                            <button class="btn btn-primary" id="saveBtn" style="display:none;" onclick="saveExtracted()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                保存到记忆库
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tags-panel" class="panel" style="display:none;">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">生成智能标签</h3>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">选择 LLM 提供商</label>
+                            <div class="provider-select" id="tagProviderSelect"></div>
+                        </div>
+                        <textarea class="form-input form-textarea" id="tagInput" placeholder="输入内容，AI将自动生成相关标签..." rows="6"></textarea>
+                        <div class="flex gap-2 mt-2">
+                            <button class="btn btn-primary" onclick="generateTags()">生成标签</button>
+                            <button class="btn btn-secondary" onclick="loadUntaggedMemories()">加载无标签记忆</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">生成的标签</h3>
+                            <button class="btn btn-secondary btn-sm" id="applyTagsBtn" style="display:none;" onclick="applyTagsToMemory()">应用到记忆</button>
+                        </div>
+                        <div id="tagResult" style="padding: 20px;">
+                            <div class="empty-state"><p>生成的标签将显示在这里</p></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3 class="card-title">批量标签处理</h3>
+                        <button class="btn btn-primary btn-sm" onclick="batchGenerateTags()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
+                            批量生成
+                        </button>
+                    </div>
+                    <div id="batchTagList" style="max-height: 400px; overflow-y: auto;">
+                        <div class="empty-state"><p>点击"加载无标签记忆"查看需要处理的记忆</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="importance-panel" class="panel" style="display:none;">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">评估记忆重要性</h3>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">选择 LLM 提供商</label>
+                            <div class="provider-select" id="importanceProviderSelect"></div>
+                        </div>
+                        <textarea class="form-input form-textarea" id="importanceInput" placeholder="输入内容，AI将评估其重要性..." rows="6"></textarea>
+                        <button class="btn btn-primary mt-2" onclick="assessImportance()">评估</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">评估结果</h3>
+                        </div>
+                        <div id="importanceResult" style="padding: 20px;">
+                            <div class="empty-state"><p>评估结果将显示在这里</p></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="entities-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">提取的实体</h3>
+                    </div>
+                    <div id="entitiesList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="graph-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">知识图谱可视化</h3>
+                    </div>
+                    <div class="chart-container large" id="graphContainer" style="height: 400px;">
+                        <canvas id="graphCanvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let extractedMemories = [];
+        let providers = [];
+        let selectedProvider = null;
+        let selectedModel = null;
+        let autoTagEnabled = true;
+
+        if (!token) window.location.href = '/';
+
+        function showToast(msg) { 
+            const t = document.getElementById('toast'); 
+            t.textContent = msg; 
+            t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 2000); 
+        }
+        
+        async function api(e, o = {}) { 
+            const r = await fetch(API_BASE + e, { 
+                ...o, 
+                headers: { 
+                    'Authorization': 'Bearer ' + token, 
+                    'Content-Type': 'application/json', 
+                    ...o.headers 
+                } 
+            }); 
+            return r.json(); 
+        }
+
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name + '-panel').style.display = 'block';
+            event.target.closest('.tab').classList.add('active');
+            
+            const loaders = { 
+                extract: () => {}, 
+                tags: () => {}, 
+                importance: () => {}, 
+                entities: loadEntities, 
+                graph: loadGraph 
+            };
+            if (loaders[name]) loaders[name]();
+        }
+
+        async function loadProviders() {
+            const statusDot = document.getElementById('llmStatusDot');
+            const statusText = document.getElementById('llmStatusText');
+            
+            statusDot.className = 'status-dot loading';
+            statusText.textContent = '正在检查 LLM 提供商...';
+            
+            try {
+                const res = await api('/providers/providers');
+                if (res.success) {
+                    providers = res.providers || [];
+                    
+                    if (providers.length === 0) {
+                        statusDot.className = 'status-dot error';
+                        statusText.textContent = '未配置 LLM 提供商，请先添加';
+                        return;
+                    }
+                    
+                    statusDot.className = 'status-dot';
+                    statusText.textContent = `${providers.length} 个 LLM 提供商可用`;
+                    
+                    renderProviderSelect('providerSelect');
+                    renderProviderSelect('tagProviderSelect');
+                    renderProviderSelect('importanceProviderSelect');
+                }
+            } catch (err) {
+                statusDot.className = 'status-dot error';
+                statusText.textContent = '加载提供商失败: ' + err.message;
+            }
+        }
+
+        function renderProviderSelect(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            container.innerHTML = providers.map((p, index) => `
+                <div class="list-item" style="display:flex;align-items:center;gap:10px;cursor:pointer;width:100%;box-sizing:border-box;${selectedProvider === p.id ? 'background:var(--bg-tertiary);' : ''}" onclick="selectProvider('${p.id}', '${containerId}')">
+                    <div class="item-index" style="min-width:24px;height:24px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.7rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                    <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.display_name || p.name}</div>
+                </div>
+            `).join('');
+            
+            if (!selectedProvider && providers.length > 0) {
+                selectProvider(providers[0].id, containerId);
+            }
+        }
+
+        function selectProvider(providerId, containerId) {
+            selectedProvider = providerId;
+            
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.querySelectorAll('.provider-option').forEach(opt => {
+                    opt.classList.toggle('selected', opt.textContent.trim() === (providers.find(p => p.id === providerId)?.display_name || providers.find(p => p.id === providerId)?.name));
+                });
+            }
+            
+            const provider = providers.find(p => p.id === providerId);
+            if (provider) {
+                updateModelSelect(provider);
+            }
+        }
+
+        function updateModelSelect(provider) {
+            const modelSelect = document.getElementById('modelSelect');
+            if (!modelSelect) return;
+            
+            let models = [];
+            try {
+                models = typeof provider.models === 'string' ? JSON.parse(provider.models) : (provider.models || []);
+            } catch { models = []; }
+            
+            if (provider.default_model) {
+                models.unshift(provider.default_model);
+            }
+            
+            modelSelect.innerHTML = '<option value="">选择模型</option>' + 
+                [...new Set(models)].map(m => `<option value="${m}">${m}</option>`).join('');
+            
+            if (provider.default_model) {
+                modelSelect.value = provider.default_model;
+                selectedModel = provider.default_model;
+            }
+            
+            modelSelect.onchange = () => {
+                selectedModel = modelSelect.value;
+            };
+        }
+
+        function toggleAutoTag() {
+            autoTagEnabled = !autoTagEnabled;
+            document.getElementById('autoTagToggle').classList.toggle('active', autoTagEnabled);
+        }
+
+        async function extractMemories() {
+            const content = document.getElementById('extractInput').value.trim();
+            if (!content) {
+                showToast('请输入对话内容');
+                return;
+            }
+            
+            if (!selectedProvider) {
+                showToast('请选择 LLM 提供商');
+                return;
+            }
+            
+            const btn = document.getElementById('extractBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<div class="spinner" style="width: 16px; height: 16px;"></div> 提取中...';
+            
+            try {
+                const data = await api('/intelligence/extract', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        message: content, 
+                        provider: selectedProvider,
+                        model: selectedModel,
+                        autoTag: autoTagEnabled
+                    })
+                });
+                
+                if (data.success && data.memories?.length > 0) {
+                    extractedMemories = data.memories;
+                    
+                    const el = document.getElementById('extractPreview');
+                    el.className = '';
+                    el.innerHTML = data.memories.map((m, i) => `
+                        <div class="memory-card" style="display:flex;align-items:flex-start;gap:12px;">
+                            <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${i + 1}</div>
+                            <div style="flex:1;min-width:0;">
+                                <div class="memory-card-header">
+                                    <span class="memory-type">${m.type || '记忆'}</span>
+                                    <span class="memory-importance">重要性: ${((m.importance || 0.5) * 100).toFixed(0)}%</span>
+                                </div>
+                                <div class="memory-content" style="overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;">${m.content}</div>
+                                ${m.tags?.length ? `
+                                    <div class="memory-tags">
+                                        ${m.tags.map(t => `<span class="memory-tag">#${t}</span>`).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('extractCountBadge').style.display = 'inline';
+                    document.getElementById('extractCountBadge').textContent = `${data.memories.length} 条`;
+                    document.getElementById('saveBtn').style.display = 'inline-flex';
+                    
+                    showToast(`成功提取 ${data.memories.length} 条记忆`);
+                } else {
+                    showToast('未提取到有价值的记忆');
+                    document.getElementById('extractPreview').innerHTML = '<div class="empty-state"><p>未提取到有价值的记忆</p></div>';
+                }
+            } catch (err) {
+                showToast('提取失败: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg> 提取记忆';
+            }
+        }
+
+        function clearExtract() {
+            document.getElementById('extractInput').value = '';
+            document.getElementById('extractPreview').innerHTML = '<div class="empty-state"><p>提取的记忆将显示在这里</p></div>';
+            document.getElementById('extractCountBadge').style.display = 'none';
+            document.getElementById('saveBtn').style.display = 'none';
+            extractedMemories = [];
+        }
+
+        async function saveExtracted() {
+            if (extractedMemories.length === 0) return;
+            
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = '保存中...';
+            
+            try {
+                const data = await api('/intelligence/save', {
+                    method: 'POST',
+                    body: JSON.stringify({ memories: extractedMemories })
+                });
+                
+                if (data.success) {
+                    showToast(`已保存 ${data.saved.length} 条记忆`);
+                    clearExtract();
+                    loadStats();
+                }
+            } catch (err) {
+                showToast('保存失败: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> 保存到记忆库';
+            }
+        }
+
+        async function generateTags() {
+            const content = document.getElementById('tagInput').value.trim();
+            if (!content) {
+                showToast('请输入内容');
+                return;
+            }
+            
+            document.getElementById('tagResult').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const data = await api('/intelligence/tags/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        content,
+                        provider: selectedProvider
+                    })
+                });
+                
+                if (data.success) {
+                    window.currentGeneratedTags = data.tags;
+                    document.getElementById('tagResult').innerHTML = `
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 16px;">
+                            ${data.tags.map(t => `<span class="memory-tag" style="padding: 8px 16px; font-size: 0.875rem;">#${t}</span>`).join('')}
+                        </div>
+                        <div style="padding: 16px; border-top: 1px solid var(--border-color);">
+                            <button class="btn btn-secondary" onclick="copyTags([${data.tags.map(t => `'${t}'`).join(',')}])">
+                                复制所有标签
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('tagResult').innerHTML = `<div class="empty-state"><p style="color: var(--accent-red);">生成失败: ${err.message}</p></div>`;
+            }
+        }
+        
+        let untaggedMemories = [];
+        let currentTagMemory = null;
+        
+        async function loadUntaggedMemories() {
+            try {
+                const data = await api('/memories?limit=20');
+                if (data.success && data.data?.memories) {
+                    untaggedMemories = data.data.memories.filter(m => !m.tags || m.tags.length === 0);
+                    
+                    if (untaggedMemories.length === 0) {
+                        document.getElementById('batchTagList').innerHTML = '<div class="empty-state"><p>所有记忆都已有标签</p></div>';
+                        return;
+                    }
+                    
+                    renderBatchTagList();
+                    showToast(`找到 ${untaggedMemories.length} 条无标签记忆`);
+                }
+            } catch (err) {
+                showToast('加载失败: ' + err.message);
+            }
+        }
+        
+        function renderBatchTagList() {
+            const el = document.getElementById('batchTagList');
+            el.className = '';
+            el.innerHTML = untaggedMemories.map((m, i) => `
+                <div class="list-item" id="batch-item-${m.id}" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                    <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${i + 1}</div>
+                    <div class="list-item-content" style="flex:1;min-width:0;">
+                        <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.content || ''}">${(m.content || '').substring(0, 60)}${m.content?.length > 60 ? '...' : ''}</div>
+                        <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                            <span>重要性: ${m.importance || 5}</span>
+                            <span>·</span>
+                            <span>${m.created_at ? new Date(m.created_at).toLocaleDateString() : ''}</span>
+                        </div>
+                    </div>
+                    <div id="tags-${m.id}" style="display: flex; gap: 4px; flex-wrap: wrap; max-width: 200px; flex-shrink:0;">
+                        ${m.tags?.length ? m.tags.map(t => `<span class="memory-tag">#${t}</span>`).join('') : '<span style="color: var(--text-muted); font-size: 0.75rem;">无标签</span>'}
+                    </div>
+                    <button class="btn btn-secondary btn-sm flex-shrink-0" onclick="generateTagsForMemory(${i})">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        async function generateTagsForMemory(index) {
+            const memory = untaggedMemories[index];
+            if (!memory) return;
+            
+            currentTagMemory = memory;
+            const tagsContainer = document.getElementById(`tags-${memory.id}`);
+            tagsContainer.innerHTML = '<div class="spinner" style="width: 16px; height: 16px;"></div>';
+            
+            try {
+                const data = await api('/intelligence/tags/generate', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        content: memory.content,
+                        provider: selectedProvider
+                    })
+                });
+                
+                if (data.success && data.tags?.length > 0) {
+                    memory.generatedTags = data.tags;
+                    tagsContainer.innerHTML = data.tags.map(t => 
+                        `<span class="memory-tag" style="cursor: pointer;" onclick="removeTag(${index}, '${t}')">#${t}</span>`
+                    ).join('');
+                    
+                    const applyBtn = document.createElement('button');
+                    applyBtn.className = 'btn btn-primary btn-sm';
+                    applyBtn.style.marginLeft = '8px';
+                    applyBtn.textContent = '应用';
+                    applyBtn.onclick = () => applyTagsToMemoryDirect(index);
+                    tagsContainer.appendChild(applyBtn);
+                } else {
+                    tagsContainer.innerHTML = '<span style="color: var(--text-muted);">无法生成标签</span>';
+                }
+            } catch (err) {
+                tagsContainer.innerHTML = `<span style="color: var(--accent-red);">失败</span>`;
+            }
+        }
+        
+        function removeTag(memoryIndex, tag) {
+            const memory = untaggedMemories[memoryIndex];
+            if (memory?.generatedTags) {
+                memory.generatedTags = memory.generatedTags.filter(t => t !== tag);
+                const tagsContainer = document.getElementById(`tags-${memory.id}`);
+                tagsContainer.innerHTML = memory.generatedTags.map(t => 
+                    `<span class="memory-tag" style="cursor: pointer;" onclick="removeTag(${memoryIndex}, '${t}')">#${t}</span>`
+                ).join('');
+            }
+        }
+        
+        async function applyTagsToMemoryDirect(index) {
+            const memory = untaggedMemories[index];
+            if (!memory?.generatedTags?.length) return;
+            
+            try {
+                const data = await api(`/memories/${memory.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ tags: memory.generatedTags })
+                });
+                
+                if (data.success) {
+                    memory.tags = memory.generatedTags;
+                    const tagsContainer = document.getElementById(`tags-${memory.id}`);
+                    tagsContainer.innerHTML = memory.tags.map(t => `<span class="memory-tag">#${t}</span>`).join('');
+                    showToast('标签已应用');
+                }
+            } catch (err) {
+                showToast('应用失败: ' + err.message);
+            }
+        }
+        
+        async function batchGenerateTags() {
+            if (untaggedMemories.length === 0) {
+                showToast('请先加载无标签记忆');
+                return;
+            }
+            
+            if (!selectedProvider) {
+                showToast('请选择 LLM 提供商');
+                return;
+            }
+            
+            showToast('开始批量生成标签...');
+            
+            for (let i = 0; i < Math.min(untaggedMemories.length, 5); i++) {
+                await generateTagsForMemory(i);
+                await new Promise(r => setTimeout(r, 500));
+            }
+            
+            showToast('批量生成完成');
+        }
+
+        function copyTags(tags) {
+            navigator.clipboard.writeText(tags.map(t => `#${t}`).join(' '));
+            showToast('标签已复制');
+        }
+
+        async function assessImportance() {
+            const content = document.getElementById('importanceInput').value.trim();
+            if (!content) {
+                showToast('请输入内容');
+                return;
+            }
+            
+            document.getElementById('importanceResult').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const data = await api('/intelligence/importance/assess', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        content,
+                        provider: selectedProvider
+                    })
+                });
+                
+                if (data.success) {
+                    const percent = ((data.importance || 0.5) * 100).toFixed(0);
+                    let level = '一般';
+                    let color = 'var(--accent-cyan)';
+                    
+                    if (data.importance >= 0.9) { level = '非常重要'; color = 'var(--accent-red)'; }
+                    else if (data.importance >= 0.7) { level = '重要'; color = 'var(--accent-orange)'; }
+                    else if (data.importance >= 0.5) { level = '一般'; color = 'var(--accent-cyan)'; }
+                    else if (data.importance >= 0.3) { level = '较低'; color = 'var(--accent-blue)'; }
+                    else { level = '不重要'; color = 'var(--text-secondary)'; }
+                    
+                    document.getElementById('importanceResult').innerHTML = `
+                        <div style="text-align: center; padding: 24px;">
+                            <div style="font-size: 3rem; font-weight: 700; color: ${color};">${percent}%</div>
+                            <div style="font-size: 1.25rem; margin-top: 8px;">${level}</div>
+                            <div style="background: var(--bg-secondary); border-radius: 8px; height: 12px; margin-top: 16px; overflow: hidden;">
+                                <div style="background: ${color}; height: 100%; width: ${percent}%; transition: width 0.5s;"></div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('importanceResult').innerHTML = `<div class="empty-state"><p style="color: var(--accent-red);">评估失败: ${err.message}</p></div>`;
+            }
+        }
+
+        async function loadEntities() {
+            const data = await api('/intelligence/entities');
+            if (data.success) {
+                const colors = { person: '#22C55E', place: '#3B82F6', event: '#F97316', concept: '#A855F7', other: '#06B6D4' };
+                const entities = data.entities || [];
+                document.getElementById('entitiesList').innerHTML = entities.length ? 
+                    entities.map((e, index) => `
+                        <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                            <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                            <div class="list-item-content" style="flex:1;min-width:0;">
+                                <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${e.entity_name || ''}">${e.entity_name}</div>
+                                <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">出现 ${e.frequency} 次</div>
+                            </div>
+                            <span class="badge badge-info flex-shrink-0">${e.entity_type}</span>
+                        </div>
+                    `).join('') : 
+                    '<div class="empty-state"><p>暂无实体数据</p></div>';
+            }
+        }
+
+        async function loadGraph() {
+            const stats = await api('/intelligence/graph/stats');
+            if (stats.success) {
+                document.getElementById('nodeCount').textContent = stats.stats?.nodeCount || 0;
+                document.getElementById('edgeCount').textContent = stats.stats?.edgeCount || 0;
+                document.getElementById('entityCount').textContent = stats.stats?.topEntities?.length || 0;
+            }
+            
+            const graph = await api('/intelligence/graph?limit=30');
+            if (graph.success) renderGraph(graph);
+        }
+
+        function renderGraph(data) {
+            const container = document.getElementById('graphContainer');
+            const canvas = document.getElementById('graphCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = container.offsetWidth;
+            canvas.height = container.offsetHeight;
+            
+            const nodes = data.nodes || [];
+            const edges = data.edges || [];
+            
+            const nodePositions = nodes.map((n, i) => ({
+                x: 50 + Math.random() * (canvas.width - 100),
+                y: 50 + Math.random() * (canvas.height - 100),
+                ...n
+            }));
+            
+            ctx.strokeStyle = 'rgba(0, 255, 170, 0.2)';
+            ctx.lineWidth = 1;
+            edges.forEach(e => {
+                const source = nodePositions.find(n => n.id === e.source);
+                const target = nodePositions.find(n => n.id === e.target);
+                if (source && target) {
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.stroke();
+                }
+            });
+            
+            const colors = { person: '#22C55E', place: '#3B82F6', event: '#F97316', concept: '#A855F7', other: '#06B6D4' };
+            nodePositions.forEach(n => {
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, 5 + (n.weight || 0.5) * 10, 0, Math.PI * 2);
+                ctx.fillStyle = colors[n.type] || '#00FFAA';
+                ctx.fill();
+                
+                ctx.fillStyle = '#F8FAFC';
+                ctx.font = '11px Fira Sans';
+                ctx.textAlign = 'center';
+                ctx.fillText(n.name, n.x, n.y + 20);
+            });
+        }
+
+        async function loadStats() {
+            const stats = await api('/intelligence/graph/stats');
+            if (stats.success) {
+                document.getElementById('nodeCount').textContent = stats.stats?.nodeCount || 0;
+                document.getElementById('edgeCount').textContent = stats.stats?.edgeCount || 0;
+                document.getElementById('entityCount').textContent = stats.stats?.topEntities?.length || 0;
+            }
+        }
+
+        function refreshData() {
+            showToast('正在刷新...');
+            loadProviders();
+            loadStats();
+        }
+
+        loadProviders();
+        loadStats();
+    </script>
+</body>
+</html>

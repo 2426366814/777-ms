@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识库 - 777-MS 记忆系统</title>
+    <link rel="stylesheet" href="styles.css?v=20260228-v2">
+    <style>
+        .knowledge-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .knowledge-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-chip {
+            padding: 8px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-chip:hover {
+            background: var(--bg-tertiary);
+        }
+        .filter-chip.active {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border-color: var(--accent-cyan);
+        }
+        .knowledge-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .knowledge-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .knowledge-card:hover {
+            border-color: var(--accent-cyan);
+            transform: translateY(-2px);
+        }
+        .knowledge-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        .knowledge-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .knowledge-source {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .knowledge-content {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .knowledge-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .knowledge-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .knowledge-tag {
+            padding: 2px 8px;
+            background: rgba(0,255,170,0.1);
+            border-radius: 10px;
+            font-size: 0.7rem;
+            color: var(--accent-cyan);
+        }
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 24px;
+        }
+        .upload-zone:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0,255,170,0.05);
+        }
+        .upload-zone.dragover {
+            border-color: var(--accent-cyan);
+            background: rgba(0,255,170,0.1);
+        }
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            color: var(--text-secondary);
+        }
+        .upload-text {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .upload-hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+        .form-textarea {
+            min-height: 200px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+            border: none;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .btn-danger {
+            background: rgba(239,68,68,0.15);
+            color: #EF4444;
+            border: 1px solid transparent;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                    <span>777-MS</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    仪表盘
+                </a>
+                <a href="/chat" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    对话记忆
+                </a>
+                <a href="/review" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    复习系统
+                </a>
+                <a href="/intelligence" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    智能提取
+                </a>
+                <a href="/knowledge" class="nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    知识库
+                </a>
+                <a href="/visualization" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="2"/><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                    可视化
+                </a>
+                <a href="/providers" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    LLM路由
+                </a>
+                <a href="/api-docs" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    API文档
+                </a>
+                <a href="/admin" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    系统管理
+                </a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    个人资料
+                </a>
+                <button class="nav-item logout-btn" onclick="logout()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    退出登录
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="knowledge-header">
+                <h1>知识库</h1>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    添加知识
+                </button>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-value" id="totalKnowledge">0</div>
+                    <div class="stat-label">知识条目</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalCategories">0</div>
+                    <div class="stat-label">分类</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalUploads">0</div>
+                    <div class="stat-label">上传文档</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="totalSize">0 KB</div>
+                    <div class="stat-label">总内容量</div>
+                </div>
+            </div>
+
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.pdf,.doc,.docx,.html" onchange="handleFileUpload(event)">
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                <div class="upload-text">拖拽文件到此处或点击上传</div>
+                <div class="upload-hint">支持 TXT, MD, PDF, DOC, DOCX, HTML 格式，最大 50MB</div>
+            </div>
+
+            <div class="search-bar">
+                <label for="searchInput" class="visually-hidden">搜索知识库</label>
+                <input type="text" id="searchInput" name="searchInput" placeholder="搜索知识库..." onkeyup="handleSearch(event)">
+                <button class="btn btn-secondary" onclick="searchKnowledge()">搜索</button>
+            </div>
+
+            <div class="filter-bar" id="filterBar">
+                <div class="filter-chip active" onclick="filterBySource('all')">全部</div>
+                <div class="filter-chip" onclick="filterBySource('manual')">手动添加</div>
+                <div class="filter-chip" onclick="filterBySource('upload')">上传文档</div>
+            </div>
+
+            <div class="knowledge-grid" id="knowledgeList">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="knowledgeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">添加知识</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="knowledgeForm">
+                    <input type="hidden" id="knowledgeId" name="knowledgeId">
+                    
+                    <div class="form-group">
+                        <label for="knowledgeTitle" class="form-label">标题 *</label>
+                        <input type="text" class="form-input" id="knowledgeTitle" name="knowledgeTitle" placeholder="知识标题" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="knowledgeContent" class="form-label">内容 *</label>
+                        <textarea class="form-input form-textarea" id="knowledgeContent" name="knowledgeContent" placeholder="输入知识内容..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="knowledgeCategory" class="form-label">分类</label>
+                        <input type="text" class="form-input" id="knowledgeCategory" name="knowledgeCategory" placeholder="例如: 编程、学习、工作">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="knowledgeTags" class="form-label">标签（用逗号分隔）</label>
+                        <input type="text" class="form-input" id="knowledgeTags" name="knowledgeTags" placeholder="例如: JavaScript, 教程, 前端">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-danger" id="deleteBtn" style="display:none;" onclick="deleteKnowledge()">删除</button>
+                <button class="btn btn-primary" onclick="saveKnowledge()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="viewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="viewTitle">查看知识</h3>
+                <button class="modal-close" onclick="closeViewModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="viewContent" style="white-space: pre-wrap; line-height: 1.8;"></div>
+                <div id="viewMeta" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-color); font-size: 0.875rem; color: var(--text-secondary);"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1/knowledge';
+        let token = localStorage.getItem('token');
+        let allKnowledge = [];
+        let editingKnowledge = null;
+        let currentFilter = 'all';
+
+        if (!token) window.location.href = '/';
+
+        function showToast(msg) { 
+            const t = document.getElementById('toast'); 
+            t.textContent = msg; 
+            t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 2000); 
+        }
+        
+        function escapeHtml(str) { 
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); 
+        }
+        
+        async function api(e, o = {}) { 
+            const r = await fetch(API_BASE + e, { 
+                ...o, 
+                headers: { 
+                    'Authorization': 'Bearer ' + token, 
+                    'Content-Type': 'application/json', 
+                    ...o.headers 
+                } 
+            }); 
+            return r.json(); 
+        }
+
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        async function loadKnowledge() {
+            const res = await api('/');
+            if (res.success) {
+                allKnowledge = res.data.knowledge || [];
+                updateStats();
+                renderKnowledge();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('totalKnowledge').textContent = allKnowledge.length;
+            
+            const categories = new Set(allKnowledge.map(k => k.category_id).filter(Boolean));
+            document.getElementById('totalCategories').textContent = categories.size;
+            
+            const uploads = allKnowledge.filter(k => k.source === 'upload').length;
+            document.getElementById('totalUploads').textContent = uploads;
+            
+            const totalSize = allKnowledge.reduce((sum, k) => sum + (k.content?.length || 0), 0);
+            document.getElementById('totalSize').textContent = formatSize(totalSize);
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function renderKnowledge() {
+            let filtered = allKnowledge;
+            
+            if (currentFilter !== 'all') {
+                filtered = allKnowledge.filter(k => k.source === currentFilter);
+            }
+            
+            if (filtered.length === 0) {
+                document.getElementById('knowledgeList').innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        <p>暂无知识条目</p>
+                        <p style="font-size: 0.875rem;">点击上方按钮添加知识或上传文档</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const el = document.getElementById('knowledgeList');
+            el.className = '';
+            el.innerHTML = filtered.map((k, index) => `
+                <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" onclick="viewKnowledge('${k.id}')">
+                    <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                    <div class="list-item-content" style="flex:1;min-width:0;">
+                        <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(k.title || '')}">${escapeHtml((k.title || '无标题').substring(0, 60))}${(k.title || '').length > 60 ? '...' : ''}</div>
+                        <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k.source === 'upload' ? '上传文档' : '手动添加'} · ${new Date(k.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <button class="btn btn-danger btn-sm flex-shrink-0" onclick="event.stopPropagation(); deleteKnowledge('${k.id}')">删除</button>
+                </div>
+            `).join('');
+        }
+
+        function filterBySource(source) {
+            currentFilter = source;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            renderKnowledge();
+        }
+
+        function handleSearch(e) {
+            if (e.key === 'Enter') {
+                searchKnowledge();
+            }
+        }
+
+        async function searchKnowledge() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) {
+                loadKnowledge();
+                return;
+            }
+            
+            const res = await api('/search', {
+                method: 'POST',
+                body: JSON.stringify({ query })
+            });
+            
+            if (res.success) {
+                allKnowledge = res.data.results || [];
+                renderKnowledge();
+            }
+        }
+
+        function openAddModal() {
+            editingKnowledge = null;
+            document.getElementById('modalTitle').textContent = '添加知识';
+            document.getElementById('deleteBtn').style.display = 'none';
+            document.getElementById('knowledgeForm').reset();
+            document.getElementById('knowledgeModal').classList.add('active');
+        }
+
+        async function viewKnowledge(id) {
+            const knowledge = allKnowledge.find(k => k.id === id);
+            if (!knowledge) return;
+            
+            document.getElementById('viewTitle').textContent = knowledge.title || '无标题';
+            document.getElementById('viewContent').textContent = knowledge.content || '';
+            document.getElementById('viewMeta').innerHTML = `
+                <div>来源: ${knowledge.source === 'upload' ? '上传文档' : '手动添加'}</div>
+                <div>创建时间: ${new Date(knowledge.created_at).toLocaleString()}</div>
+                ${knowledge.updated_at ? `<div>更新时间: ${new Date(knowledge.updated_at).toLocaleString()}</div>` : ''}
+            `;
+            
+            document.getElementById('viewModal').classList.add('active');
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('active');
+        }
+
+        async function editKnowledge(id) {
+            const knowledge = allKnowledge.find(k => k.id === id);
+            if (!knowledge) return;
+            
+            editingKnowledge = knowledge;
+            document.getElementById('modalTitle').textContent = '编辑知识';
+            document.getElementById('deleteBtn').style.display = 'block';
+            
+            document.getElementById('knowledgeId').value = knowledge.id;
+            document.getElementById('knowledgeTitle').value = knowledge.title || '';
+            document.getElementById('knowledgeContent').value = knowledge.content || '';
+            document.getElementById('knowledgeCategory').value = knowledge.category_id || '';
+            
+            document.getElementById('knowledgeModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('knowledgeModal').classList.remove('active');
+        }
+
+        async function saveKnowledge() {
+            const title = document.getElementById('knowledgeTitle').value.trim();
+            const content = document.getElementById('knowledgeContent').value.trim();
+            const category = document.getElementById('knowledgeCategory').value.trim();
+            const tags = document.getElementById('knowledgeTags').value.split(',').map(t => t.trim()).filter(t => t);
+            
+            if (!title || !content) {
+                showToast('请填写标题和内容');
+                return;
+            }
+            
+            const data = { title, content, category, tags };
+            
+            let res;
+            if (editingKnowledge) {
+                res = await api(`/${editingKnowledge.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(data)
+                });
+            } else {
+                res = api('/', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+            }
+            
+            if (res.success) {
+                showToast(editingKnowledge ? '知识更新成功' : '知识添加成功');
+                closeModal();
+                loadKnowledge();
+            } else {
+                showToast(res.message || '操作失败');
+            }
+        }
+
+        async function deleteKnowledge() {
+            if (!editingKnowledge || !confirm('确定要删除此知识条目吗？')) return;
+            
+            const res = await api(`/${editingKnowledge.id}`, { method: 'DELETE' });
+            if (res.success) {
+                showToast('知识已删除');
+                closeModal();
+                loadKnowledge();
+            } else {
+                showToast(res.message || '删除失败');
+            }
+        }
+
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            showToast('正在上传文档...');
+            
+            const res = await fetch(API_BASE + '/upload', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + token },
+                body: formData
+            }).then(r => r.json());
+            
+            if (res.success) {
+                showToast('文档上传成功');
+                loadKnowledge();
+            } else {
+                showToast(res.message || '上传失败');
+            }
+            
+            event.target.value = '';
+        }
+
+        const uploadZone = document.getElementById('uploadZone');
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                showToast('正在上传文档...');
+                
+                fetch(API_BASE + '/upload', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    body: formData
+                }).then(r => r.json()).then(res => {
+                    if (res.success) {
+                        showToast('文档上传成功');
+                        loadKnowledge();
+                    } else {
+                        showToast(res.message || '上传失败');
+                    }
+                });
+            }
+        });
+
+        loadKnowledge();
+    </script>
+</body>
+</html>

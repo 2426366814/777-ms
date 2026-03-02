@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 对话 - 777-MS</title>
+    <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+    <style>
+        .chat-container { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px; }
+        .message { margin-bottom: 16px; max-width: 80%; }
+        .message.user { margin-left: auto; }
+        .message.assistant { margin-right: auto; }
+        .message-content { padding: 12px 16px; border-radius: 12px; line-height: 1.5; }
+        .message.user .message-content { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .message.assistant .message-content { background: var(--card-bg); border: 1px solid var(--border-color); }
+        .message-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .message.user .message-meta { text-align: right; }
+        .chat-input-area { padding: 16px; border-top: 1px solid var(--border-color); background: var(--card-bg); }
+        .chat-input-wrapper { display: flex; gap: 8px; }
+        .chat-input { flex: 1; resize: none; min-height: 44px; max-height: 120px; }
+        .provider-select { min-width: 120px; }
+        .session-list { max-height: 300px; overflow-y: auto; }
+        .session-item { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+        .session-item:hover { background: rgba(255,255,255,0.05); }
+        .session-item.active { background: rgba(102,126,234,0.2); border-left: 3px solid var(--accent-blue); }
+        .typing-indicator { display: inline-flex; gap: 4px; padding: 8px 12px; }
+        .typing-indicator span { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; animation: typing 1.4s infinite; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+        .memory-toggle { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-secondary); border-radius: 8px; margin-right: 8px; }
+        .memory-toggle input { width: 18px; height: 18px; cursor: pointer; }
+        .memory-toggle label { cursor: pointer; font-size: 0.875rem; }
+        .memory-indicator { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(0,255,170,0.1); border-radius: 4px; font-size: 0.75rem; color: var(--accent-cyan); }
+        .memory-indicator.disabled { background: rgba(255,255,255,0.1); color: var(--text-muted); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <span class="sidebar-logo-text">777-MS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>概览</a>
+                <a href="/chat" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>对话</a>
+                <a href="/intelligence" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>智能功能</a>
+                <a href="/review" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆复习</a>
+                <a href="/visualization" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>数据可视化</a>
+                <a href="/security" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>安全设置</a>
+                <a href="/providers" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>LLM路由</a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
+                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">AI 对话</h1>
+                <div class="page-actions">
+                    <div class="memory-toggle">
+                        <input type="checkbox" id="memoryToggle" checked>
+                        <label for="memoryToggle">记忆载入</label>
+                    </div>
+                    <select class="input provider-select" id="providerSelect" onchange="changeProvider()">
+                        <option value="">选择提供商</option>
+                    </select>
+                    <button class="btn btn-primary btn-sm" onclick="newSession()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        新对话
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid" style="grid-template-columns: 260px 1fr; gap: 0; height: calc(100vh - 120px);">
+                <div class="card" style="border-radius: 0; border-right: 1px solid var(--border-color);">
+                    <div class="card-header">
+                        <h3 class="card-title">会话历史</h3>
+                    </div>
+                    <div id="sessionList" class="session-list loading"><div class="spinner"></div></div>
+                </div>
+
+                <div class="chat-container">
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="empty-state" style="padding: 60px;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin-bottom: 16px; opacity: 0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <p>选择或创建一个会话开始对话</p>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <div class="chat-input-wrapper">
+                            <textarea class="input chat-input" id="messageInput" placeholder="输入消息... (Enter发送, Shift+Enter换行)" rows="1" onkeydown="handleKeydown(event)"></textarea>
+                            <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let currentSession = null;
+        let providers = [];
+        let selectedProvider = null;
+
+        if (!token) window.location.href = '/';
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        async function api(e, o = {}) { const r = await fetch(API_BASE + e, { ...o, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...o.headers } }); return r.json(); }
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        async function loadProviders() {
+            const data = await api('/llm/providers');
+            if (data.success && data.data?.providers) {
+                providers = data.data.providers;
+                const select = document.getElementById('providerSelect');
+                select.innerHTML = '<option value="">选择提供商</option>' + providers.map(p => `<option value="${p.id}">${p.display_name || p.name}</option>`).join('');
+                if (providers.length > 0) { select.value = providers[0].id; selectedProvider = providers[0]; }
+            }
+        }
+
+        async function loadSessions() {
+            const data = await api('/sessions');
+            const list = document.getElementById('sessionList');
+            if (data.success) {
+                const sessions = data.data?.sessions || [];
+                list.innerHTML = sessions.length ? sessions.map((s, index) => `
+                    <div class="session-item ${currentSession?.id === s.id ? 'active' : ''}" onclick="loadSession('${s.id}')" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;cursor:pointer;${currentSession?.id === s.id ? 'background:var(--bg-tertiary);' : ''}">
+                        <div class="item-index" style="min-width:24px;height:24px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.7rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.title || '新对话'}">${s.title || '新对话'}</div>
+                            <div style="font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.createdAt ? new Date(s.createdAt).toLocaleString() : ''}</div>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无会话</p></div>';
+            } else {
+                list.innerHTML = '<div class="empty-state"><p>暂无会话</p></div>';
+            }
+        }
+
+        async function loadSession(id) {
+            currentSession = { id };
+            const data = await api('/sessions/' + id + '/messages');
+            if (data.success) {
+                const messages = data.data?.messages || [];
+                const container = document.getElementById('chatMessages');
+                container.innerHTML = messages.length ? messages.map(m => `
+                    <div class="message ${m.role}">
+                        <div class="message-content">${formatContent(m.content)}</div>
+                        <div class="message-meta">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</div>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>开始对话吧</p></div>';
+                container.scrollTop = container.scrollHeight;
+            }
+            loadSessions();
+        }
+
+        async function newSession() {
+            const data = await api('/sessions', { method: 'POST', body: JSON.stringify({ title: '新对话' }) });
+            if (data.success && data.data?.session) {
+                currentSession = data.data.session;
+                document.getElementById('chatMessages').innerHTML = '<div class="empty-state"><p>开始对话吧</p></div>';
+                loadSessions();
+            }
+        }
+
+        function changeProvider() {
+            const id = document.getElementById('providerSelect').value;
+            selectedProvider = providers.find(p => p.id === id);
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            if (!content) return;
+            if (!currentSession) await newSession();
+            if (!selectedProvider) { showToast('请选择提供商'); return; }
+
+            const includeMemory = document.getElementById('memoryToggle').checked;
+            
+            input.value = '';
+            input.style.height = 'auto';
+
+            const container = document.getElementById('chatMessages');
+            if (container.querySelector('.empty-state')) container.innerHTML = '';
+
+            let memoryIndicator = includeMemory ? '<span class="memory-indicator"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>载入记忆</span>' : '';
+            
+            container.innerHTML += `<div class="message user"><div class="message-content">${escapeHtml(content)} ${memoryIndicator}</div><div class="message-meta">刚刚</div></div>`;
+            container.innerHTML += `<div class="typing" style="text-align: center; padding: 16px;"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+            container.scrollTop = container.scrollHeight;
+
+            try {
+                const data = await api('/chat', { 
+                    method: 'POST', 
+                    body: JSON.stringify({ 
+                        message: content, 
+                        sessionId: currentSession.id, 
+                        providerId: selectedProvider.id,
+                        includeMemory: includeMemory
+                    }) 
+                });
+                container.querySelector('.typing')?.remove();
+                if (data.success && data.data?.response) {
+                    let memBadge = data.data.memoryLoaded ? '<span class="memory-indicator">已载入记忆上下文</span><br>' : '';
+                    container.innerHTML += `<div class="message assistant"><div class="message-content">${memBadge}${formatContent(data.data.response)}</div><div class="message-meta">刚刚</div></div>`;
+                } else {
+                    container.innerHTML += `<div class="message assistant"><div class="message-content" style="color: var(--accent-red);">请求失败: ${data.message || '未知错误'}</div></div>`;
+                }
+            } catch (e) {
+                container.querySelector('.typing')?.remove();
+                container.innerHTML += `<div class="message assistant"><div class="message-content" style="color: var(--accent-red);">网络错误</div></div>`;
+            }
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function handleKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        }
+
+        function escapeHtml(t) { return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+        function formatContent(t) { return escapeHtml(t).replace(/\n/g, '<br>').replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0;"><code>$2</code></pre>').replace(/`([^`]+)`/g, '<code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">$1</code>'); }
+
+        loadProviders();
+        loadSessions();
+    </script>
+</body>
+</html>

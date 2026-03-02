@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据可视化 - 777-MS</title>
+    <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <span class="sidebar-logo-text">777-MS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>概览</a>
+                <a href="/chat" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>对话</a>
+                <a href="/intelligence" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>智能功能</a>
+                <a href="/review" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆复习</a>
+                <a href="/visualization" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>数据可视化</a>
+                <a href="/security" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>安全设置</a>
+                <a href="/providers" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>LLM路由</a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
+                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">数据可视化</h1>
+                <div class="page-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="refreshAll()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>刷新</button>
+                </div>
+            </header>
+
+            <div class="grid grid-4 mb-4">
+                <div class="stat-card"><div class="stat-value" id="totalMemories">0</div><div class="stat-label">总记忆数</div></div>
+                <div class="stat-card"><div class="stat-value" id="thisWeek">0</div><div class="stat-label">本周新增</div></div>
+                <div class="stat-card"><div class="stat-value" id="avgImportance">0</div><div class="stat-label">平均重要性</div></div>
+                <div class="stat-card"><div class="stat-value" id="uniqueTags">0</div><div class="stat-label">标签种类</div></div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showPanel('overview')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>总览</button>
+                <button class="tab" onclick="showPanel('heatmap')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>热力图</button>
+                <button class="tab" onclick="showPanel('timeline')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>时间线</button>
+                <button class="tab" onclick="showPanel('wordcloud')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>词云</button>
+                <button class="tab" onclick="showPanel('emotion')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>情感分析</button>
+            </div>
+
+            <div id="overview-panel" class="panel">
+                <div class="grid grid-2">
+                    <div class="card"><div class="card-header"><h3 class="card-title">记忆增长趋势</h3></div><div class="chart-container"><canvas id="growthChart"></canvas></div></div>
+                    <div class="card"><div class="card-header"><h3 class="card-title">重要性分布</h3></div><div class="chart-container"><canvas id="importanceChart"></canvas></div></div>
+                </div>
+                <div class="grid grid-2 mt-3">
+                    <div class="card"><div class="card-header"><h3 class="card-title">活跃时段分布</h3></div><div class="chart-container"><canvas id="hourChart"></canvas></div></div>
+                    <div class="card"><div class="card-header"><h3 class="card-title">星期分布</h3></div><div class="chart-container"><canvas id="dayChart"></canvas></div></div>
+                </div>
+            </div>
+
+            <div id="heatmap-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">年度活动热力图</h3></div>
+                    <div id="heatmapContainer" style="display:grid;grid-template-columns:repeat(53,1fr);gap:3px;"></div>
+                </div>
+            </div>
+
+            <div id="timeline-panel" class="panel" style="display:none;">
+                <div class="card"><div class="card-header"><h3 class="card-title">记忆时间线</h3></div><div id="timelineList"></div></div>
+            </div>
+
+            <div id="wordcloud-panel" class="panel" style="display:none;">
+                <div class="grid grid-2">
+                    <div class="card"><div class="card-header"><h3 class="card-title">标签词云</h3></div><div id="tagWordcloud" style="min-height:300px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;"></div></div>
+                    <div class="card"><div class="card-header"><h3 class="card-title">内容词云</h3></div><div id="contentWordcloud" style="min-height:300px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;"></div></div>
+                </div>
+            </div>
+
+            <div id="emotion-panel" class="panel" style="display:none;">
+                <div class="card"><div class="card-header"><h3 class="card-title">情感趋势</h3></div><div class="chart-container large"><canvas id="emotionChart"></canvas></div></div>
+                <div class="grid grid-3 mt-3">
+                    <div class="stat-card"><div class="stat-value text-success" id="positiveCount">0</div><div class="stat-label">积极记忆</div></div>
+                    <div class="stat-card"><div class="stat-value" style="color:var(--text-secondary);" id="neutralCount">0</div><div class="stat-label">中性记忆</div></div>
+                    <div class="stat-card"><div class="stat-value text-danger" id="negativeCount">0</div><div class="stat-label">消极记忆</div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let charts = {};
+
+        if (!token) window.location.href = '/';
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+        async function api(e, o = {}) {
+            try {
+                const r = await fetch(API_BASE + e, { ...o, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...o.headers } });
+                if (!r.ok) return { success: false, error: 'Request failed' };
+                return await r.json();
+            } catch (err) {
+                console.error('API Error:', err);
+                return { success: false, error: err.message };
+            }
+        }
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name + '-panel').style.display = 'block';
+            event.target.closest('.tab').classList.add('active');
+            const loaders = { overview: loadOverview, heatmap: loadHeatmap, timeline: loadTimeline, wordcloud: loadWordcloud, emotion: loadEmotion };
+            if (loaders[name]) loaders[name]();
+        }
+
+        async function loadOverview() {
+            const data = await api('/visualization/dashboard');
+            if (data.success) {
+                document.getElementById('totalMemories').textContent = data.memories?.total || 0;
+                document.getElementById('thisWeek').textContent = data.memories?.this_week || 0;
+                document.getElementById('avgImportance').textContent = parseFloat(data.memories?.avg_importance || 0).toFixed(2);
+                document.getElementById('uniqueTags').textContent = data.tags?.unique_tags || 0;
+            }
+
+            const growth = await api('/visualization/growth-trend');
+            if (growth.success && growth.labels) {
+                if (charts.growth) charts.growth.destroy();
+                charts.growth = new Chart(document.getElementById('growthChart'), {
+                    type: 'line',
+                    data: { labels: growth.labels, datasets: [{ label: '新增记忆', data: growth.datasets?.newMemories || [], borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94A3B8' } } }, scales: { x: { ticks: { color: '#64748B' }, grid: { color: '#1E293B' } }, y: { ticks: { color: '#64748B' }, grid: { color: '#1E293B' } } } }
+                });
+            }
+
+            const importance = await api('/visualization/importance-distribution');
+            if (importance.success && importance.distribution) {
+                if (charts.importance) charts.importance.destroy();
+                charts.importance = new Chart(document.getElementById('importanceChart'), {
+                    type: 'doughnut',
+                    data: { labels: importance.distribution.map(d => d.level), datasets: [{ data: importance.distribution.map(d => d.count), backgroundColor: ['#EF4444', '#F97316', '#EAB308', '#22C55E', '#06B6D4'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94A3B8' } } } }
+                });
+            }
+
+            const hourData = await api('/visualization/activity/hour');
+            if (hourData.success) {
+                if (charts.hour) charts.hour.destroy();
+                charts.hour = new Chart(document.getElementById('hourChart'), {
+                    type: 'bar',
+                    data: { labels: hourData.labels, datasets: [{ label: '活动次数', data: hourData.data, backgroundColor: '#22C55E' }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#64748B', maxTicksLimit: 12 }, grid: { color: '#1E293B' } }, y: { ticks: { color: '#64748B' }, grid: { color: '#1E293B' } } } }
+                });
+            }
+
+            const dayData = await api('/visualization/activity/day-of-week');
+            if (dayData.success) {
+                if (charts.day) charts.day.destroy();
+                charts.day = new Chart(document.getElementById('dayChart'), {
+                    type: 'polarArea',
+                    data: { labels: dayData.labels, datasets: [{ data: dayData.data, backgroundColor: ['#22C55E', '#06B6D4', '#3B82F6', '#A855F7', '#EC4899', '#F97316', '#EF4444'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94A3B8' } } } }
+                });
+            }
+        }
+
+        async function loadHeatmap() {
+            const data = await api('/visualization/heatmap');
+            if (data.success) {
+                const container = document.getElementById('heatmapContainer');
+                container.innerHTML = '';
+                for (let i = 0; i < 371; i++) {
+                    const cell = document.createElement('div');
+                    cell.style.cssText = 'aspect-ratio:1;border-radius:2px;background:#1E293B;cursor:pointer;transition:transform 0.1s;';
+                    cell.onmouseover = function() { this.style.transform = 'scale(1.5)'; };
+                    cell.onmouseout = function() { this.style.transform = 'scale(1)'; };
+                    container.appendChild(cell);
+                }
+                data.heatmap?.forEach(h => {
+                    const date = new Date(h.date);
+                    const doy = Math.floor((date - new Date(date.getFullYear(), 0, 0)) / (1000 * 60 * 60 * 24));
+                    if (doy >= 0 && doy < 371) {
+                        const level = h.total > 10 ? 4 : h.total > 5 ? 3 : h.total > 2 ? 2 : h.total > 0 ? 1 : 0;
+                        const colors = ['#1E293B', '#064E3B', '#065F46', '#047857', '#22C55E'];
+                        container.children[doy].style.background = colors[level];
+                        container.children[doy].title = `${h.date}: ${h.total}条记忆`;
+                    }
+                });
+            }
+        }
+
+        async function loadTimeline() {
+            const data = await api('/visualization/timeline');
+            if (data.success) {
+                const timeline = data.timeline || [];
+                const el = document.getElementById('timelineList');
+                el.className = '';
+                el.innerHTML = timeline.length ? timeline.map((t, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.displayDate || ''}">${t.displayDate}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.stats?.count || 0} 条记忆</div>
+                        </div>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无记忆</p></div>';
+            }
+        }
+
+        async function loadWordcloud() {
+            const tagData = await api('/visualization/wordcloud/tags');
+            if (tagData.success) {
+                const colors = ['#22C55E', '#06B6D4', '#3B82F6', '#A855F7', '#EC4899'];
+                document.getElementById('tagWordcloud').innerHTML = tagData.words?.length ? tagData.words.map((w, i) => `<span style="padding:4px 12px;border-radius:20px;font-size:${w.size}px;background:${colors[i % colors.length]}20;color:${colors[i % colors.length]};">${w.text}</span>`).join('') : '<p class="text-muted">暂无标签</p>';
+            }
+            const contentData = await api('/visualization/wordcloud/content');
+            if (contentData.success) {
+                const colors = ['#F97316', '#EAB308', '#22C55E', '#06B6D4', '#3B82F6'];
+                document.getElementById('contentWordcloud').innerHTML = contentData.words?.length ? contentData.words.map((w, i) => `<span style="padding:4px 12px;border-radius:20px;font-size:${w.size}px;background:${colors[i % colors.length]}20;color:${colors[i % colors.length]};">${w.text}</span>`).join('') : '<p class="text-muted">暂无内容</p>';
+            }
+        }
+
+        async function loadEmotion() {
+            const data = await api('/visualization/emotion-trend');
+            if (data.success && data.trend) {
+                let positive = 0, neutral = 0, negative = 0;
+                data.trend.forEach(t => { positive += t.positive || 0; neutral += t.neutral || 0; negative += t.negative || 0; });
+                document.getElementById('positiveCount').textContent = positive;
+                document.getElementById('neutralCount').textContent = neutral;
+                document.getElementById('negativeCount').textContent = negative;
+
+                if (charts.emotion) charts.emotion.destroy();
+                charts.emotion = new Chart(document.getElementById('emotionChart'), {
+                    type: 'line',
+                    data: { labels: data.trend.map(t => t.date), datasets: [{ label: '积极', data: data.trend.map(t => t.positive), borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.4 }, { label: '中性', data: data.trend.map(t => t.neutral), borderColor: '#94A3B8', backgroundColor: 'rgba(148,163,184,0.1)', fill: true, tension: 0.4 }, { label: '消极', data: data.trend.map(t => t.negative), borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)', fill: true, tension: 0.4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94A3B8' } } }, scales: { x: { ticks: { color: '#64748B', maxTicksLimit: 10 }, grid: { color: '#1E293B' } }, y: { ticks: { color: '#64748B' }, grid: { color: '#1E293B' } } } }
+                });
+            }
+        }
+
+        function refreshAll() { showToast('正在刷新...'); loadOverview(); }
+
+        loadOverview();
+    </script>
+</body>
+</html>

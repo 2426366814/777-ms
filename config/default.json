@@ -1,0 +1,66 @@
+{
+  "server": {
+    "port": 1777,
+    "host": "0.0.0.0"
+  },
+  "database": {
+    "dialect": "mysql",
+    "pool": {
+      "max": 10,
+      "min": 0,
+      "acquire": 30000,
+      "idle": 10000
+    }
+  },
+  "redis": {
+    "retryDelayOnFailover": 100,
+    "enableReadyCheck": true,
+    "maxRetriesPerRequest": 3
+  },
+  "jwt": {
+    "algorithm": "HS256",
+    "issuer": "777-ms",
+    "audience": "777-ms-users"
+  },
+  "rateLimit": {
+    "windowMs": 900000,
+    "max": 100,
+    "message": "请求过于频繁，请稍后再试"
+  },
+  "llm": {
+    "providers": {
+      "deepseek": {
+        "name": "DeepSeek",
+        "baseUrl": "https://api.deepseek.com/v1",
+        "models": ["deepseek-chat", "deepseek-coder"],
+        "maxTokens": 4096,
+        "timeout": 30000
+      },
+      "openai": {
+        "name": "OpenAI",
+        "baseUrl": "https://api.openai.com/v1",
+        "models": ["gpt-4", "gpt-3.5-turbo"],
+        "maxTokens": 4096,
+        "timeout": 30000
+      }
+    }
+  },
+  "memory": {
+    "defaultLimit": 100,
+    "maxLimit": 1000,
+    "compressionThreshold": 1000,
+    "retentionDays": 365
+  },
+  "knowledge": {
+    "chunkSize": 1000,
+    "chunkOverlap": 200,
+    "maxFileSize": 52428800,
+    "supportedFormats": ["pdf", "docx", "doc", "txt", "md", "html", "xlsx", "csv"]
+  },
+  "logging": {
+    "level": "info",
+    "format": "combined",
+    "maxFiles": 10,
+    "maxSize": "10m"
+  }
+}

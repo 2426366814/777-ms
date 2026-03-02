@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记忆复习 - 777-MS</title>
+    <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <div class="sidebar-logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                </div>
+                <span class="sidebar-logo-text">777-MS</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>概览</a>
+                <a href="/chat" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>对话</a>
+                <a href="/intelligence" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>智能功能</a>
+                <a href="/review" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆复习</a>
+                <a href="/visualization" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>数据可视化</a>
+                <a href="/security" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>安全设置</a>
+                <a href="/providers" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>LLM路由</a>
+            </nav>
+            <div class="sidebar-user">
+                <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
+                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">记忆复习系统</h1>
+                <div class="page-actions">
+                    <button class="btn btn-primary btn-sm" onclick="startReviewSession()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        开始复习
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-4 mb-4">
+                <div class="stat-card"><div class="stat-value" id="totalMemories">0</div><div class="stat-label">总记忆数</div></div>
+                <div class="stat-card"><div class="stat-value" id="dueReviews">0</div><div class="stat-label">待复习</div></div>
+                <div class="stat-card"><div class="stat-value" id="reviewedMemories">0</div><div class="stat-label">已复习</div></div>
+                <div class="stat-card"><div class="stat-value" id="avgReviews">0</div><div class="stat-label">平均复习次数</div></div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showPanel('review')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    开始复习
+                </button>
+                <button class="tab" onclick="showPanel('schedule')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    复习计划
+                </button>
+                <button class="tab" onclick="showPanel('stats')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    复习统计
+                </button>
+                <button class="tab" onclick="showPanel('curve')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    遗忘曲线
+                </button>
+                <button class="tab" onclick="showPanel('history')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    复习历史
+                </button>
+            </div>
+
+            <div id="review-panel" class="panel">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                            待复习记忆
+                        </h3>
+                    </div>
+                    <div id="reviewList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="schedule-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+                            即将复习
+                        </h3>
+                    </div>
+                    <div id="scheduleList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="stats-panel" class="panel" style="display:none;">
+                <div class="grid grid-2">
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">复习进度</h3></div>
+                        <div class="chart-container"><canvas id="statsChart"></canvas></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">难度分布</h3></div>
+                        <div class="chart-container"><canvas id="difficultyChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="curve-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            艾宾浩斯遗忘曲线
+                        </h3>
+                    </div>
+                    <div class="chart-container large"><canvas id="curveChart"></canvas></div>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-header"><h3 class="card-title">复习建议</h3></div>
+                    <p class="text-muted">根据艾宾浩斯遗忘曲线，最佳复习间隔为：</p>
+                    <div class="grid grid-5 mt-2">
+                        <div class="stat-card"><div class="stat-value text-success">1</div><div class="stat-label">第1天</div></div>
+                        <div class="stat-card"><div class="stat-value text-success">3</div><div class="stat-label">第3天</div></div>
+                        <div class="stat-card"><div class="stat-value text-success">7</div><div class="stat-label">第7天</div></div>
+                        <div class="stat-card"><div class="stat-value text-success">14</div><div class="stat-label">第14天</div></div>
+                        <div class="stat-card"><div class="stat-value text-success">30</div><div class="stat-label">第30天</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="history-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">复习记录</h3></div>
+                    <div id="historyList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="reviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center;">
+        <div style="background:var(--bg-card);border-radius:var(--radius-lg);width:90%;max-width:600px;max-height:80vh;overflow-y:auto;">
+            <div style="padding:20px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
+                <h3 style="font-size:18px;">复习记忆</h3>
+                <button onclick="closeModal()" style="background:none;border:none;color:var(--text-muted);font-size:24px;cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:20px;">
+                <div id="modalContent" style="font-size:15px;line-height:1.8;margin-bottom:20px;"></div>
+                <div id="modalQuestions"></div>
+                <div id="qualityButtons" style="display:none;">
+                    <p style="margin-bottom:12px;color:var(--text-secondary);">回忆效果如何？</p>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-danger" style="flex:1;" onclick="recordReview(1)">完全不记得</button>
+                        <button class="btn" style="flex:1;background:var(--accent-orange);color:#fff;" onclick="recordReview(2)">模糊</button>
+                        <button class="btn" style="flex:1;background:var(--accent-orange);color:#fff;" onclick="recordReview(3)">一般</button>
+                        <button class="btn btn-primary" style="flex:1;" onclick="recordReview(4)">清楚</button>
+                        <button class="btn btn-primary" style="flex:1;background:var(--accent-green);" onclick="recordReview(5)">完美</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let currentMemory = null;
+        let charts = {};
+
+        if (!token) window.location.href = '/';
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        async function api(endpoint, options = {}) {
+            const res = await fetch(API_BASE + endpoint, {
+                ...options,
+                headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...options.headers }
+            });
+            return res.json();
+        }
+
+        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name + '-panel').style.display = 'block';
+            event.target.closest('.tab').classList.add('active');
+            const loaders = { review: loadReview, schedule: loadSchedule, stats: loadStats, curve: loadCurve, history: loadHistory };
+            if (loaders[name]) loaders[name]();
+        }
+
+        async function loadReview() {
+            const stats = await api('/review/stats');
+            if (stats.success) {
+                document.getElementById('totalMemories').textContent = stats.stats?.total_memories || 0;
+                document.getElementById('dueReviews').textContent = stats.stats?.due_reviews || 0;
+                document.getElementById('reviewedMemories').textContent = stats.stats?.reviewed_memories || 0;
+                document.getElementById('avgReviews').textContent = (stats.stats?.avg_reviews || 0).toFixed(1);
+            }
+            
+            const data = await api('/review/due?limit=10');
+            if (data.success) {
+                const memories = data.memories || [];
+                const el = document.getElementById('reviewList');
+                el.className = '';
+                el.innerHTML = memories.length ? memories.map((m, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="startReview(${m.id})">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${m.content || ''}">${(m.content || '').substring(0,60)}${(m.content || '').length > 60 ? '...' : ''}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">重要性 ${((m.importance_score||0.5)*100).toFixed(0)}% · 复习 ${m.review_count||0} 次 · 保持率 ${((m.retentionScore||0.5)*100).toFixed(0)}%</div>
+                        </div>
+                        <span class="badge badge-success flex-shrink-0">复习</span>
+                    </div>
+                `).join('') : '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><p>太棒了！暂无需要复习的记忆</p></div>';
+            }
+        }
+
+        function startReviewSession() {
+            const firstItem = document.querySelector('.list-item');
+            if (firstItem) firstItem.click();
+            else showToast('暂无待复习记忆');
+        }
+
+        async function startReview(memoryId) {
+            currentMemory = memoryId;
+            const data = await api('/review/questions/' + memoryId);
+            const memory = await api('/review/due?limit=1');
+            
+            document.getElementById('modalContent').innerHTML = '<p style="color:var(--text-secondary);">请尝试回忆这条记忆...</p>';
+            const questions = data.questions || [];
+            document.getElementById('modalQuestions').innerHTML = questions.length ? 
+                questions.map((q, index) => `<div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:default;"><div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div><div class="list-item-content" style="flex:1;min-width:0;"><div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${q.type} · ${q.difficulty}</div><div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${q.question || ''}">${q.question}</div></div></div>`).join('') : '';
+            document.getElementById('qualityButtons').style.display = 'block';
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+            currentMemory = null;
+        }
+
+        async function recordReview(quality) {
+            if (!currentMemory) return;
+            const data = await api('/review/record', { method: 'POST', body: JSON.stringify({ memoryId: currentMemory, quality }) });
+            if (data.success) {
+                showToast('复习完成！下次复习: ' + new Date(data.nextReviewAt).toLocaleDateString());
+                closeModal();
+                loadReview();
+            }
+        }
+
+        async function loadSchedule() {
+            const data = await api('/review/schedule');
+            if (data.success) {
+                const upcoming = data.upcoming || [];
+                const el = document.getElementById('scheduleList');
+                el.className = '';
+                el.innerHTML = upcoming.length ? upcoming.map((s, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.content || ''}">${(s.content||'').substring(0,60)}${(s.content||'').length > 60 ? '...' : ''}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${new Date(s.next_review_at).toLocaleString()}</div>
+                        </div>
+                        <span class="badge ${s.difficulty==='easy'?'badge-success':s.difficulty==='hard'?'badge-danger':'badge-warning'} flex-shrink-0">${s.difficulty}</span>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无复习计划</p></div>';
+            }
+        }
+
+        async function loadStats() {
+            const stats = await api('/review/stats');
+            if (stats.success) {
+                if (charts.stats) charts.stats.destroy();
+                charts.stats = new Chart(document.getElementById('statsChart'), {
+                    type: 'bar',
+                    data: { labels: (stats.stats?.retentionByDay||[]).map(r => r.date), datasets: [{ label: '复习记忆数', data: (stats.stats?.retentionByDay||[]).map(r => r.total), backgroundColor: '#22C55E' }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94A3B8' } } }, scales: { x: { ticks: { color: '#64748B' }, grid: { color: '#1E293B' } }, y: { ticks: { color: '#64748B' }, grid: { color: '#1E293B' } } } }
+                });
+                
+                if (charts.difficulty) charts.difficulty.destroy();
+                charts.difficulty = new Chart(document.getElementById('difficultyChart'), {
+                    type: 'doughnut',
+                    data: { labels: ['简单', '普通', '困难'], datasets: [{ data: [(stats.stats?.difficultyDistribution||[]).find(d=>d.difficulty==='easy')?.count||0, (stats.stats?.difficultyDistribution||[]).find(d=>d.difficulty==='normal')?.count||0, (stats.stats?.difficultyDistribution||[]).find(d=>d.difficulty==='hard')?.count||0], backgroundColor: ['#22C55E', '#F97316', '#EF4444'] }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#94A3B8' } } } }
+                });
+            }
+        }
+
+        async function loadCurve() {
+            const data = await api('/review/curve');
+            if (data.success) {
+                if (charts.curve) charts.curve.destroy();
+                charts.curve = new Chart(document.getElementById('curveChart'), {
+                    type: 'line',
+                    data: { labels: data.curve.map(c => c.day + '天'), datasets: [{ label: '记忆保持率', data: data.curve.map(c => (c.retention * 100).toFixed(1)), borderColor: '#22C55E', backgroundColor: 'rgba(34,197,94,0.1)', fill: true, tension: 0.4 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94A3B8' } } }, scales: { x: { ticks: { color: '#64748B' }, grid: { color: '#1E293B' } }, y: { min: 0, max: 100, ticks: { color: '#64748B', callback: v => v + '%' }, grid: { color: '#1E293B' } } } }
+                });
+            }
+        }
+
+        async function loadHistory() {
+            const data = await api('/review/history?limit=20');
+            if (data.success) {
+                const history = data.history || [];
+                const el = document.getElementById('historyList');
+                el.className = '';
+                el.innerHTML = history.length ? history.map((h, index) => `
+                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
+                        <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                        <div class="list-item-content" style="flex:1;min-width:0;">
+                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${h.content || ''}">${(h.content||'').substring(0,60)}${(h.content||'').length > 60 ? '...' : ''}</div>
+                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">复习 ${h.review_count||0} 次 · ${h.last_review_at ? new Date(h.last_review_at).toLocaleString() : '未复习'}</div>
+                        </div>
+                        <span class="badge ${h.difficulty==='easy'?'badge-success':h.difficulty==='hard'?'badge-danger':'badge-warning'} flex-shrink:0">${h.difficulty||'normal'}</span>
+                    </div>
+                `).join('') : '<div class="empty-state"><p>暂无复习历史</p></div>';
+            }
+        }
+
+        loadReview();
+    </script>
+</body>
+</html>
