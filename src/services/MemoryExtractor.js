@@ -118,7 +118,7 @@ class MemoryExtractor {
         
         for (const memory of memories) {
             try {
-                const [result] = await db.query(
+                const result = await db.query(
                     'INSERT INTO memories (user_id, content, importance_score, session_id) VALUES (?, ?, ?, ?)',
                     [userId, memory.content, memory.importance || 0.5, sessionId]
                 );
@@ -151,7 +151,7 @@ class MemoryExtractor {
 
     async summarizeMemories(userId, memoryIds, providerId = 'openai', model = null) {
         try {
-            const [memories] = await db.query(
+            const memories = await db.query(
                 'SELECT content FROM memories WHERE id IN (?) AND user_id = ?',
                 [memoryIds, userId]
             );

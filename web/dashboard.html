@@ -194,10 +194,11 @@
             const mem = await api('/memories');
             const know = await api('/knowledge');
             const sess = await api('/sessions');
+            const tagsData = await api('/tags');
             document.getElementById('memoryCount').textContent = mem.data?.pagination?.total || 0;
             document.getElementById('knowledgeCount').textContent = know.data?.pagination?.total || 0;
             document.getElementById('sessionCount').textContent = sess.data?.pagination?.total || 0;
-            document.getElementById('tagCount').textContent = mem.data?.tags?.length || 0;
+            document.getElementById('tagCount').textContent = tagsData.data?.tags?.length || 0;
         }
 
         function showAddMemory() { document.getElementById('addMemoryForm').style.display = 'block'; }

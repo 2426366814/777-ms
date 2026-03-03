@@ -48,7 +48,7 @@ class BackupService {
     
     async backupAllUsers() {
         try {
-            const [users] = await db.query('SELECT DISTINCT user_id FROM memories');
+            const users = await db.query('SELECT DISTINCT user_id FROM memories');
             
             if (!users || users.length === 0) {
                 logger.info('No users to backup');
@@ -72,22 +72,22 @@ class BackupService {
         const filePath = path.join(this.backupDir, fileName);
         
         try {
-            const [memories] = await db.query(
+            const memories = await db.query(
                 'SELECT * FROM memories WHERE user_id = ?',
                 [userId]
             );
             
-            const [knowledge] = await db.query(
+            const knowledge = await db.query(
                 'SELECT * FROM knowledge WHERE user_id = ?',
                 [userId]
             );
             
-            const [sessions] = await db.query(
+            const sessions = await db.query(
                 'SELECT * FROM sessions WHERE user_id = ?',
                 [userId]
             );
             
-            const [tags] = await db.query(
+            const tags = await db.query(
                 `SELECT mt.* FROM memory_tags mt 
                  JOIN memories m ON mt.memory_id = m.id 
                  WHERE m.user_id = ?`,
