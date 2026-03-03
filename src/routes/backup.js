@@ -9,12 +9,15 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const fs = require('fs');
 const path = require('path');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 const BACKUP_DIR = process.env.BACKUP_DIR || './backups';
 
 router.get('/list', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         
         const backups = await db.query(
             'SELECT * FROM backup_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',

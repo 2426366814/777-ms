@@ -2,6 +2,9 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 router.get('/:memoryId', async (req, res) => {
   try {
@@ -15,8 +18,7 @@ router.get('/:memoryId', async (req, res) => {
 
 router.post('/:memoryId', async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });        
+    const userId = req.user.id;        
     const { content, change_reason, importance_score, tags } = req.body;        
     const result = await db.query(
       'INSERT INTO memory_versions (memory_id, user_id, content, change_reason, importance_score, tags) VALUES (?, ?, ?, ?, ?, ?)',

@@ -7,6 +7,9 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 /**
  * @route   GET /api/v1/categories
@@ -15,7 +18,7 @@ const db = require('../utils/database');
  */
 router.get('/', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         
         const categories = await db.query(
             `SELECT c.*, 

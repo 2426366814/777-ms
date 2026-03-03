@@ -7,6 +7,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 /**
  * @route   GET /api/v1/usage/stats
@@ -15,7 +18,7 @@ const logger = require('../utils/logger');
  */
 router.get('/stats', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         const { period = 'month' } = req.query;
         
         let dateFilter = '';

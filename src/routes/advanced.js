@@ -10,6 +10,9 @@ const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 /**
  * @route   POST /api/v1/advanced/deduplicate
@@ -18,7 +21,7 @@ const db = require('../utils/database');
  */
 router.post('/deduplicate', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         const { threshold = 0.8 } = req.body;
         
         const memories = await db.query(

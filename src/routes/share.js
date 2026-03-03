@@ -9,6 +9,9 @@ const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 /**
  * @route   POST /api/v1/share
@@ -17,7 +20,7 @@ const logger = require('../utils/logger');
  */
 router.post('/', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         const { type, id, expiresIn = 7 * 24 * 60 * 60 * 1000 } = req.body;
         
         if (!type || !id) {

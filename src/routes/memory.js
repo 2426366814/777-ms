@@ -10,6 +10,9 @@ const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 const logger = require('../utils/logger');
 const memoryService = require('../services/memoryService');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 const createMemorySchema = Joi.object({
     content: Joi.string().min(1).max(10000).required(),

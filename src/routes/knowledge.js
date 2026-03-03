@@ -13,6 +13,9 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const DocumentConverter = require('../services/DocumentConverter');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 const upload = multer({ 
     storage: multer.memoryStorage(),

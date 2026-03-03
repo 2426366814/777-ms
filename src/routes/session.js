@@ -7,10 +7,13 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 router.get('/', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         const sessions = await db.query(
             'SELECT * FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
             [userId]

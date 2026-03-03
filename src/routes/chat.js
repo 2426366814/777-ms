@@ -16,6 +16,9 @@ const memoryService = require('../services/memoryService');
 const knowledgeService = require('../services/KnowledgeService');
 const reviewService = require('../services/ReviewService');
 const autoManager = require('../services/AutoManager');
+const { authenticate } = require('../middleware/auth');
+
+router.use(authenticate);
 
 const MEMORY_COMMANDS = {
     '/save': 'saveMemory',
