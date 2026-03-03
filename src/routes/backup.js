@@ -16,7 +16,7 @@ router.get('/list', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         
-        const [backups] = await db.query(
+        const backups = await db.query(
             'SELECT * FROM backup_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
             [userId]
         );
@@ -39,17 +39,17 @@ router.post('/create', async (req, res, next) => {
             fs.mkdirSync(BACKUP_DIR, { recursive: true });
         }
         
-        const [memories] = await db.query(
+        const memories = await db.query(
             'SELECT * FROM memories WHERE user_id = ?',
             [userId]
         );
         
-        const [knowledge] = await db.query(
+        const knowledge = await db.query(
             'SELECT * FROM knowledge WHERE user_id = ?',
             [userId]
         );
         
-        const [sessions] = await db.query(
+        const sessions = await db.query(
             'SELECT * FROM sessions WHERE user_id = ?',
             [userId]
         );
@@ -160,22 +160,22 @@ router.get('/export', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         
-        const [memories] = await db.query(
+        const memories = await db.query(
             'SELECT * FROM memories WHERE user_id = ?',
             [userId]
         );
         
-        const [knowledge] = await db.query(
+        const knowledge = await db.query(
             'SELECT * FROM knowledge WHERE user_id = ?',
             [userId]
         );
         
-        const [sessions] = await db.query(
+        const sessions = await db.query(
             'SELECT * FROM sessions WHERE user_id = ?',
             [userId]
         );
         
-        const [tags] = await db.query(
+        const tags = await db.query(
             `SELECT mt.* FROM memory_tags mt 
              JOIN memories m ON mt.memory_id = m.id 
              WHERE m.user_id = ?`,

@@ -8,9 +8,9 @@ router.use(authenticate);
 router.get('/stats', async (req, res) => {
     try {
         const db = require('../utils/database');
-        const [memories] = await db.query('SELECT COUNT(*) as count FROM memories WHERE user_id = ?', [req.user.id]);
-        const [knowledge] = await db.query('SELECT COUNT(*) as count FROM knowledge WHERE user_id = ?', [req.user.id]).catch(() => [[{ count: 0 }]]);
-        const [sessions] = await db.query('SELECT COUNT(*) as count FROM sessions WHERE user_id = ?', [req.user.id]).catch(() => [[{ count: 0 }]]);
+        const memories = await db.query('SELECT COUNT(*) as count FROM memories WHERE user_id = ?', [req.user.id]);
+        const knowledge = await db.query('SELECT COUNT(*) as count FROM knowledge WHERE user_id = ?', [req.user.id]).catch(() => [{ count: 0 }]);
+        const sessions = await db.query('SELECT COUNT(*) as count FROM sessions WHERE user_id = ?', [req.user.id]).catch(() => [{ count: 0 }]);
         
         res.json({
             success: true,
@@ -142,7 +142,7 @@ router.get('/dashboard', async (req, res) => {
 router.get('/activity-sunburst', async (req, res) => {
     try {
         const db = require('../utils/database');
-        const [data] = await db.query(`
+        const data = await db.query(`
             SELECT DATE_FORMAT(created_at, '%Y-%m') as month, COUNT(*) as value
             FROM memories WHERE user_id = ? AND created_at >= DATE_SUB(NOW(), INTERVAL 1 YEAR)
             GROUP BY month ORDER BY month

@@ -9,9 +9,9 @@ router.use(authenticate);
 router.get('/status', async (req, res) => {
     try {
         const db = require('../utils/database');
-        const [memories] = await db.query('SELECT COUNT(*) as count FROM memories WHERE user_id = ?', [req.user.id]);
-        const [entities] = await db.query('SELECT COUNT(*) as count FROM memory_entities WHERE user_id = ?', [req.user.id]).catch(() => [[{ count: 0 }]]);
-        const [relations] = await db.query('SELECT COUNT(*) as count FROM memory_relations WHERE user_id = ?', [req.user.id]).catch(() => [[{ count: 0 }]]);
+        const memories = await db.query('SELECT COUNT(*) as count FROM memories WHERE user_id = ?', [req.user.id]);
+        const entities = await db.query('SELECT COUNT(*) as count FROM memory_entities WHERE user_id = ?', [req.user.id]).catch(() => [{ count: 0 }]);
+        const relations = await db.query('SELECT COUNT(*) as count FROM memory_relations WHERE user_id = ?', [req.user.id]).catch(() => [{ count: 0 }]);
         
         res.json({
             success: true,
@@ -135,7 +135,7 @@ router.post('/summarize', async (req, res) => {
 router.get('/entities', async (req, res) => {
     try {
         const db = require('../utils/database');
-        const [entities] = await db.query(`
+        const entities = await db.query(`
             SELECT entity_name, entity_type, COUNT(*) as frequency, AVG(importance) as avg_importance
             FROM memory_entities
             WHERE user_id = ?
@@ -152,11 +152,11 @@ router.get('/entities', async (req, res) => {
 router.get('/relations', async (req, res) => {
     try {
         const db = require('../utils/database');
-        const [relations] = await db.query(`
+        const relations = await db.query(`
             SELECT r.*, 
                    m1.content as source_content,
                    m2.content as target_content
-            FROM memory_relations r
+            FROM memory_relation r
             JOIN memories m1 ON r.source_id = m1.id
             JOIN memories m2 ON r.target_id = m2.id
             WHERE r.user_id = ?

@@ -12,17 +12,17 @@ router.get('/', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         
-        const [loginStats] = await db.query(
+        const loginStats = await db.query(
             'SELECT COUNT(*) as count FROM login_logs WHERE user_id = ?', [userId]
-        ).catch(() => [[{ count: 0 }]]);
+        ).catch(() => [{ count: 0 }]);
         
-        const [apiStats] = await db.query(
+        const apiStats = await db.query(
             'SELECT COUNT(*) as count FROM api_logs WHERE user_id = ?', [userId]
-        ).catch(() => [[{ count: 0 }]]);
+        ).catch(() => [{ count: 0 }]);
         
-        const [securityStats] = await db.query(
+        const securityStats = await db.query(
             'SELECT COUNT(*) as count FROM security_alerts WHERE user_id = ? AND resolved = false', [userId]
-        ).catch(() => [[{ count: 0 }]]);
+        ).catch(() => [{ count: 0 }]);
         
         res.json({ 
             success: true, 
@@ -44,12 +44,12 @@ router.get('/login', async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 20;
         const offset = (page - 1) * limit;
         
-        const [logs] = await db.query(
+        const logs = await db.query(
             'SELECT * FROM login_logs WHERE user_id = ? ORDER BY login_at DESC LIMIT ? OFFSET ?',
             [userId, limit, offset]
         );
         
-        const [countResult] = await db.query(
+        const countResult = await db.query(
             'SELECT COUNT(*) as total FROM login_logs WHERE user_id = ?',
             [userId]
         );
@@ -61,7 +61,7 @@ router.get('/login', async (req, res, next) => {
                 pagination: {
                     page,
                     limit,
-                    total: countResult[0]?.total || 0
+                    total: countResult?.[0]?.total || 0
                 }
             } 
         });
@@ -74,7 +74,7 @@ router.get('/login/stats', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         
-        const [stats] = await db.query(
+        const stats = await db.query(
             `SELECT 
                 COUNT(*) as total_logins,
                 COUNT(DISTINCT ip_address) as unique_ips,
@@ -86,7 +86,7 @@ router.get('/login/stats', async (req, res, next) => {
         
         res.json({ 
             success: true, 
-            data: { stats: stats[0] || {} } 
+            data: { stats: stats?.[0] || {} } 
         });
     } catch (error) {
         next(error);
@@ -117,7 +117,7 @@ router.get('/api', async (req, res, next) => {
         const limit = parseInt(req.query.limit) || 50;
         const offset = (page - 1) * limit;
         
-        const [logs] = await db.query(
+        const logs = await db.query(
             'SELECT * FROM api_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
             [userId, limit, offset]
         );
@@ -149,7 +149,7 @@ router.get('/security', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         
-        const [alerts] = await db.query(
+        const alerts = await db.query(
             'SELECT * FROM security_alerts WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
             [userId]
         );

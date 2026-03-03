@@ -9,8 +9,8 @@ router.get('/', async (req, res) => {
     if (!userId) {
       return res.json({ recent: [], recommended: [], tags: [] });
     }
-    const [recent] = await db.query('SELECT * FROM memories WHERE user_id = ? ORDER BY updated_at DESC LIMIT 5', [userId]);
-    const [tags] = await db.query('SELECT DISTINCT tag_name FROM memory_tags WHERE memory_id IN (SELECT id FROM memories WHERE user_id = ?)', [userId]);        
+    const recent = await db.query('SELECT * FROM memories WHERE user_id = ? ORDER BY updated_at DESC LIMIT 5', [userId]);
+    const tags = await db.query('SELECT DISTINCT tag_name FROM memory_tags WHERE memory_id IN (SELECT id FROM memories WHERE user_id = ?)', [userId]);        
     res.json({
       recent: recent || [],
       recommended: recent || [],

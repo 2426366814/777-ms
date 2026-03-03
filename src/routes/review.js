@@ -74,7 +74,7 @@ router.post('/schedule', async (req, res) => {
 router.get('/schedule', async (req, res) => {
     try {
         const db = require('../utils/database');
-        const [upcoming] = await db.query(`
+        const upcoming = await db.query(`
             SELECT r.*, m.content
             FROM memory_reviews r
             JOIN memories m ON r.memory_id = m.id
@@ -92,7 +92,7 @@ router.get('/history', async (req, res) => {
     try {
         const db = require('../utils/database');
         const limit = parseInt(req.query.limit) || 50;
-        const [history] = await db.query(`
+        const history = await db.query(`
             SELECT r.*, m.content
             FROM memory_reviews r
             JOIN memories m ON r.memory_id = m.id

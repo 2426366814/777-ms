@@ -11,7 +11,7 @@ const db = require('../utils/database');
 router.get('/', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
-        const [sessions] = await db.query(
+        const sessions = await db.query(
             'SELECT * FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
             [userId]
         );
@@ -25,7 +25,7 @@ router.post('/', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         const { title } = req.body;
-        const [result] = await db.query(
+        const result = await db.query(
             'INSERT INTO sessions (user_id, title, messages, created_at) VALUES (?, ?, ?, NOW())',
             [userId, title || '新会话', JSON.stringify([])]
         );
@@ -42,7 +42,7 @@ router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id || 'default-user';
-        const [sessions] = await db.query(
+        const sessions = await db.query(
             'SELECT * FROM sessions WHERE id = ? AND user_id = ?',
             [id, userId]
         );
@@ -87,7 +87,7 @@ router.post('/:id/messages', async (req, res, next) => {
         const { role, content } = req.body;
         const userId = req.user?.id || 'default-user';
         
-        const [sessions] = await db.query(
+        const sessions = await db.query(
             'SELECT messages FROM sessions WHERE id = ? AND user_id = ?',
             [id, userId]
         );
