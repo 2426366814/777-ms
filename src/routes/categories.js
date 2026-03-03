@@ -11,7 +11,7 @@ const db = require('../utils/database');
 router.get('/', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
-        const [categories] = await db.query(
+        const categories = await db.query(
             'SELECT * FROM categories WHERE user_id = ? ORDER BY sort_order, created_at',
             [userId]
         );
@@ -26,7 +26,7 @@ router.post('/', async (req, res, next) => {
         const userId = req.user?.id || 'default-user';
         const { name, parentId, sortOrder } = req.body;
         
-        const [result] = await db.query(
+        const result = await db.query(
             'INSERT INTO categories (user_id, name, parent_id, sort_order, created_at) VALUES (?, ?, ?, ?, NOW())',
             [userId, name, parentId || null, sortOrder || 0]
         );
@@ -75,7 +75,7 @@ router.get('/:id/knowledge', async (req, res, next) => {
         const { id } = req.params;
         const userId = req.user?.id || 'default-user';
         
-        const [knowledge] = await db.query(
+        const knowledge = await db.query(
             'SELECT * FROM knowledge WHERE category_id = ? AND user_id = ? ORDER BY created_at DESC',
             [id, userId]
         );
@@ -90,7 +90,7 @@ router.get('/tree', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         
-        const [categories] = await db.query(
+        const categories = await db.query(
             'SELECT * FROM categories WHERE user_id = ? ORDER BY sort_order, created_at',
             [userId]
         );

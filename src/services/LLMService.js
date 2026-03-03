@@ -110,28 +110,38 @@ class LLMService {
     }
 
     async callOpenAI(baseUrl, apiKey, model, messages, options) {
-        const response = await axios.post(
-            `${baseUrl}/chat/completions`,
-            {
-                model,
-                messages,
-                temperature: options.temperature || 0.7,
-                max_tokens: options.maxTokens || 2000,
-                stream: false
-            },
-            {
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
+        try {
+            const response = await axios.post(
+                `${baseUrl}/chat/completions`,
+                {
+                    model,
+                    messages,
+                    temperature: options.temperature || 0.7,
+                    max_tokens: options.maxTokens || 2000,
+                    stream: false
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${apiKey}`,
+                        'Content-Type': 'application/json'
+                    }
                 }
+            );
+            
+            return {
+                content: response.data.choices[0].message.content,
+                model: response.data.model,
+                usage: response.data.usage
+            };
+        } catch (error) {
+            if (error.response) {
+                console.error('API Error Response:', {
+                    status: error.response.status,
+                    data: error.response.data
+                });
             }
-        );
-        
-        return {
-            content: response.data.choices[0].message.content,
-            model: response.data.model,
-            usage: response.data.usage
-        };
+            throw error;
+        }
     }
 
     async callAnthropic(baseUrl, apiKey, model, messages, options) {
@@ -267,7 +277,7 @@ class LLMService {
             `, [userId, provider, model, tokens, responseTime, success ? 1 : 0, errorMessage]);
             
             await db.query(`
-                INSERT INTO usage_stats (user_id, stat_date, api_calls, tokens_used)
+                INSERT INTO usage_stats (user_id, date, api_calls, tokens_used)
                 VALUES (?, CURDATE(), 1, ?)
                 ON DUPLICATE KEY UPDATE api_calls = api_calls + 1, tokens_used = tokens_used + VALUES(tokens_used)
             `, [userId, tokens]);

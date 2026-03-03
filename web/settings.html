@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>功能设置 - 777-MS</title>
+    <link rel="stylesheet" href="styles.css?v=20260228-v2">
+    <style>
+        .settings-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .settings-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .settings-title svg {
+            width: 20px;
+            height: 20px;
+            color: var(--accent-cyan);
+        }
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+        .setting-info {
+            flex: 1;
+        }
+        .setting-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .setting-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+        }
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(24px);
+            background-color: white;
+        }
+        .api-key-section {
+            margin-top: 24px;
+        }
+        .provider-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .provider-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+        .provider-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .provider-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        .provider-name {
+            font-weight: 500;
+        }
+        .provider-status {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .provider-status.configured {
+            color: var(--accent-green);
+        }
+        .btn-configure {
+            padding: 8px 16px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .btn-configure:hover {
+            border-color: var(--accent-cyan);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+        }
+        .btn-primary {
+            padding: 10px 20px;
+            background: var(--accent-cyan);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-secondary {
+            padding: 10px 20px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar" id="sidebar"></aside>
+        <main class="main-content">
+            <h1 style="margin-bottom:24px;">功能设置</h1>
+            
+            <div class="settings-section">
+                <div class="settings-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+                    自动功能
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">自动提取记忆</div>
+                        <div class="setting-desc">对话时自动从消息中提取重要信息保存为记忆</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoExtract" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">自动复习调度</div>
+                        <div class="setting-desc">根据艾宾浩斯遗忘曲线自动安排复习计划</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoReview" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">自动清理</div>
+                        <div class="setting-desc">自动清理30天未访问且重要性低的记忆</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoCleanup" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">自动标签和分类</div>
+                        <div class="setting-desc">创建记忆时自动生成标签和分类</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoTag" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">自动转化为知识库</div>
+                        <div class="setting-desc">将高质量记忆自动转化为知识库条目</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoConvert" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <div class="settings-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    复习提醒
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">被动复习模式</div>
+                        <div class="setting-desc">对话时自动插入复习问题，在聊天中自然复习</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="passiveReview" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section api-key-section">
+                <div class="settings-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                    LLM API 密钥管理
+                </div>
+                <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:16px;">配置您的API密钥，系统将优先使用您的密钥。未配置时使用系统默认密钥。</p>
+                <div class="provider-list" id="providerList"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="apiKeyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">配置 API 密钥</h3>
+                <button onclick="closeModal()" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.5rem;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">API 密钥</label>
+                    <input type="password" class="form-input" id="apiKeyInput" placeholder="sk-...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">自定义 Base URL (可选)</label>
+                    <input type="text" class="form-input" id="baseUrlInput" placeholder="https://api.example.com/v1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">自定义模型 (可选)</label>
+                    <input type="text" class="form-input" id="modelInput" placeholder="gpt-4">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn-primary" onclick="saveApiKey()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="sidebar.js"></script>
+    <script>
+        const API_BASE = '/api/v1';
+        const token = localStorage.getItem('token');
+        let currentProvider = null;
+        let providers = [];
+        let userConfigs = {};
+
+        async function init() {
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            await Promise.all([
+                loadSettings(),
+                loadProviders(),
+                loadUserConfigs()
+            ]);
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch(`${API_BASE}/settings`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const s = data.data.custom_settings || {};
+                    document.getElementById('autoExtract').checked = s.autoExtract !== false;
+                    document.getElementById('autoReview').checked = s.autoReview !== false;
+                    document.getElementById('autoCleanup').checked = s.autoCleanup !== false;
+                    document.getElementById('autoTag').checked = s.autoTag !== false;
+                    document.getElementById('autoConvert').checked = s.autoConvert !== false;
+                    document.getElementById('passiveReview').checked = s.passiveReview !== false;
+                }
+            } catch (e) {
+                console.error('Load settings error:', e);
+            }
+        }
+
+        async function loadProviders() {
+            try {
+                const res = await fetch(`${API_BASE}/llm/providers`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    providers = data.data.filter(p => p.isActive);
+                    renderProviders();
+                }
+            } catch (e) {
+                console.error('Load providers error:', e);
+            }
+        }
+
+        async function loadUserConfigs() {
+            try {
+                const res = await fetch(`${API_BASE}/llm/user-configs`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    userConfigs = data.data || {};
+                    renderProviders();
+                }
+            } catch (e) {
+                console.error('Load user configs error:', e);
+            }
+        }
+
+        function renderProviders() {
+            const container = document.getElementById('providerList');
+            const icons = {
+                deepseek: '🤖', openai: '🧠', anthropic: '🎭', google: '🔍',
+                moonshot: '🌙', zhipu: '💎', baidu: '🐼', alibaba: '🛒'
+            };
+            
+            container.innerHTML = providers.map(p => {
+                const config = userConfigs[p.id] || {};
+                const hasKey = config.apiKey || config.api_key_encrypted;
+                return `
+                    <div class="provider-item">
+                        <div class="provider-info">
+                            <div class="provider-icon">${icons[p.id] || '🔌'}</div>
+                            <div>
+                                <div class="provider-name">${p.displayName || p.name}</div>
+                                <div class="provider-status ${hasKey ? 'configured' : ''}">${hasKey ? '已配置' : '未配置'}</div>
+                            </div>
+                        </div>
+                        <button class="btn-configure" onclick="openModal('${p.id}')">${hasKey ? '修改' : '配置'}</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openModal(providerId) {
+            currentProvider = providerId;
+            const config = userConfigs[providerId] || {};
+            document.getElementById('apiKeyInput').value = '';
+            document.getElementById('baseUrlInput').value = config.customBaseUrl || '';
+            document.getElementById('modelInput').value = config.customModel || '';
+            
+            const provider = providers.find(p => p.id === providerId);
+            document.getElementById('modalTitle').textContent = `配置 ${provider?.displayName || providerId}`;
+            document.getElementById('apiKeyModal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('apiKeyModal').classList.remove('show');
+            currentProvider = null;
+        }
+
+        async function saveApiKey() {
+            if (!currentProvider) return;
+            
+            const apiKey = document.getElementById('apiKeyInput').value;
+            const baseUrl = document.getElementById('baseUrlInput').value;
+            const model = document.getElementById('modelInput').value;
+            
+            try {
+                const res = await fetch(`${API_BASE}/llm/user-config`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        providerId: currentProvider,
+                        apiKey: apiKey || undefined,
+                        customBaseUrl: baseUrl || undefined,
+                        customModel: model || undefined
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('保存成功');
+                    closeModal();
+                    await loadUserConfigs();
+                } else {
+                    showToast(data.message || '保存失败');
+                }
+            } catch (e) {
+                showToast('保存失败');
+            }
+        }
+
+        async function saveSettings() {
+            const settings = {
+                autoExtract: document.getElementById('autoExtract').checked,
+                autoReview: document.getElementById('autoReview').checked,
+                autoCleanup: document.getElementById('autoCleanup').checked,
+                autoTag: document.getElementById('autoTag').checked,
+                autoConvert: document.getElementById('autoConvert').checked,
+                passiveReview: document.getElementById('passiveReview').checked
+            };
+            
+            try {
+                const res = await fetch(`${API_BASE}/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ custom_settings: settings })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('设置已保存');
+                }
+            } catch (e) {
+                console.error('Save settings error:', e);
+            }
+        }
+
+        document.querySelectorAll('.toggle-switch input').forEach(input => {
+            input.addEventListener('change', saveSettings);
+        });
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        init();
+    </script>
+</body>
+</html>

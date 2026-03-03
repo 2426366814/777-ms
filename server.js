@@ -198,6 +198,10 @@ app.get('/providers', (req, res) => {
     res.sendFile(path.join(__dirname, 'web', 'providers.html'));
 });
 
+app.get('/settings', (req, res) => {
+    res.sendFile(path.join(__dirname, 'web', 'settings.html'));
+});
+
 app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'web', 'profile.html'));
 });

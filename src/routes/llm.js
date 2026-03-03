@@ -10,6 +10,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const LLMService = require('../services/LLMService');
+const { authenticate } = require('../middleware/auth');
 
 const configSchema = Joi.object({
     provider: Joi.string().required(),
@@ -25,12 +26,12 @@ const configSchema = Joi.object({
  * @desc    获取用户的LLM配置
  * @access  Private
  */
-router.get('/configs', async (req, res, next) => {
+router.get('/configs', authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         
         const configs = await db.query(
-            'SELECT * FROM user_llm_configs WHERE user_id = ?',
+            'SELECT provider, custom_base_url, custom_model, is_verified FROM user_llm_configs WHERE user_id = ?',
             [userId]
         );
         
@@ -45,31 +46,31 @@ router.get('/configs', async (req, res, next) => {
  * @desc    创建或更新LLM配置
  * @access  Private
  */
-router.post('/configs', async (req, res, next) => {
+router.post('/configs', authenticate, async (req, res, next) => {
     try {
         const { error, value } = configSchema.validate(req.body);
         if (error) {
             return res.status(400).json({ success: false, message: '输入数据无效', errors: error.details });
         }
         
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         const { provider, model, apiKey, baseUrl, temperature, maxTokens } = value;
         
-        const existing = await db.query(
+        const existing = await db.queryOne(
             'SELECT id FROM user_llm_configs WHERE user_id = ? AND provider = ?',
             [userId, provider]
         );
         
-        if (existing && existing.length > 0) {
+        if (existing) {
             await db.query(
-                'UPDATE user_llm_configs SET model = ?, api_key = ?, base_url = ?, temperature = ?, max_tokens = ?, updated_at = NOW() WHERE id = ?',
-                [model, apiKey, baseUrl, temperature, maxTokens, existing[0].id]
+                'UPDATE user_llm_configs SET api_key_encrypted = ?, custom_base_url = ?, custom_model = ?, updated_at = NOW() WHERE id = ?',
+                [apiKey, baseUrl, model, existing.id]
             );
         } else {
             const { v4: uuidv4 } = require('uuid');
             await db.query(
-                'INSERT INTO user_llm_configs (id, user_id, provider, model, api_key, base_url, temperature, max_tokens, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())',
-                [uuidv4(), userId, provider, model, apiKey, baseUrl, temperature, maxTokens]
+                'INSERT INTO user_llm_configs (id, user_id, provider, api_key_encrypted, custom_base_url, custom_model) VALUES (?, ?, ?, ?, ?, ?)',
+                [uuidv4(), userId, provider, apiKey, baseUrl, model]
             );
         }
         
@@ -89,10 +90,20 @@ router.post('/configs', async (req, res, next) => {
 router.get('/providers', async (req, res, next) => {
     try {
         const providers = await db.query(
-            'SELECT id, name, display_name, base_url, default_model, models, is_active FROM llm_providers ORDER BY sort_order'
+            'SELECT id, name, display_name, base_url, default_model, models, is_active FROM llm_providers WHERE is_active = 1 ORDER BY sort_order'
         );
         
-        res.json({ success: true, data: { providers: providers || [] } });
+        const result = providers.map(p => ({
+            id: p.id,
+            name: p.name,
+            displayName: p.display_name,
+            baseUrl: p.base_url,
+            defaultModel: p.default_model,
+            models: p.models ? (typeof p.models === 'string' ? JSON.parse(p.models) : p.models) : [],
+            isActive: p.is_active
+        }));
+        
+        res.json({ success: true, data: result });
     } catch (error) {
         next(error);
     }
@@ -123,9 +134,9 @@ router.get('/providers/:id/models', async (req, res, next) => {
  * @desc    获取用户LLM使用统计
  * @access  Private
  */
-router.get('/usage', async (req, res, next) => {
+router.get('/usage', authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user.id;
         
         const usage = await db.query(
             `SELECT 
@@ -145,11 +156,104 @@ router.get('/usage', async (req, res, next) => {
 });
 
 /**
+ * @route   GET /api/v1/llm/user-configs
+ * @desc    获取用户的所有LLM配置
+ * @access  Private
+ */
+router.get('/user-configs', authenticate, async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        
+        const configs = await db.query(
+            'SELECT provider, api_key_encrypted, custom_base_url, custom_model FROM user_llm_configs WHERE user_id = ?',
+            [userId]
+        );
+        
+        const result = {};
+        (configs || []).forEach(c => {
+            result[c.provider] = {
+                hasApiKey: !!c.api_key_encrypted,
+                customBaseUrl: c.custom_base_url,
+                customModel: c.custom_model
+            };
+        });
+        
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   POST /api/v1/llm/user-config
+ * @desc    保存用户的LLM配置
+ * @access  Private
+ */
+router.post('/user-config', authenticate, async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        
+        const { providerId, apiKey, customBaseUrl, customModel } = req.body;
+        
+        if (!providerId) {
+            return res.status(400).json({ success: false, message: '缺少providerId' });
+        }
+        
+        const existing = await db.queryOne(
+            'SELECT id FROM user_llm_configs WHERE user_id = ? AND provider = ?',
+            [userId, providerId]
+        );
+        
+        if (existing) {
+            await db.query(
+                'UPDATE user_llm_configs SET api_key_encrypted = ?, custom_base_url = ?, custom_model = ?, updated_at = NOW() WHERE id = ?',
+                [apiKey, customBaseUrl, customModel, existing.id]
+            );
+        } else {
+            const { v4: uuidv4 } = require('uuid');
+            await db.query(
+                'INSERT INTO user_llm_configs (id, user_id, provider, api_key_encrypted, custom_base_url, custom_model) VALUES (?, ?, ?, ?, ?, ?)',
+                [uuidv4(), userId, providerId, apiKey, customBaseUrl, customModel]
+            );
+        }
+        
+        logger.info(`用户 ${userId} 配置LLM: ${providerId}`);
+        
+        res.json({ success: true, message: '配置保存成功' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   DELETE /api/v1/llm/user-config/:providerId
+ * @desc    删除用户的LLM配置
+ * @access  Private
+ */
+router.delete('/user-config/:providerId', authenticate, async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { providerId } = req.params;
+        
+        await db.query(
+            'DELETE FROM user_llm_configs WHERE user_id = ? AND provider = ?',
+            [userId, providerId]
+        );
+        
+        logger.info(`用户 ${userId} 删除LLM配置: ${providerId}`);
+        
+        res.json({ success: true, message: '配置删除成功' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
  * @route   POST /api/v1/llm/test
  * @desc    测试LLM连接
  * @access  Private
  */
-router.post('/test', async (req, res, next) => {
+router.post('/test', authenticate, async (req, res, next) => {
     try {
         const { provider, model, apiKey, baseUrl } = req.body;
         
