@@ -160,23 +160,41 @@ router.post('/refresh', async (req, res, next) => {
             });
         }
 
-        // TODO: 验证刷新令牌
-        // const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-        // const user = await User.findById(decoded.userId);
-
-        // 临时模拟
-        const user = {
-            id: 'user-' + Date.now(),
-            username: 'testuser',
-            role: 'user'
-        };
+        const jwt = require('jsonwebtoken');
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(refreshToken, process.env.JWT_SECRET || 'your-secret-key');
+        } catch (err) {
+            return res.status(401).json({
+                success: false,
+                message: '刷新令牌无效或已过期'
+            });
+        }
+        
+        if (decoded.type !== 'refresh') {
+            return res.status(401).json({
+                success: false,
+                message: '无效的刷新令牌类型'
+            });
+        }
+        
+        const user = await User.findById(decoded.userId);
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: '用户不存在'
+            });
+        }
 
         const newToken = generateToken(user);
+        const newRefreshToken = generateRefreshToken(user);
 
         res.json({
             success: true,
             data: {
                 token: newToken,
+                refreshToken: newRefreshToken,
                 expiresIn: '24h'
             }
         });

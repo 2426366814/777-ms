@@ -63,14 +63,26 @@ const authenticateApiKey = async (req, res, next) => {
             });
         }
 
-        // TODO: 从数据库验证 API Key
-        // const user = await validateApiKey(apiKey);
+        const db = require('../utils/database');
         
-        // 临时模拟验证
+        const users = await db.query(
+            'SELECT id, username, role, api_key FROM users WHERE api_key = ?',
+            [apiKey]
+        );
+        
+        if (!users || users.length === 0) {
+            return res.status(401).json({
+                success: false,
+                message: '无效的 API Key'
+            });
+        }
+        
+        const user = users[0];
+        
         req.user = {
-            id: 'temp-user-id',
-            username: 'api-user',
-            role: 'user'
+            id: user.id,
+            username: user.username,
+            role: user.role
         };
         
         next();
