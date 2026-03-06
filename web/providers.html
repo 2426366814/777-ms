@@ -480,7 +480,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     API文档
                 </a>
-                <a href="/admin" class="nav-item">
+                <a href="/admin" class="nav-item" id="adminLink" style="display:none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                     系统管理
                 </a>
@@ -490,7 +490,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     个人资料
                 </a>
-                <button class="nav-item logout-btn" onclick="logout()">
+                <button class="nav-item logout-btn" id="logoutBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     退出登录
                 </button>
@@ -534,16 +534,16 @@
                 </div>
             </div>
 
-            <div class="tabs">
-                <button class="tab active" onclick="showPanel('providers')">
+            <div class="tabs" id="mainTabs">
+                <button class="tab active" data-panel="providers">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/></svg>
                     提供商管理
                 </button>
-                <button class="tab" onclick="showPanel('monitoring')">
+                <button class="tab" data-panel="monitoring">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                     性能监控
                 </button>
-                <button class="tab" onclick="showPanel('routing')">
+                <button class="tab" data-panel="routing">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>
                     路由策略
                 </button>
@@ -576,7 +576,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalTitle">添加提供商</h3>
-                <button class="modal-close" onclick="closeModal()">
+                <button class="modal-close" id="closeModalBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -609,7 +609,7 @@
                         <label for="providerApiKey" class="form-label">API Key</label>
                         <div class="api-key-input">
                             <input type="password" class="form-input" id="providerApiKey" name="providerApiKey" placeholder="输入 API Key" autocomplete="off">
-                            <button type="button" onclick="toggleApiKeyVisibility()" aria-label="显示/隐藏API Key">
+                            <button type="button" id="toggleApiKeyBtn" aria-label="显示/隐藏API Key">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                             </button>
                         </div>
@@ -635,9 +635,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-                <button class="btn btn-danger" id="deleteBtn" style="display:none;" onclick="deleteProvider()">删除</button>
-                <button class="btn btn-primary" onclick="saveProvider()">保存</button>
+                <button class="btn btn-secondary" id="cancelBtn">取消</button>
+                <button class="btn btn-danger" id="deleteBtn" style="display:none;">删除</button>
+                <button class="btn btn-primary" id="saveProviderBtn">保存</button>
             </div>
         </div>
     </div>
@@ -647,11 +647,13 @@
     <script>
         const API_BASE = '/api/v1/providers';
         let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
         let charts = {};
         let allProviders = [];
         let editingProvider = null;
 
         if (!token) window.location.href = '/';
+        if (user.role === 'admin') document.getElementById('adminLink').style.display = 'flex';
 
         const presetProviders = [
             { name: 'OpenAI', baseUrl: 'https://api.openai.com/v1', models: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
@@ -683,13 +685,35 @@
             return r.json(); 
         }
 
-        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+        function logout() {
+            const token = localStorage.getItem('token');
+            
+            // Call backend logout API to blacklist token
+            if (token) {
+                fetch('/api/v1/user/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(err => {
+                    console.log('Logout API call failed:', err);
+                });
+            }
+            
+            // Clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            // Redirect to login page
+            window.location.href = '/login';
+        }
 
         function showPanel(name) {
             document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(name + '-panel').style.display = 'block';
-            event.target.closest('.tab').classList.add('active');
+            document.querySelector(`.tab[data-panel="${name}"]`).classList.add('active');
             const loaders = { 
                 providers: loadProviders, 
                 monitoring: loadMonitoring, 
@@ -697,6 +721,48 @@
             };
             if (loaders[name]) loaders[name]();
         }
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('mainTabs').addEventListener('click', function(e) {
+            const tab = e.target.closest('.tab');
+            if (tab) {
+                showPanel(tab.dataset.panel);
+            }
+        });
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('toggleApiKeyBtn').addEventListener('click', toggleApiKeyVisibility);
+        document.getElementById('cancelBtn').addEventListener('click', closeModal);
+        document.getElementById('deleteBtn').addEventListener('click', deleteProvider);
+        document.getElementById('saveProviderBtn').addEventListener('click', saveProvider);
+
+        document.getElementById('providersList').addEventListener('click', function(e) {
+            const btn = e.target.closest('button');
+            if (!btn) {
+                const addCard = e.target.closest('.add-provider-card');
+                if (addCard) openAddModal();
+                return;
+            }
+            const id = btn.dataset.id;
+            if (btn.classList.contains('edit-btn')) {
+                editProvider(id);
+            } else if (btn.classList.contains('config-btn')) {
+                configProvider(id);
+            }
+        });
+
+        document.getElementById('strategiesList').addEventListener('click', function(e) {
+            const item = e.target.closest('.list-item');
+            if (item && item.dataset.strategyId) {
+                selectStrategy(item.dataset.strategyId);
+            }
+        });
+
+        document.getElementById('presetProviders').addEventListener('click', function(e) {
+            const item = e.target.closest('.list-item');
+            if (item && item.dataset.presetName) {
+                selectPreset(item.dataset.presetName);
+            }
+        });
 
         async function loadProviders() {
             const [providersRes, statusRes] = await Promise.all([
@@ -736,15 +802,15 @@
                                 <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.base_url}</div>
                             </div>
                             <div class="flex gap-1 flex-shrink-0">
-                                <button class="btn btn-secondary btn-sm" onclick="editProvider('${p.id}')">编辑</button>
-                                <button class="btn btn-secondary btn-sm" onclick="configProvider('${p.id}')">配置API</button>
+                                <button class="btn btn-secondary btn-sm edit-btn" data-id="${p.id}">编辑</button>
+                                <button class="btn btn-secondary btn-sm config-btn" data-id="${p.id}">配置API</button>
                             </div>
                         </div>
                     `;
                 }).join('');
                 
                 html += `
-                    <div class="add-provider-card" onclick="openAddModal()">
+                    <div class="add-provider-card">
                         <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         <p style="margin-top: 12px;">添加新提供商</p>
                     </div>
@@ -795,7 +861,7 @@
                 document.getElementById('strategiesList').innerHTML = `
                     <div class="list-container">
                         ${strategies.strategies.map((s, index) => `
-                            <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" onclick="selectStrategy('${s.id}')">
+                            <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" data-strategy-id="${s.id}">
                                 <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
                                 <div class="list-item-content" style="flex:1;min-width:0;">
                                     <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.name}</div>
@@ -821,9 +887,9 @@
             document.getElementById('providerActive').checked = true;
             
             const el = document.getElementById('presetProviders');
-            el.className = '';
+            el.className = 'list-container';
             el.innerHTML = presetProviders.map((p, index) => `
-                <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" onclick="selectPreset('${p.name}')">
+                <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" data-preset-name="${p.name}">
                     <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
                     <div class="list-item-content" style="flex:1;min-width:0;">
                         <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name}</div>

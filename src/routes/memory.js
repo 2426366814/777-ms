@@ -11,6 +11,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const memoryService = require('../services/memoryService');
 const { authenticate } = require('../middleware/auth');
+const { sanitizeHtml, detectXSS, detectSQLInjection, sanitizeSearchQuery } = require('../utils/security');
 
 router.use(authenticate);
 
@@ -54,6 +55,38 @@ router.get('/', async (req, res, next) => {
                 message: '查询参数无效',
                 errors: error.details
             });
+        }
+
+        if (value.search) {
+            const sqlCheck = detectSQLInjection(value.search);
+            if (sqlCheck.isSQLInjection) {
+                logger.warn(`SQL注入检测: 用户 ${req.user?.id} 提交了可疑搜索: ${value.search}`);
+                return res.status(400).json({
+                    success: false,
+                    message: '搜索参数包含非法字符'
+                });
+            }
+            value.search = sanitizeSearchQuery(value.search);
+        }
+
+        if (value.category) {
+            const sqlCheck = detectSQLInjection(value.category);
+            if (sqlCheck.isSQLInjection) {
+                return res.status(400).json({
+                    success: false,
+                    message: '分类参数包含非法字符'
+                });
+            }
+        }
+
+        if (value.tag) {
+            const sqlCheck = detectSQLInjection(value.tag);
+            if (sqlCheck.isSQLInjection) {
+                return res.status(400).json({
+                    success: false,
+                    message: '标签参数包含非法字符'
+                });
+            }
         }
 
         const userId = req.user.id;
@@ -137,6 +170,22 @@ router.post('/', async (req, res, next) => {
             });
         }
 
+        if (value.content) {
+            const xssCheck = detectXSS(value.content);
+            if (xssCheck.isXSS) {
+                logger.warn(`XSS检测: 用户 ${req.user.id} 提交了可疑内容`);
+            }
+            value.content = sanitizeHtml(value.content, { allowBasicFormatting: true });
+        }
+
+        if (value.tags) {
+            value.tags = value.tags.map(tag => sanitizeHtml(tag));
+        }
+
+        if (value.category) {
+            value.category = sanitizeHtml(value.category);
+        }
+
         const userId = req.user.id;
         const memory = await memoryService.createMemory(userId, value);
 
@@ -166,6 +215,22 @@ router.put('/:id', async (req, res, next) => {
                 message: '输入数据无效',
                 errors: error.details
             });
+        }
+
+        if (value.content) {
+            const xssCheck = detectXSS(value.content);
+            if (xssCheck.isXSS) {
+                logger.warn(`XSS检测: 用户 ${req.user.id} 更新时提交了可疑内容`);
+            }
+            value.content = sanitizeHtml(value.content, { allowBasicFormatting: true });
+        }
+
+        if (value.tags) {
+            value.tags = value.tags.map(tag => sanitizeHtml(tag));
+        }
+
+        if (value.category) {
+            value.category = sanitizeHtml(value.category);
         }
 
         const { id } = req.params;

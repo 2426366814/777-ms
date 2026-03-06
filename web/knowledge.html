@@ -341,7 +341,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     API文档
                 </a>
-                <a href="/admin" class="nav-item">
+                <a href="/admin" class="nav-item" id="adminLink" style="display:none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                     系统管理
                 </a>
@@ -351,7 +351,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     个人资料
                 </a>
-                <button class="nav-item logout-btn" onclick="logout()">
+                <button class="nav-item logout-btn" id="logoutBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     退出登录
                 </button>
@@ -361,7 +361,7 @@
         <main class="main-content">
             <div class="knowledge-header">
                 <h1>知识库</h1>
-                <button class="btn btn-primary" onclick="openAddModal()">
+                <button class="btn btn-primary" id="addKnowledgeBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     添加知识
                 </button>
@@ -386,8 +386,8 @@
                 </div>
             </div>
 
-            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.pdf,.doc,.docx,.html" onchange="handleFileUpload(event)">
+            <div class="upload-zone" id="uploadZone">
+                <input type="file" id="fileInput" style="display: none;" accept=".txt,.md,.pdf,.doc,.docx,.html">
                 <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                     <polyline points="17 8 12 3 7 8"/>
@@ -399,14 +399,14 @@
 
             <div class="search-bar">
                 <label for="searchInput" class="visually-hidden">搜索知识库</label>
-                <input type="text" id="searchInput" name="searchInput" placeholder="搜索知识库..." onkeyup="handleSearch(event)">
-                <button class="btn btn-secondary" onclick="searchKnowledge()">搜索</button>
+                <input type="text" id="searchInput" name="searchInput" placeholder="搜索知识库...">
+                <button class="btn btn-secondary" id="searchBtn">搜索</button>
             </div>
 
             <div class="filter-bar" id="filterBar">
-                <div class="filter-chip active" onclick="filterBySource('all')">全部</div>
-                <div class="filter-chip" onclick="filterBySource('manual')">手动添加</div>
-                <div class="filter-chip" onclick="filterBySource('upload')">上传文档</div>
+                <div class="filter-chip active" data-source="all">全部</div>
+                <div class="filter-chip" data-source="manual">手动添加</div>
+                <div class="filter-chip" data-source="upload">上传文档</div>
             </div>
 
             <div class="knowledge-grid" id="knowledgeList">
@@ -419,7 +419,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalTitle">添加知识</h3>
-                <button class="modal-close" onclick="closeModal()">
+                <button class="modal-close" id="closeModalBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -449,9 +449,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-                <button class="btn btn-danger" id="deleteBtn" style="display:none;" onclick="deleteKnowledge()">删除</button>
-                <button class="btn btn-primary" onclick="saveKnowledge()">保存</button>
+                <button class="btn btn-secondary" id="cancelModalBtn">取消</button>
+                <button class="btn btn-danger" id="deleteBtn" style="display:none;">删除</button>
+                <button class="btn btn-primary" id="saveKnowledgeBtn">保存</button>
             </div>
         </div>
     </div>
@@ -460,7 +460,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 class="modal-title" id="viewTitle">查看知识</h3>
-                <button class="modal-close" onclick="closeViewModal()">
+                <button class="modal-close" id="closeViewModalBtn">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
@@ -476,11 +476,13 @@
     <script>
         const API_BASE = '/api/v1/knowledge';
         let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
         let allKnowledge = [];
         let editingKnowledge = null;
         let currentFilter = 'all';
 
         if (!token) window.location.href = '/';
+        if (user.role === 'admin') document.getElementById('adminLink').style.display = 'flex';
 
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
@@ -505,7 +507,29 @@
             return r.json(); 
         }
 
-        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+        function logout() {
+            const token = localStorage.getItem('token');
+            
+            // Call backend logout API to blacklist token
+            if (token) {
+                fetch('/api/v1/user/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(err => {
+                    console.log('Logout API call failed:', err);
+                });
+            }
+            
+            // Clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            // Redirect to login page
+            window.location.href = '/login';
+        }
 
         async function loadKnowledge() {
             const res = await api('/');
@@ -557,30 +581,24 @@
             }
             
             const el = document.getElementById('knowledgeList');
-            el.className = '';
+            el.className = 'list-container';
             el.innerHTML = filtered.map((k, index) => `
-                <div class="list-item" style="display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;box-sizing:border-box;" onclick="viewKnowledge('${k.id}')">
-                    <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>
-                    <div class="list-item-content" style="flex:1;min-width:0;">
-                        <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(k.title || '')}">${escapeHtml((k.title || '无标题').substring(0, 60))}${(k.title || '').length > 60 ? '...' : ''}</div>
-                        <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${k.source === 'upload' ? '上传文档' : '手动添加'} · ${new Date(k.created_at).toLocaleDateString()}</div>
+                <div class="list-item" data-knowledge-id="${k.id}">
+                    <div class="item-index">${index + 1}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title" title="${escapeHtml(k.title || '')}">${escapeHtml((k.title || '无标题').substring(0, 60))}${(k.title || '').length > 60 ? '...' : ''}</div>
+                        <div class="list-item-meta">${k.source === 'upload' ? '上传文档' : '手动添加'} · ${new Date(k.created_at).toLocaleDateString()}</div>
                     </div>
-                    <button class="btn btn-danger btn-sm flex-shrink-0" onclick="event.stopPropagation(); deleteKnowledge('${k.id}')">删除</button>
+                    <button class="btn btn-danger btn-sm flex-shrink-0 delete-knowledge-btn" data-knowledge-id="${k.id}">删除</button>
                 </div>
             `).join('');
         }
 
-        function filterBySource(source) {
+        function filterBySource(source, targetElement) {
             currentFilter = source;
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-            event.target.classList.add('active');
+            targetElement.classList.add('active');
             renderKnowledge();
-        }
-
-        function handleSearch(e) {
-            if (e.key === 'Enter') {
-                searchKnowledge();
-            }
         }
 
         async function searchKnowledge() {
@@ -683,13 +701,12 @@
             }
         }
 
-        async function deleteKnowledge() {
-            if (!editingKnowledge || !confirm('确定要删除此知识条目吗？')) return;
+        async function deleteKnowledgeById(id) {
+            if (!confirm('确定要删除此知识条目吗？')) return;
             
-            const res = await api(`/${editingKnowledge.id}`, { method: 'DELETE' });
+            const res = await api(`/${id}`, { method: 'DELETE' });
             if (res.success) {
                 showToast('知识已删除');
-                closeModal();
                 loadKnowledge();
             } else {
                 showToast(res.message || '删除失败');
@@ -754,6 +771,57 @@
                 });
             }
         });
+
+        document.getElementById('uploadZone').addEventListener('click', () => {
+            document.getElementById('fileInput').click();
+        });
+
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') {
+                searchKnowledge();
+            }
+        });
+
+        document.getElementById('searchBtn').addEventListener('click', searchKnowledge);
+
+        document.getElementById('filterBar').addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-chip');
+            if (chip) {
+                filterBySource(chip.dataset.source, chip);
+            }
+        });
+
+        document.getElementById('addKnowledgeBtn').addEventListener('click', openAddModal);
+
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+        document.getElementById('saveKnowledgeBtn').addEventListener('click', saveKnowledge);
+        document.getElementById('deleteBtn').addEventListener('click', () => {
+            if (editingKnowledge) {
+                deleteKnowledgeById(editingKnowledge.id);
+                closeModal();
+            }
+        });
+
+        document.getElementById('closeViewModalBtn').addEventListener('click', closeViewModal);
+
+        document.getElementById('knowledgeList').addEventListener('click', (e) => {
+            const deleteBtn = e.target.closest('.delete-knowledge-btn');
+            if (deleteBtn) {
+                e.stopPropagation();
+                deleteKnowledgeById(deleteBtn.dataset.knowledgeId);
+                return;
+            }
+            
+            const listItem = e.target.closest('.list-item');
+            if (listItem) {
+                viewKnowledge(listItem.dataset.knowledgeId);
+            }
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
 
         loadKnowledge();
     </script>

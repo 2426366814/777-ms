@@ -27,16 +27,19 @@ class AutoManager {
     constructor() {
         this.isRunning = false;
         this.jobs = [];
+        this.configLoaded = false;
         
         this.config = {
-            autoExtract: process.env.AUTO_EXTRACT_ENABLED !== 'false',
-            autoReview: process.env.AUTO_REVIEW_ENABLED !== 'false',
-            autoCleanup: process.env.AUTO_CLEANUP_ENABLED !== 'false',
-            autoConvert: process.env.AUTO_CONVERT_ENABLED !== 'false',
-            autoLink: process.env.AUTO_LINK_ENABLED !== 'false',
-            autoSummarize: process.env.AUTO_SUMMARIZE_ENABLED !== 'false',
-            autoTag: process.env.AUTO_TAG_ENABLED !== 'false',
-            autoContextLoad: process.env.AUTO_CONTEXT_LOAD !== 'false'
+            autoContextLoad: true,
+            autoExtract: true,
+            autoLink: true,
+            autoReview: true,
+            autoImportance: true,
+            autoCleanup: true,
+            autoTag: true,
+            autoConvert: true,
+            autoSummarize: true,
+            passiveReview: true
         };
         
         this.limits = {
@@ -48,11 +51,41 @@ class AutoManager {
         };
     }
 
-    start() {
+    async loadSettings() {
+        try {
+            const settings = await db.query('SELECT setting_key, setting_value FROM system_settings');
+            for (const s of settings) {
+                if (s.setting_key in this.config) {
+                    this.config[s.setting_key] = s.setting_value === 'true';
+                }
+            }
+            this.configLoaded = true;
+            logger.info('AutoManager settings loaded from database:', this.config);
+        } catch (error) {
+            logger.warn('Failed to load settings from database, using defaults:', error.message);
+        }
+    }
+
+    async updateSettings(newSettings) {
+        for (const [key, value] of Object.entries(newSettings)) {
+            if (key in this.config) {
+                this.config[key] = value;
+            }
+        }
+        logger.info('AutoManager settings updated:', newSettings);
+    }
+
+    getConfig() {
+        return { ...this.config };
+    }
+
+    async start() {
         if (this.isRunning) {
             logger.warn('AutoManager is already running');
             return;
         }
+
+        await this.loadSettings();
 
         logger.info('Starting AutoManager with all auto features...');
         logger.info('Features enabled: ' + Object.entries(this.config).filter(([,v]) => v).map(([k]) => k).join(', '));

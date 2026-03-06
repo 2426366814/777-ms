@@ -1,4 +1,4 @@
-const CACHE_NAME = '777-ms-v0.5.0';
+const CACHE_NAME = '777-ms-v0.5.6';
 const STATIC_ASSETS = [
     '/',
     '/dashboard',

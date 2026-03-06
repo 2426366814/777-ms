@@ -30,7 +30,7 @@
             </nav>
             <div class="sidebar-user">
                 <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
-                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+                <button class="nav-item logout-btn" id="logoutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
             </div>
         </aside>
 
@@ -49,10 +49,11 @@
                 <div class="stat-card"><div class="stat-value" id="providerCount">0</div><div class="stat-label">活跃提供商</div></div>
             </div>
 
-            <div class="tabs">
-                <button class="tab active" onclick="showPanel('users')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理</button>
-                <button class="tab" onclick="showPanel('providers')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>提供商管理</button>
-                <button class="tab" onclick="showPanel('backups')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>备份管理</button>
+            <div class="tabs" id="mainTabs">
+                <button class="tab active" data-panel="users"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理</button>
+                <button class="tab" data-panel="providers"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>提供商管理</button>
+                <button class="tab" data-panel="autotasks"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>自动任务</button>
+                <button class="tab" data-panel="backups"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>备份管理</button>
             </div>
 
             <div id="users-panel" class="panel">
@@ -60,8 +61,8 @@
                     <div class="card-header">
                         <h3 class="card-title">用户列表</h3>
                         <div class="flex gap-2">
-                            <input type="text" class="input" id="searchUser" placeholder="搜索用户..." style="width:200px;" onkeyup="filterUsers()">
-                            <button class="btn btn-primary btn-sm" onclick="showAddUser()">添加用户</button>
+                            <input type="text" class="input" id="searchUser" placeholder="搜索用户..." style="width:200px;">
+                            <button class="btn btn-primary btn-sm" id="showAddUserBtn">添加用户</button>
                         </div>
                     </div>
                     <div id="addUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
@@ -74,8 +75,8 @@
                             <select class="input" id="newRole"><option value="user">普通用户</option><option value="admin">管理员</option></select>
                         </div>
                         <div class="flex gap-2">
-                            <button class="btn btn-primary" onclick="createUser()">创建</button>
-                            <button class="btn btn-secondary" onclick="hideAddUser()">取消</button>
+                            <button class="btn btn-primary" id="createUserBtn">创建</button>
+                            <button class="btn btn-secondary" id="hideAddUserBtn">取消</button>
                         </div>
                     </div>
                     <div id="editUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);background:var(--bg-secondary);">
@@ -90,8 +91,8 @@
                             <select class="input" id="editStatus"><option value="active">活跃</option><option value="inactive">禁用</option><option value="banned">封禁</option></select>
                         </div>
                         <div class="flex gap-2">
-                            <button class="btn btn-primary" onclick="updateUser()">保存</button>
-                            <button class="btn btn-secondary" onclick="hideEditUser()">取消</button>
+                            <button class="btn btn-primary" id="updateUserBtn">保存</button>
+                            <button class="btn btn-secondary" id="hideEditUserBtn">取消</button>
                         </div>
                     </div>
                     <div id="usersList" class="loading"><div class="spinner"></div></div>
@@ -102,7 +103,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">LLM 提供商</h3>
-                        <button class="btn btn-primary btn-sm" onclick="showAddProvider()">添加提供商</button>
+                        <button class="btn btn-primary btn-sm" id="showAddProviderBtn">添加提供商</button>
                     </div>
                     <div id="addProviderForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
                         <div class="grid grid-2 gap-2 mb-2">
@@ -112,8 +113,8 @@
                         <input type="text" class="input mb-2" id="providerBaseUrl" placeholder="API Base URL">
                         <input type="text" class="input mb-2" id="providerApiKey" placeholder="API Key">
                         <div class="flex gap-2">
-                            <button class="btn btn-primary" onclick="createProvider()">创建</button>
-                            <button class="btn btn-secondary" onclick="hideAddProvider()">取消</button>
+                            <button class="btn btn-primary" id="createProviderBtn">创建</button>
+                            <button class="btn btn-secondary" id="hideAddProviderBtn">取消</button>
                         </div>
                     </div>
                     <div id="providersList" class="loading"><div class="spinner"></div></div>
@@ -124,9 +125,93 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">数据备份</h3>
-                        <button class="btn btn-primary btn-sm" onclick="createBackup()">创建备份</button>
+                        <button class="btn btn-primary btn-sm" id="createBackupBtn">创建备份</button>
                     </div>
                     <div id="backupsList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="autotasks-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">自动任务设置</h3>
+                        <button class="btn btn-secondary btn-sm" id="resetAutoSettingsBtn">重置为默认</button>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">管理全局自动任务开关，这些设置将影响所有用户。</p>
+                        <div id="autoTasksList">
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">智能上下文注入</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">对话时自动注入相关记忆和知识到LLM上下文</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoContextLoad" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动提取记忆</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">对话时自动从消息中提取重要信息保存为记忆</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoExtract" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动记忆关联</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">创建记忆时自动关联相似记忆，构建记忆网络</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoLink" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动复习调度</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">根据艾宾浩斯遗忘曲线自动安排复习计划</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoReview" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动重要性评估</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">LLM自动评估记忆重要性，优化复习和清理策略</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoImportance" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动清理</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">自动清理30天未访问且重要性低的记忆</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoCleanup" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动标签和分类</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">创建记忆时自动生成标签和分类</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoTag" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动转化为知识库</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">将高质量记忆自动转化为知识库条目</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoConvert" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">周期性摘要</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">自动生成每周/每月记忆摘要</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoSummarize" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+                                <div>
+                                    <div style="font-weight:500;">被动复习模式</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">对话时自动插入复习问题，在聊天中自然复习</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminPassiveReview" checked><span class="toggle-slider"></span></label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -146,14 +231,26 @@
             if (r.status === 401) { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/login'; return { success: false, message: '登录已过期' }; }
             return r.json(); 
         }
-        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/login'; }
+        
+        function logout() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch('/api/v1/user/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+                }).catch(err => console.log('Logout API call failed:', err));
+            }
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
 
         function showPanel(name) {
             document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(name + '-panel').style.display = 'block';
-            event.target.closest('.tab').classList.add('active');
-            const loaders = { users: loadUsers, providers: loadProviders, backups: loadBackups };
+            document.querySelector(`.tab[data-panel="${name}"]`).classList.add('active');
+            const loaders = { users: loadUsers, providers: loadProviders, backups: loadBackups, autotasks: loadAutoSettings };
             if (loaders[name]) loaders[name]();
         }
 
@@ -192,18 +289,18 @@
 
         function renderUsers(users) {
             const el = document.getElementById('usersList');
-            el.className = '';
+            el.className = 'list-container';
             el.innerHTML = users.length ? users.map((u, index) => `
-                <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
-                    <div class="item-index" style="min-width:32px;height:32px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.875rem;color:#fff;">${index + 1}</div>
-                    <div class="list-item-content" style="flex:1;min-width:0;">
-                        <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${u.username || ''}">${u.username || '-'}</div>
-                        <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email || '-'} · ${u.role || 'user'} · <span style="color:${u.status === 'active' ? 'var(--accent-green)' : 'var(--accent-red)'}">${u.status || '-'}</span></div>
+                <div class="list-item">
+                    <div class="item-index">${index + 1}</div>
+                    <div class="list-item-content">
+                        <div class="list-item-title" title="${u.username || ''}">${u.username || '-'}</div>
+                        <div class="list-item-meta">${u.email || '-'} · ${u.role || 'user'} · <span style="color:${u.status === 'active' ? 'var(--accent-green)' : 'var(--accent-red)'}">${u.status || '-'}</span></div>
                     </div>
                     <div class="flex gap-1 flex-shrink-0">
-                        <button class="btn btn-secondary btn-sm" onclick="showEditUser('${u.id}', '${u.username || ''}', '${u.email || ''}', '${u.role || 'user'}', '${u.status || 'active'}')">编辑</button>
-                        <button class="btn btn-secondary btn-sm" onclick="resetPassword('${u.id}')">重置密码</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">删除</button>
+                        <button class="btn btn-secondary btn-sm" data-action="edit-user" data-id="${u.id}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-role="${u.role || 'user'}" data-status="${u.status || 'active'}">编辑</button>
+                        <button class="btn btn-secondary btn-sm" data-action="reset-pwd" data-id="${u.id}">重置密码</button>
+                        <button class="btn btn-danger btn-sm" data-action="delete-user" data-id="${u.id}">删除</button>
                     </div>
                 </div>
             `).join('') : '<div class="empty-state"><p>暂无用户</p></div>';
@@ -270,16 +367,16 @@
             if (data.success) {
                 const providers = data.data?.providers || [];
                 const el = document.getElementById('providersList');
-                el.className = '';
+                el.className = 'list-container';
                 el.innerHTML = providers.length ? providers.map((p, index) => `
-                    <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
-                        <div class="item-index" style="min-width:32px;height:32px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.875rem;color:#fff;">${index + 1}</div>
-                        <div class="list-item-content" style="flex:1;min-width:0;">
-                            <div class="list-item-title" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${p.display_name || p.name || ''}">${p.display_name || p.name}</div>
-                            <div class="list-item-meta" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name} · ${p.is_active ? '<span style="color:var(--accent-green)">活跃</span>' : '<span style="color:var(--accent-red)">禁用</span>'}</div>
+                    <div class="list-item">
+                        <div class="item-index">${index + 1}</div>
+                        <div class="list-item-content">
+                            <div class="list-item-title" title="${p.display_name || p.name || ''}">${p.display_name || p.name}</div>
+                            <div class="list-item-meta">${p.name} · ${p.is_active ? '<span style="color:var(--accent-green)">活跃</span>' : '<span style="color:var(--accent-red)">禁用</span>'}</div>
                         </div>
                         <div class="flex gap-1 flex-shrink-0">
-                            <button class="btn btn-secondary btn-sm" onclick="toggleProvider('${p.id}', ${!p.is_active})">${p.is_active ? '禁用' : '启用'}</button>
+                            <button class="btn btn-secondary btn-sm" data-action="toggle-provider" data-id="${p.id}" data-active="${!p.is_active}">${p.is_active ? '禁用' : '启用'}</button>
                         </div>
                     </div>
                 `).join('') : '<div class="empty-state"><p>暂无提供商</p></div>';
@@ -303,7 +400,7 @@
 
         async function loadBackups() {
             const el = document.getElementById('backupsList');
-            el.className = '';
+            el.className = 'list-container';
             el.innerHTML = '<div class="empty-state"><p>备份功能开发中...</p></div>';
         }
 
@@ -311,8 +408,107 @@
             showToast('备份功能开发中...');
         }
 
-        loadStats();
-        loadUsers();
+        async function loadAutoSettings() {
+            const data = await api('/system/all');
+            if (data.success) {
+                const s = data.data || {};
+                document.getElementById('adminAutoContextLoad').checked = s.autoContextLoad !== false;
+                document.getElementById('adminAutoExtract').checked = s.autoExtract !== false;
+                document.getElementById('adminAutoLink').checked = s.autoLink !== false;
+                document.getElementById('adminAutoReview').checked = s.autoReview !== false;
+                document.getElementById('adminAutoImportance').checked = s.autoImportance !== false;
+                document.getElementById('adminAutoCleanup').checked = s.autoCleanup !== false;
+                document.getElementById('adminAutoTag').checked = s.autoTag !== false;
+                document.getElementById('adminAutoConvert').checked = s.autoConvert !== false;
+                document.getElementById('adminAutoSummarize').checked = s.autoSummarize !== false;
+                document.getElementById('adminPassiveReview').checked = s.passiveReview !== false;
+            }
+        }
+
+        async function saveAutoSettings() {
+            const settings = {
+                autoContextLoad: document.getElementById('adminAutoContextLoad').checked,
+                autoExtract: document.getElementById('adminAutoExtract').checked,
+                autoLink: document.getElementById('adminAutoLink').checked,
+                autoReview: document.getElementById('adminAutoReview').checked,
+                autoImportance: document.getElementById('adminAutoImportance').checked,
+                autoCleanup: document.getElementById('adminAutoCleanup').checked,
+                autoTag: document.getElementById('adminAutoTag').checked,
+                autoConvert: document.getElementById('adminAutoConvert').checked,
+                autoSummarize: document.getElementById('adminAutoSummarize').checked,
+                passiveReview: document.getElementById('adminPassiveReview').checked
+            };
+            
+            const data = await api('/system', { method: 'PUT', body: JSON.stringify(settings) });
+            if (data.success) {
+                showToast('自动任务设置已保存');
+            }
+        }
+
+        async function resetAutoSettings() {
+            if (!confirm('确定要重置所有自动任务设置为默认值吗？')) return;
+            const data = await api('/system/reset', { method: 'POST' });
+            if (data.success) {
+                showToast('已重置为默认设置');
+                loadAutoSettings();
+            }
+        }
+
+        // Event delegation for all buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+            
+            document.getElementById('mainTabs').addEventListener('click', (e) => {
+                const tab = e.target.closest('.tab');
+                if (tab) showPanel(tab.dataset.panel);
+            });
+            
+            document.getElementById('searchUser').addEventListener('input', filterUsers);
+            document.getElementById('showAddUserBtn').addEventListener('click', showAddUser);
+            document.getElementById('hideAddUserBtn').addEventListener('click', hideAddUser);
+            document.getElementById('createUserBtn').addEventListener('click', createUser);
+            document.getElementById('updateUserBtn').addEventListener('click', updateUser);
+            document.getElementById('hideEditUserBtn').addEventListener('click', hideEditUser);
+            
+            document.getElementById('showAddProviderBtn').addEventListener('click', showAddProvider);
+            document.getElementById('hideAddProviderBtn').addEventListener('click', hideAddProvider);
+            document.getElementById('createProviderBtn').addEventListener('click', createProvider);
+            
+            document.getElementById('createBackupBtn').addEventListener('click', createBackup);
+            
+            document.getElementById('resetAutoSettingsBtn').addEventListener('click', resetAutoSettings);
+            
+            document.querySelectorAll('#autotasks-panel input[type="checkbox"]').forEach(cb => {
+                cb.addEventListener('change', saveAutoSettings);
+            });
+            
+            // Event delegation for dynamic user/provider buttons
+            document.getElementById('usersList').addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                const id = btn.dataset.id;
+                if (action === 'edit-user') {
+                    showEditUser(id, btn.dataset.username, btn.dataset.email, btn.dataset.role, btn.dataset.status);
+                } else if (action === 'reset-pwd') {
+                    resetPassword(id);
+                } else if (action === 'delete-user') {
+                    deleteUser(id);
+                }
+            });
+            
+            document.getElementById('providersList').addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                if (action === 'toggle-provider') {
+                    toggleProvider(btn.dataset.id, btn.dataset.active === 'true');
+                }
+            });
+            
+            loadStats();
+            loadUsers();
+        });
     </script>
 </body>
 </html>

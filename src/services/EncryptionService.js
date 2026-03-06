@@ -5,6 +5,11 @@
 
 const crypto = require('crypto');
 
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY) {
+    console.error('WARNING: ENCRYPTION_KEY environment variable is not set. Using random key - encrypted data will not persist across restarts!');
+}
+
 class EncryptionService {
     constructor() {
         this.algorithm = 'aes-256-gcm';
@@ -13,7 +18,7 @@ class EncryptionService {
         this.saltLength = 64;
         this.tagLength = 16;
         this.iterations = 100000;
-        this.secretKey = process.env.ENCRYPTION_KEY || 'default-encryption-key-change-in-production';
+        this.secretKey = ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
     }
     
     deriveKey(password, salt) {

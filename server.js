@@ -35,12 +35,41 @@ app.set('trust proxy', true);
 app.set('io', io);
 
 app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://static.cloudflareinsights.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+            imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'", "https://memory.91wz.org", "wss://memory.91wz.org", "https://cdn.jsdelivr.net"],
+            fontSrc: ["'self'", "data:", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'self'"],
+            frameSrc: ["'none'"]
+        }
+    },
+    crossOriginEmbedderPolicy: false,
+    xssFilter: true,
+    noSniff: true,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 
+const allowedOrigins = [
+    'https://memory.91wz.org',
+    'http://localhost:3000',
+    'http://localhost:1777',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:1777'
+];
+
 app.use(cors({
-    origin: '*',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
@@ -71,6 +100,7 @@ const routes = {
     '/api/v1/categories': require('./src/routes/categories'),
     '/api/v1/backup': require('./src/routes/backup'),
     '/api/v1/settings': require('./src/routes/settings'),
+    '/api/v1/system': require('./src/routes/system'),
     '/api/v1/usage': require('./src/routes/usage'),
     '/api/v1/providers': require('./src/routes/providers'),
     '/api/v1/recommendations': require('./src/routes/recommendations'),
@@ -83,7 +113,7 @@ const routes = {
     '/api/v1/advanced': require('./src/routes/advanced'),
     '/api/v1/batch': require('./src/routes/batch'),
     '/api/v1/logs': require('./src/routes/logs'),
-    '/api/v1/session': require('./src/routes/session'),
+    '/api/v1/sessions': require('./src/routes/session'),
     '/api/v1/ide': require('./src/routes/ide')
 };
 
@@ -145,7 +175,34 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'web', 'index.html'));
 });
 
+const spaRoutes = ['/login', '/dashboard', '/admin', '/profile', '/settings', '/chat', '/knowledge', '/review', '/providers', '/visualization', '/intelligence', '/share', '/security', '/api-docs'];
+spaRoutes.forEach(route => {
+    app.get(route, (req, res) => {
+        const pageMap = {
+            '/login': 'login.html',
+            '/dashboard': 'dashboard.html',
+            '/admin': 'admin.html',
+            '/profile': 'profile.html',
+            '/settings': 'settings.html',
+            '/chat': 'chat.html',
+            '/knowledge': 'knowledge.html',
+            '/review': 'review.html',
+            '/providers': 'providers.html',
+            '/visualization': 'visualization.html',
+            '/intelligence': 'intelligence.html',
+            '/share': 'share.html',
+            '/security': 'security.html',
+            '/api-docs': 'api.html'
+        };
+        const page = pageMap[route] || 'index.html';
+        res.sendFile(path.join(__dirname, 'web', page));
+    });
+});
+
 app.use((req, res) => {
+    if (req.accepts('html')) {
+        return res.status(404).sendFile(path.join(__dirname, 'web', 'index.html'));
+    }
     res.status(404).json({
         success: false,
         message: 'API endpoint not found',

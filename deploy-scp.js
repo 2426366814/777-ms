@@ -6,10 +6,10 @@ const SSH_PATH = 'C:\\Windows\\System32\\OpenSSH\\ssh.exe';
 const SCP_PATH = 'C:\\Windows\\System32\\OpenSSH\\scp.exe';
 
 const config = {
-    host: '134.185.111.252',
+    host: '134.185.111.25',
     port: '1022',
     user: 'root',
-    password: 'Qwer1234@'
+    password: 'C^74+ek@dN'
 };
 
 const files = [

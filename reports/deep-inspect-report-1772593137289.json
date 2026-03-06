@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-03-04T02:58:57.289Z",
+  "version": "v8.25",
+  "results": {
+    "total": 124,
+    "passed": 76,
+    "failed": 23,
+    "warnings": 12,
+    "phases": {
+      "Phase-1": {
+        "status": "completed",
+        "passed": 5
+      },
+      "Phase-0": {
+        "status": "completed",
+        "passed": 0
+      },
+      "Phase-2": {
+        "status": "completed",
+        "passed": 4
+      },
+      "Phase-3": {
+        "status": "completed",
+        "passed": 1
+      },
+      "Phase-4": {
+        "status": "completed",
+        "passed": 5
+      },
+      "Phase-4.5": {
+        "status": "completed",
+        "passed": 6
+      },
+      "Phase-5": {
+        "status": "completed",
+        "passed": 8
+      },
+      "Phase-6": {
+        "status": "completed",
+        "passed": 10
+      },
+      "Phase-8": {
+        "status": "completed",
+        "passed": 6
+      },
+      "Phase-9": {
+        "status": "completed",
+        "passed": 6
+      },
+      "Phase-10": {
+        "status": "completed",
+        "passed": 6
+      },
+      "Phase-11": {
+        "status": "completed",
+        "passed": 6
+      },
+      "Phase-12": {
+        "status": "completed",
+        "passed": 5
+      },
+      "Phase-13": {
+        "status": "completed",
+        "passed": 14
+      },
+      "Phase-14": {
+        "status": "completed",
+        "passed": 15
+      }
+    },
+    "startTime": 1772593123027
+  },
+  "healthScore": "32"
+}

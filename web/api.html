@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API 文档 - 777-MS 记忆系统</title>
-    <link rel="stylesheet" href="styles.css?v=20260228-v2">
+    <link rel="stylesheet" href="styles.css?v=20260301-v3">
     <style>
         .api-container { padding: 24px; max-width: 1200px; margin: 0 auto; }
         .api-header { margin-bottom: 32px; }
@@ -237,7 +237,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     个人资料
                 </a>
-                <button class="nav-item logout-btn" onclick="logout()">
+                <button class="nav-item logout-btn" id="logoutBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     退出登录
                 </button>
@@ -255,8 +255,8 @@
                     <p>使用此 API Key 进行身份验证，请妥善保管</p>
                     <div class="api-key-display">
                         <code id="apiKey">加载中...</code>
-                        <button class="copy-btn" onclick="copyApiKey()">复制</button>
-                        <button class="copy-btn" onclick="regenerateApiKey()" style="background: var(--accent-red);">重新生成</button>
+                        <button class="copy-btn" id="copyApiKeyBtn">复制</button>
+                        <button class="copy-btn" id="regenerateApiKeyBtn" style="background: var(--accent-red);">重新生成</button>
                     </div>
                 </div>
                 
@@ -265,14 +265,14 @@
                         <span style="color: var(--text-secondary); margin-right: 8px;">API 基础地址:</span>
                         <code id="baseUrl"></code>
                     </div>
-                    <button class="copy-btn" onclick="copyBaseUrl()">复制</button>
+                    <button class="copy-btn" id="copyBaseUrlBtn">复制</button>
                 </div>
                 
                 <div class="api-section">
                     <h2>认证接口</h2>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="auth-login">
                             <span class="method-badge method-post">POST</span>
                             <span class="endpoint-path">/api/auth/login</span>
                             <span class="endpoint-desc">用户登录获取 Token</span>
@@ -287,14 +287,14 @@
                             </table>
                             <h4>请求示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>curl -X POST {{baseUrl}}/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"your_username","password":"your_password"}'</code>
                             </div>
                             <h4>响应示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>{
   "success": true,
   "token": "eyJhbGciOiJIUzI1NiIs...",
@@ -305,7 +305,7 @@
                     </div>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="auth-register">
                             <span class="method-badge method-post">POST</span>
                             <span class="endpoint-path">/api/auth/register</span>
                             <span class="endpoint-desc">用户注册</span>
@@ -327,7 +327,7 @@
                     <h2>记忆管理接口</h2>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="memories-get">
                             <span class="method-badge method-get">GET</span>
                             <span class="endpoint-path">/api/memories</span>
                             <span class="endpoint-desc">获取记忆列表</span>
@@ -336,7 +336,7 @@
                         <div class="endpoint-body">
                             <h4>请求头</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>Authorization: Bearer YOUR_API_KEY</code>
                             </div>
                             <h4>查询参数</h4>
@@ -349,7 +349,7 @@
                             </table>
                             <h4>请求示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>curl -X GET "{{baseUrl}}/api/memories?limit=10" \
   -H "Authorization: Bearer YOUR_API_KEY"</code>
                             </div>
@@ -357,7 +357,7 @@
                     </div>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="memories-post">
                             <span class="method-badge method-post">POST</span>
                             <span class="endpoint-path">/api/memories</span>
                             <span class="endpoint-desc">创建新记忆</span>
@@ -375,7 +375,7 @@
                             </table>
                             <h4>请求示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>curl -X POST "{{baseUrl}}/api/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
@@ -390,7 +390,7 @@
                     </div>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="memories-get-id">
                             <span class="method-badge method-get">GET</span>
                             <span class="endpoint-path">/api/memories/:id</span>
                             <span class="endpoint-desc">获取单个记忆详情</span>
@@ -399,7 +399,7 @@
                         <div class="endpoint-body">
                             <h4>请求示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>curl -X GET "{{baseUrl}}/api/memories/123" \
   -H "Authorization: Bearer YOUR_API_KEY"</code>
                             </div>
@@ -407,7 +407,7 @@
                     </div>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="memories-put">
                             <span class="method-badge method-put">PUT</span>
                             <span class="endpoint-path">/api/memories/:id</span>
                             <span class="endpoint-desc">更新记忆</span>
@@ -416,7 +416,7 @@
                         <div class="endpoint-body">
                             <h4>请求示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>curl -X PUT "{{baseUrl}}/api/memories/123" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
@@ -426,7 +426,7 @@
                     </div>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="memories-delete">
                             <span class="method-badge method-delete">DELETE</span>
                             <span class="endpoint-path">/api/memories/:id</span>
                             <span class="endpoint-desc">删除记忆</span>
@@ -435,7 +435,7 @@
                         <div class="endpoint-body">
                             <h4>请求示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>curl -X DELETE "{{baseUrl}}/api/memories/123" \
   -H "Authorization: Bearer YOUR_API_KEY"</code>
                             </div>
@@ -447,7 +447,7 @@
                     <h2>智能搜索接口</h2>
                     
                     <div class="endpoint-card">
-                        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+                        <div class="endpoint-header" data-endpoint="search">
                             <span class="method-badge method-post">POST</span>
                             <span class="endpoint-path">/api/search</span>
                             <span class="endpoint-desc">语义搜索记忆</span>
@@ -463,7 +463,7 @@
                             </table>
                             <h4>请求示例</h4>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>curl -X POST "{{baseUrl}}/api/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
@@ -478,14 +478,14 @@
                     
                     <div class="tutorial-section">
                         <h3>与 Trae IDE 集成</h3>
-                        <div class="tutorial-tabs">
-                            <button class="tutorial-tab active" onclick="switchTab(this, 'trae-config')">配置方式</button>
-                            <button class="tutorial-tab" onclick="switchTab(this, 'trae-mcp')">MCP 协议</button>
+                        <div class="tutorial-tabs" data-tutorial="trae">
+                            <button class="tutorial-tab active" data-tab="trae-config">配置方式</button>
+                            <button class="tutorial-tab" data-tab="trae-mcp">MCP 协议</button>
                         </div>
                         <div class="tutorial-content active" id="trae-config">
                             <p>在 Trae IDE 中配置 777-MS 记忆系统：</p>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>// 在 ~/.trae-cn/settings.json 中添加
 {
   "memory": {
@@ -500,7 +500,7 @@
                         <div class="tutorial-content" id="trae-mcp">
                             <p>通过 MCP 协议集成：</p>
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>// 在 ~/.trae-cn/mcp-config.json 中添加
 {
   "mcpServers": {
@@ -521,7 +521,7 @@
                     <div class="tutorial-section">
                         <h3>与 Cursor IDE 集成</h3>
                         <div class="code-block">
-                            <button class="copy-code" onclick="copyCode(this)">复制</button>
+                            <button class="copy-code">复制</button>
                             <code>// 在 Cursor 设置中添加自定义 API
 {
   "cursor.ai.customApis": {
@@ -544,7 +544,7 @@
                     <div class="tutorial-section">
                         <h3>与 VS Code 集成</h3>
                         <div class="code-block">
-                            <button class="copy-code" onclick="copyCode(this)">复制</button>
+                            <button class="copy-code">复制</button>
                             <code>// 安装扩展后，在 settings.json 中配置
 {
   "memoryExtension.apiUrl": "{{baseUrl}}",
@@ -557,14 +557,14 @@
                     
                     <div class="tutorial-section">
                         <h3>通用 HTTP 调用示例</h3>
-                        <div class="tutorial-tabs">
-                            <button class="tutorial-tab active" onclick="switchTab(this, 'http-js')">JavaScript</button>
-                            <button class="tutorial-tab" onclick="switchTab(this, 'http-python')">Python</button>
-                            <button class="tutorial-tab" onclick="switchTab(this, 'http-curl')">cURL</button>
+                        <div class="tutorial-tabs" data-tutorial="http">
+                            <button class="tutorial-tab active" data-tab="http-js">JavaScript</button>
+                            <button class="tutorial-tab" data-tab="http-python">Python</button>
+                            <button class="tutorial-tab" data-tab="http-curl">cURL</button>
                         </div>
                         <div class="tutorial-content active" id="http-js">
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code>// JavaScript/Node.js 示例
 const API_URL = '{{baseUrl}}';
 const API_KEY = 'YOUR_API_KEY';
@@ -598,7 +598,7 @@ async function searchMemories(query) {
                         </div>
                         <div class="tutorial-content" id="http-python">
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code># Python 示例
 import requests
 
@@ -630,7 +630,7 @@ def search_memories(query):
                         </div>
                         <div class="tutorial-content" id="http-curl">
                             <div class="code-block">
-                                <button class="copy-code" onclick="copyCode(this)">复制</button>
+                                <button class="copy-code">复制</button>
                                 <code># 创建记忆
 curl -X POST "{{baseUrl}}/api/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
@@ -676,7 +676,7 @@ curl -X GET "{{baseUrl}}/api/memories" \
         
         async function loadApiKey() {
             try {
-                const response = await fetch('/api/v1/users/apikeys', {
+                const response = await fetch('/api/v1/user/apikeys', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
@@ -702,7 +702,7 @@ curl -X GET "{{baseUrl}}/api/memories" \
         async function regenerateApiKey() {
             if (!confirm('重新生成 API Key 后，旧的 Key 将失效，确定继续？')) return;
             try {
-                const response = await fetch('/api/v1/users/apikey', {
+                const response = await fetch('/api/v1/user/api-key/regenerate', {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -745,6 +745,23 @@ curl -X GET "{{baseUrl}}/api/memories" \
         
         document.querySelectorAll('.code-block code').forEach(code => {
             code.textContent = code.textContent.replace(/\{\{baseUrl\}\}/g, getBaseUrl());
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('copyApiKeyBtn').addEventListener('click', copyApiKey);
+        document.getElementById('regenerateApiKeyBtn').addEventListener('click', regenerateApiKey);
+        document.getElementById('copyBaseUrlBtn').addEventListener('click', copyBaseUrl);
+
+        document.querySelectorAll('.endpoint-header').forEach(header => {
+            header.addEventListener('click', () => toggleEndpoint(header));
+        });
+
+        document.querySelectorAll('.copy-code').forEach(btn => {
+            btn.addEventListener('click', () => copyCode(btn));
+        });
+
+        document.querySelectorAll('.tutorial-tab').forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab, tab.dataset.tab));
         });
     </script>
 </body>

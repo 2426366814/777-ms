@@ -64,13 +64,13 @@ router.post('/configs', authenticate, async (req, res, next) => {
         if (existing) {
             await db.query(
                 'UPDATE user_llm_configs SET api_key_encrypted = ?, custom_base_url = ?, custom_model = ?, updated_at = NOW() WHERE id = ?',
-                [apiKey, baseUrl, model, existing.id]
+                [apiKey || null, baseUrl || null, model || null, existing.id]
             );
         } else {
             const { v4: uuidv4 } = require('uuid');
             await db.query(
                 'INSERT INTO user_llm_configs (id, user_id, provider, api_key_encrypted, custom_base_url, custom_model) VALUES (?, ?, ?, ?, ?, ?)',
-                [uuidv4(), userId, provider, apiKey, baseUrl, model]
+                [uuidv4(), userId, provider, apiKey || null, baseUrl || null, model || null]
             );
         }
         
@@ -262,6 +262,96 @@ router.post('/test', authenticate, async (req, res, next) => {
             model,
             apiKey,
             baseUrl
+        });
+        
+        res.json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   GET /api/v1/llm/config/:provider
+ * @desc    获取特定提供商的配置
+ * @access  Private
+ */
+router.get('/config/:provider', authenticate, async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { provider } = req.params;
+        
+        const config = await db.queryOne(
+            'SELECT provider, custom_base_url, custom_model, is_verified FROM user_llm_configs WHERE user_id = ? AND provider = ?',
+            [userId, provider]
+        );
+        
+        const providerInfo = await db.queryOne(
+            'SELECT id, name, display_name, base_url, default_model, models FROM llm_providers WHERE id = ?',
+            [provider]
+        );
+        
+        res.json({ 
+            success: true, 
+            data: { 
+                config: config || null,
+                provider: providerInfo ? {
+                    id: providerInfo.id,
+                    name: providerInfo.name,
+                    displayName: providerInfo.display_name,
+                    baseUrl: providerInfo.base_url,
+                    defaultModel: providerInfo.default_model,
+                    models: providerInfo.models ? (typeof providerInfo.models === 'string' ? JSON.parse(providerInfo.models) : providerInfo.models) : []
+                } : null
+            } 
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   POST /api/v1/llm/test/:provider
+ * @desc    测试特定提供商的LLM连接
+ * @access  Private
+ */
+router.post('/test/:provider', authenticate, async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { provider } = req.params;
+        const { model, apiKey, baseUrl } = req.body;
+        
+        let testApiKey = apiKey;
+        let testBaseUrl = baseUrl;
+        let testModel = model;
+        
+        if (!testApiKey) {
+            const userConfig = await db.queryOne(
+                'SELECT api_key_encrypted, custom_base_url, custom_model FROM user_llm_configs WHERE user_id = ? AND provider = ?',
+                [userId, provider]
+            );
+            if (userConfig) {
+                testApiKey = userConfig.api_key_encrypted;
+                testBaseUrl = testBaseUrl || userConfig.custom_base_url;
+                testModel = testModel || userConfig.custom_model;
+            }
+        }
+        
+        if (!testBaseUrl) {
+            const providerInfo = await db.queryOne(
+                'SELECT base_url, default_model FROM llm_providers WHERE id = ?',
+                [provider]
+            );
+            if (providerInfo) {
+                testBaseUrl = providerInfo.base_url;
+                testModel = testModel || providerInfo.default_model;
+            }
+        }
+        
+        const result = await LLMService.testConnection({
+            provider,
+            model: testModel,
+            apiKey: testApiKey,
+            baseUrl: testBaseUrl
         });
         
         res.json({ success: true, data: result });

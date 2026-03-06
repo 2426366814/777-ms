@@ -20,8 +20,8 @@
         .chat-input-wrapper { display: flex; gap: 8px; }
         .chat-input { flex: 1; resize: none; min-height: 44px; max-height: 120px; }
         .provider-select { min-width: 120px; }
-        .session-list { max-height: 300px; overflow-y: auto; }
-        .session-item { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+        .session-list { max-height: 300px; overflow-y: auto; display: block; width: 100%; }
+        .session-item { padding: 12px; border-bottom: 1px solid var(--border-color); cursor: pointer; display: block; width: 100%; box-sizing: border-box; }
         .session-item:hover { background: rgba(255,255,255,0.05); }
         .session-item.active { background: rgba(102,126,234,0.2); border-left: 3px solid var(--accent-blue); }
         .typing-indicator { display: inline-flex; gap: 4px; padding: 8px 12px; }
@@ -59,7 +59,8 @@
             </nav>
             <div class="sidebar-user">
                 <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
-                <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+                <a href="/admin" class="nav-item" id="adminLink" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>管理后台</a>
+                <button class="nav-item logout-btn" id="logoutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
             </div>
         </aside>
 
@@ -71,10 +72,10 @@
                         <input type="checkbox" id="memoryToggle" checked>
                         <label for="memoryToggle">记忆载入</label>
                     </div>
-                    <select class="input provider-select" id="providerSelect" onchange="changeProvider()">
+                    <select class="input provider-select" id="providerSelect">
                         <option value="">选择提供商</option>
                     </select>
-                    <button class="btn btn-primary btn-sm" onclick="newSession()">
+                    <button class="btn btn-primary btn-sm" id="newSessionBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         新对话
                     </button>
@@ -98,8 +99,8 @@
                     </div>
                     <div class="chat-input-area">
                         <div class="chat-input-wrapper">
-                            <textarea class="input chat-input" id="messageInput" placeholder="输入消息... (Enter发送, Shift+Enter换行)" rows="1" onkeydown="handleKeydown(event)"></textarea>
-                            <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">
+                            <textarea class="input chat-input" id="messageInput" placeholder="输入消息... (Enter发送, Shift+Enter换行)" rows="1"></textarea>
+                            <button class="btn btn-primary" id="sendBtn">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                             </button>
                         </div>
@@ -114,15 +115,39 @@
     <script>
         const API_BASE = '/api/v1';
         let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
         let currentSession = null;
         let providers = [];
         let selectedProvider = null;
 
         if (!token) window.location.href = '/';
+        if (user.role === 'admin') document.getElementById('adminLink').style.display = 'flex';
 
         function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
         async function api(e, o = {}) { const r = await fetch(API_BASE + e, { ...o, headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', ...o.headers } }); return r.json(); }
-        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+        function logout() {
+            const token = localStorage.getItem('token');
+            
+            // Call backend logout API to blacklist token
+            if (token) {
+                fetch('/api/v1/user/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(err => {
+                    console.log('Logout API call failed:', err);
+                });
+            }
+            
+            // Clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            // Redirect to login page
+            window.location.href = '/login';
+        }
 
         async function loadProviders() {
             const data = await api('/llm/providers');
@@ -137,14 +162,17 @@
         async function loadSessions() {
             const data = await api('/sessions');
             const list = document.getElementById('sessionList');
+            list.classList.remove('loading');
             if (data.success) {
                 const sessions = data.data?.sessions || [];
                 list.innerHTML = sessions.length ? sessions.map((s, index) => `
-                    <div class="session-item ${currentSession?.id === s.id ? 'active' : ''}" onclick="loadSession('${s.id}')" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:8px;cursor:pointer;${currentSession?.id === s.id ? 'background:var(--bg-tertiary);' : ''}">
-                        <div class="item-index" style="min-width:24px;height:24px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.7rem;color:#fff;flex-shrink:0;">${index + 1}</div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.title || '新对话'}">${s.title || '新对话'}</div>
-                            <div style="font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.createdAt ? new Date(s.createdAt).toLocaleString() : ''}</div>
+                    <div class="session-item ${currentSession?.id === s.id ? 'active' : ''}" data-session-id="${s.id}">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="item-index" style="min-width:24px;height:24px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.7rem;color:#fff;flex-shrink:0;">${index + 1}</div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.title || '新对话'}">${s.title || '新对话'}</div>
+                                <div style="font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.createdAt ? new Date(s.createdAt).toLocaleString() : ''}</div>
+                            </div>
                         </div>
                     </div>
                 `).join('') : '<div class="empty-state"><p>暂无会话</p></div>';
@@ -152,17 +180,26 @@
                 list.innerHTML = '<div class="empty-state"><p>暂无会话</p></div>';
             }
         }
+        
+        document.getElementById('sessionList').addEventListener('click', (e) => {
+            const item = e.target.closest('.session-item');
+            if (item) {
+                const sessionId = item.dataset.sessionId;
+                if (sessionId) loadSession(sessionId);
+            }
+        });
 
         async function loadSession(id) {
             currentSession = { id };
-            const data = await api('/sessions/' + id + '/messages');
+            const data = await api('/sessions/' + id);
             if (data.success) {
-                const messages = data.data?.messages || [];
+                const session = data.data?.session;
+                const messages = session?.messages ? JSON.parse(session.messages) : [];
                 const container = document.getElementById('chatMessages');
                 container.innerHTML = messages.length ? messages.map(m => `
                     <div class="message ${m.role}">
                         <div class="message-content">${formatContent(m.content)}</div>
-                        <div class="message-meta">${m.createdAt ? new Date(m.createdAt).toLocaleString() : ''}</div>
+                        <div class="message-meta">${m.timestamp ? new Date(m.timestamp).toLocaleString() : ''}</div>
                     </div>
                 `).join('') : '<div class="empty-state"><p>开始对话吧</p></div>';
                 container.scrollTop = container.scrollHeight;
@@ -232,6 +269,12 @@
         function handleKeydown(e) {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
         }
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('newSessionBtn').addEventListener('click', newSession);
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('providerSelect').addEventListener('change', changeProvider);
+        document.getElementById('messageInput').addEventListener('keydown', handleKeydown);
 
         function escapeHtml(t) { return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
         function formatContent(t) { return escapeHtml(t).replace(/\n/g, '<br>').replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre style="background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow-x: auto; margin: 8px 0;"><code>$2</code></pre>').replace(/`([^`]+)`/g, '<code style="background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;">$1</code>'); }

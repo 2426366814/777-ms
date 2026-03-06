@@ -13,7 +13,11 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET environment variable is not set');
+    process.exit(1);
+}
 
 const updateUserSchema = Joi.object({
     username: Joi.string().min(3).max(50).optional(),
@@ -263,6 +267,45 @@ router.get('/stats', adminAuth, async (req, res, next) => {
                 knowledge: knowledgeCount && knowledgeCount.length > 0 ? knowledgeCount[0].count : 0,
                 sessions: sessionCount && sessionCount.length > 0 ? sessionCount[0].count : 0,
                 providers: providerCount && providerCount.length > 0 ? providerCount[0].count : 0
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/logs', adminAuth, async (req, res, next) => {
+    try {
+        const { page = 1, limit = 50, type, userId } = req.query;
+        const offset = (page - 1) * limit;
+        
+        let sql = 'SELECT * FROM login_logs WHERE 1=1';
+        const params = [];
+        
+        if (userId) {
+            sql += ' AND user_id = ?';
+            params.push(userId);
+        }
+        
+        sql += ' ORDER BY login_at DESC LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
+        
+        const logs = await db.query(sql, params);
+        
+        const countSql = 'SELECT COUNT(*) as total FROM login_logs';
+        const countResult = await db.query(countSql);
+        const total = countResult && countResult.length > 0 ? countResult[0].total : 0;
+        
+        res.json({
+            success: true,
+            data: {
+                logs: logs || [],
+                pagination: {
+                    page: parseInt(page),
+                    limit: parseInt(limit),
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
             }
         });
     } catch (error) {

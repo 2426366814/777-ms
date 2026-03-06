@@ -202,7 +202,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     API文档
                 </a>
-                <a href="/admin" class="nav-item">
+                <a href="/admin" class="nav-item" id="adminLink" style="display:none;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
                     系统管理
                 </a>
@@ -212,7 +212,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     个人资料
                 </a>
-                <button class="nav-item logout-btn" onclick="logout()">
+                <button class="nav-item logout-btn" id="logoutBtn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     退出登录
                 </button>
@@ -222,7 +222,7 @@
         <main class="main-content">
             <div class="knowledge-header">
                 <h1>智能提取</h1>
-                <button class="btn btn-secondary" onclick="refreshData()">
+                <button class="btn btn-secondary" id="refreshBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                     刷新
                 </button>
@@ -253,24 +253,24 @@
                 <a href="/providers" style="margin-left: auto; color: var(--accent-cyan); font-size: 0.875rem;">配置提供商</a>
             </div>
 
-            <div class="tabs">
-                <button class="tab active" onclick="showPanel('extract')">
+            <div class="tabs" id="mainTabs">
+                <button class="tab active" data-panel="extract">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
                     记忆提取
                 </button>
-                <button class="tab" onclick="showPanel('tags')">
+                <button class="tab" data-panel="tags">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
                     智能标签
                 </button>
-                <button class="tab" onclick="showPanel('importance')">
+                <button class="tab" data-panel="importance">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     重要性评估
                 </button>
-                <button class="tab" onclick="showPanel('entities')">
+                <button class="tab" data-panel="entities">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     实体管理
                 </button>
-                <button class="tab" onclick="showPanel('graph')">
+                <button class="tab" data-panel="graph">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     知识图谱
                 </button>
@@ -292,18 +292,18 @@
                         </div>
                         
                         <div class="auto-tag-toggle">
-                            <div class="toggle-switch active" id="autoTagToggle" onclick="toggleAutoTag()"></div>
+                            <div class="toggle-switch active" id="autoTagToggle"></div>
                             <span>自动生成标签</span>
                         </div>
                         
                         <textarea class="form-input form-textarea" id="extractInput" placeholder="粘贴对话内容，AI将自动提取有价值的记忆..." rows="8"></textarea>
                         
                         <div class="extract-actions">
-                            <button class="btn btn-primary" onclick="extractMemories()" id="extractBtn">
+                            <button class="btn btn-primary" id="extractBtn">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
                                 提取记忆
                             </button>
-                            <button class="btn btn-secondary" onclick="clearExtract()">清空</button>
+                            <button class="btn btn-secondary" id="clearExtractBtn">清空</button>
                         </div>
                     </div>
                     
@@ -319,7 +319,7 @@
                             </div>
                         </div>
                         <div style="padding: 16px; border-top: 1px solid var(--border-color);">
-                            <button class="btn btn-primary" id="saveBtn" style="display:none;" onclick="saveExtracted()">
+                            <button class="btn btn-primary" id="saveBtn" style="display:none;">保存记忆</button>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                                 保存到记忆库
                             </button>
@@ -340,14 +340,14 @@
                         </div>
                         <textarea class="form-input form-textarea" id="tagInput" placeholder="输入内容，AI将自动生成相关标签..." rows="6"></textarea>
                         <div class="flex gap-2 mt-2">
-                            <button class="btn btn-primary" onclick="generateTags()">生成标签</button>
-                            <button class="btn btn-secondary" onclick="loadUntaggedMemories()">加载无标签记忆</button>
+                            <button class="btn btn-primary" id="generateTagsBtn">生成标签</button>
+                            <button class="btn btn-secondary" id="loadUntaggedBtn">加载无标签记忆</button>
                         </div>
                     </div>
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">生成的标签</h3>
-                            <button class="btn btn-secondary btn-sm" id="applyTagsBtn" style="display:none;" onclick="applyTagsToMemory()">应用到记忆</button>
+                            <button class="btn btn-secondary btn-sm" id="applyTagsBtn" style="display:none;">应用到记忆</button>
                         </div>
                         <div id="tagResult" style="padding: 20px;">
                             <div class="empty-state"><p>生成的标签将显示在这里</p></div>
@@ -358,12 +358,12 @@
                 <div class="card mt-4">
                     <div class="card-header">
                         <h3 class="card-title">批量标签处理</h3>
-                        <button class="btn btn-primary btn-sm" onclick="batchGenerateTags()">
+                        <button class="btn btn-primary btn-sm" id="batchGenerateTagsBtn">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/></svg>
                             批量生成
                         </button>
                     </div>
-                    <div id="batchTagList" style="max-height: 400px; overflow-y: auto;">
+                    <div id="batchTagList" class="list-container" style="max-height: 400px; overflow-y: auto;">
                         <div class="empty-state"><p>点击"加载无标签记忆"查看需要处理的记忆</p></div>
                     </div>
                 </div>
@@ -380,7 +380,7 @@
                             <div class="provider-select" id="importanceProviderSelect"></div>
                         </div>
                         <textarea class="form-input form-textarea" id="importanceInput" placeholder="输入内容，AI将评估其重要性..." rows="6"></textarea>
-                        <button class="btn btn-primary mt-2" onclick="assessImportance()">评估</button>
+                        <button class="btn btn-primary mt-2" id="assessImportanceBtn">评估</button>
                     </div>
                     <div class="card">
                         <div class="card-header">
@@ -398,7 +398,7 @@
                     <div class="card-header">
                         <h3 class="card-title">提取的实体</h3>
                     </div>
-                    <div id="entitiesList" class="loading"><div class="spinner"></div></div>
+                    <div id="entitiesList" class="list-container loading"><div class="spinner"></div></div>
                 </div>
             </div>
 
@@ -420,6 +420,7 @@
     <script>
         const API_BASE = '/api/v1';
         let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
         let extractedMemories = [];
         let providers = [];
         let selectedProvider = null;
@@ -427,6 +428,7 @@
         let autoTagEnabled = true;
 
         if (!token) window.location.href = '/';
+        if (user.role === 'admin') document.getElementById('adminLink').style.display = 'flex';
 
         function showToast(msg) { 
             const t = document.getElementById('toast'); 
@@ -447,13 +449,35 @@
             return r.json(); 
         }
 
-        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+        function logout() {
+            const token = localStorage.getItem('token');
+            
+            // Call backend logout API to blacklist token
+            if (token) {
+                fetch('/api/v1/user/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(err => {
+                    console.log('Logout API call failed:', err);
+                });
+            }
+            
+            // Clear local storage
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            // Redirect to login page
+            window.location.href = '/login';
+        }
 
         function showPanel(name) {
             document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(name + '-panel').style.display = 'block';
-            event.target.closest('.tab').classList.add('active');
+            document.querySelector(`.tab[data-panel="${name}"]`).classList.add('active');
             
             const loaders = { 
                 extract: () => {}, 
@@ -464,6 +488,24 @@
             };
             if (loaders[name]) loaders[name]();
         }
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        document.getElementById('refreshBtn').addEventListener('click', refreshData);
+        document.getElementById('mainTabs').addEventListener('click', function(e) {
+            const tab = e.target.closest('.tab');
+            if (tab) {
+                showPanel(tab.dataset.panel);
+            }
+        });
+        document.getElementById('autoTagToggle').addEventListener('click', toggleAutoTag);
+        document.getElementById('extractBtn').addEventListener('click', extractMemories);
+        document.getElementById('clearExtractBtn').addEventListener('click', clearExtract);
+        document.getElementById('saveBtn').addEventListener('click', saveExtracted);
+        document.getElementById('generateTagsBtn').addEventListener('click', generateTags);
+        document.getElementById('loadUntaggedBtn').addEventListener('click', loadUntaggedMemories);
+        document.getElementById('applyTagsBtn').addEventListener('click', applyTagsToMemoryDirect);
+        document.getElementById('batchGenerateTagsBtn').addEventListener('click', batchGenerateTags);
+        document.getElementById('assessImportanceBtn').addEventListener('click', assessImportance);
 
         async function loadProviders() {
             const statusDot = document.getElementById('llmStatusDot');
@@ -501,7 +543,7 @@
             if (!container) return;
             
             container.innerHTML = providers.map((p, index) => `
-                <div class="list-item" style="display:flex;align-items:center;gap:10px;cursor:pointer;width:100%;box-sizing:border-box;${selectedProvider === p.id ? 'background:var(--bg-tertiary);' : ''}" onclick="selectProvider('${p.id}', '${containerId}')">
+                <div class="list-item provider-option" style="display:flex;align-items:center;gap:10px;cursor:pointer;width:100%;box-sizing:border-box;${selectedProvider === p.id ? 'background:var(--bg-tertiary);' : ''}" data-provider-id="${p.id}" data-container-id="${containerId}">
                     <div class="item-index" style="min-width:24px;height:24px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.7rem;color:#fff;flex-shrink:0;">${index + 1}</div>
                     <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.display_name || p.name}</div>
                 </div>
@@ -511,6 +553,34 @@
                 selectProvider(providers[0].id, containerId);
             }
         }
+
+        document.addEventListener('click', function(e) {
+            const providerOption = e.target.closest('.provider-option');
+            if (providerOption) {
+                selectProvider(providerOption.dataset.providerId, providerOption.dataset.containerId);
+            }
+            
+            const copyTagsBtn = e.target.closest('.copy-tags-btn');
+            if (copyTagsBtn) {
+                const tags = JSON.parse(copyTagsBtn.dataset.tags);
+                copyTags(tags);
+            }
+            
+            const generateTagBtn = e.target.closest('.generate-tag-btn');
+            if (generateTagBtn) {
+                generateTagsForMemory(parseInt(generateTagBtn.dataset.memoryIndex));
+            }
+            
+            const removableTag = e.target.closest('.removable-tag');
+            if (removableTag) {
+                removeTag(parseInt(removableTag.dataset.memoryIndex), removableTag.dataset.tag);
+            }
+            
+            const applyTagsDirectBtn = e.target.closest('.apply-tags-direct-btn');
+            if (applyTagsDirectBtn) {
+                applyTagsToMemoryDirect(parseInt(applyTagsDirectBtn.dataset.memoryIndex));
+            }
+        });
 
         function selectProvider(providerId, containerId) {
             selectedProvider = providerId;
@@ -590,7 +660,7 @@
                     extractedMemories = data.memories;
                     
                     const el = document.getElementById('extractPreview');
-                    el.className = '';
+                    el.className = 'list-container';
                     el.innerHTML = data.memories.map((m, i) => `
                         <div class="memory-card" style="display:flex;align-items:flex-start;gap:12px;">
                             <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${i + 1}</div>
@@ -685,7 +755,7 @@
                             ${data.tags.map(t => `<span class="memory-tag" style="padding: 8px 16px; font-size: 0.875rem;">#${t}</span>`).join('')}
                         </div>
                         <div style="padding: 16px; border-top: 1px solid var(--border-color);">
-                            <button class="btn btn-secondary" onclick="copyTags([${data.tags.map(t => `'${t}'`).join(',')}])">
+                            <button class="btn btn-secondary copy-tags-btn" data-tags='${JSON.stringify(data.tags)}'>
                                 复制所有标签
                             </button>
                         </div>
@@ -720,7 +790,7 @@
         
         function renderBatchTagList() {
             const el = document.getElementById('batchTagList');
-            el.className = '';
+            el.className = 'list-container';
             el.innerHTML = untaggedMemories.map((m, i) => `
                 <div class="list-item" id="batch-item-${m.id}" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
                     <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${i + 1}</div>
@@ -735,7 +805,7 @@
                     <div id="tags-${m.id}" style="display: flex; gap: 4px; flex-wrap: wrap; max-width: 200px; flex-shrink:0;">
                         ${m.tags?.length ? m.tags.map(t => `<span class="memory-tag">#${t}</span>`).join('') : '<span style="color: var(--text-muted); font-size: 0.75rem;">无标签</span>'}
                     </div>
-                    <button class="btn btn-secondary btn-sm flex-shrink-0" onclick="generateTagsForMemory(${i})">
+                    <button class="btn btn-secondary btn-sm flex-shrink-0 generate-tag-btn" data-memory-index="${i}">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/></svg>
                     </button>
                 </div>
@@ -762,14 +832,14 @@
                 if (data.success && data.tags?.length > 0) {
                     memory.generatedTags = data.tags;
                     tagsContainer.innerHTML = data.tags.map(t => 
-                        `<span class="memory-tag" style="cursor: pointer;" onclick="removeTag(${index}, '${t}')">#${t}</span>`
+                        `<span class="memory-tag removable-tag" style="cursor: pointer;" data-memory-index="${index}" data-tag="${t}">#${t}</span>`
                     ).join('');
                     
                     const applyBtn = document.createElement('button');
-                    applyBtn.className = 'btn btn-primary btn-sm';
+                    applyBtn.className = 'btn btn-primary btn-sm apply-tags-direct-btn';
                     applyBtn.style.marginLeft = '8px';
                     applyBtn.textContent = '应用';
-                    applyBtn.onclick = () => applyTagsToMemoryDirect(index);
+                    applyBtn.dataset.memoryIndex = index;
                     tagsContainer.appendChild(applyBtn);
                 } else {
                     tagsContainer.innerHTML = '<span style="color: var(--text-muted);">无法生成标签</span>';
@@ -785,7 +855,7 @@
                 memory.generatedTags = memory.generatedTags.filter(t => t !== tag);
                 const tagsContainer = document.getElementById(`tags-${memory.id}`);
                 tagsContainer.innerHTML = memory.generatedTags.map(t => 
-                    `<span class="memory-tag" style="cursor: pointer;" onclick="removeTag(${memoryIndex}, '${t}')">#${t}</span>`
+                    `<span class="memory-tag removable-tag" style="cursor: pointer;" data-memory-index="${memoryIndex}" data-tag="${t}">#${t}</span>`
                 ).join('');
             }
         }
@@ -883,10 +953,12 @@
 
         async function loadEntities() {
             const data = await api('/intelligence/entities');
+            const el = document.getElementById('entitiesList');
+            el.className = 'list-container';
             if (data.success) {
                 const colors = { person: '#22C55E', place: '#3B82F6', event: '#F97316', concept: '#A855F7', other: '#06B6D4' };
                 const entities = data.entities || [];
-                document.getElementById('entitiesList').innerHTML = entities.length ? 
+                el.innerHTML = entities.length ? 
                     entities.map((e, index) => `
                         <div class="list-item" style="display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;">
                             <div class="item-index" style="min-width:28px;height:28px;background:var(--gradient-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.75rem;color:#fff;flex-shrink:0;">${index + 1}</div>

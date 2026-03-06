@@ -3,10 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 const config = {
-    host: '134.185.111.252',
+    host: '134.185.111.25',
     port: 1022,
     username: 'root',
-    password: 'Qwer1234@',
+    password: 'C^74+ek@dN',
     readyTimeout: 20000
 };
 

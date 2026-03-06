@@ -1,7 +1,7 @@
 const { execSync } = require('child_process');
 const path = require('path');
 
-const remoteHost = '134.185.111.252';
+const remoteHost = '134.185.111.25';
 const remotePort = '1022';
 const remoteUser = 'root';
 const remotePath = '/root/777-ms/web/';

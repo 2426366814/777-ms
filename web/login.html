@@ -610,7 +610,7 @@
                 <span>或</span>
             </div>
             
-            <button class="btn btn-secondary" onclick="window.location.href='/'">
+            <button class="btn btn-secondary" id="backHomeBtn">
                 <i class="bi bi-house"></i> 返回首页
             </button>
             
@@ -651,7 +651,7 @@
             loadingDiv.style.display = 'block';
             
             try {
-                const response = await fetch(`${API_BASE}/users/login`, {
+                const response = await fetch(`${API_BASE}/user/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -686,6 +686,10 @@
             toast.className = 'toast show' + (isSuccess ? ' success' : '');
             setTimeout(() => toast.className = 'toast', 2500);
         }
+        
+        document.getElementById('backHomeBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
         
         const token = localStorage.getItem('token');
         if (token) {

@@ -12,13 +12,18 @@ const dbConfig = {
     port: parseInt(process.env.DB_PORT) || 3306,
     database: process.env.DB_NAME || 'memory',
     user: process.env.DB_USER || 'memory',
-    password: process.env.DB_PASSWORD || 'ck123456@',
+    password: process.env.DB_PASSWORD,
     waitForConnections: true,
     connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT) || 10,
     queueLimit: 0,
     enableKeepAlive: true,
     keepAliveInitialDelay: 0
 };
+
+if (!process.env.DB_PASSWORD) {
+    console.error('⚠️ 警告: DB_PASSWORD 环境变量未设置！');
+    console.error('请在 .env 文件中配置 DB_PASSWORD');
+}
 
 // 创建连接池
 let pool = null;

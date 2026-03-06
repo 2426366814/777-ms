@@ -234,6 +234,16 @@
                 </div>
                 <div class="setting-item">
                     <div class="setting-info">
+                        <div class="setting-name">智能上下文注入</div>
+                        <div class="setting-desc">对话时自动注入相关记忆和知识到LLM上下文</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoContextLoad" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
                         <div class="setting-name">自动提取记忆</div>
                         <div class="setting-desc">对话时自动从消息中提取重要信息保存为记忆</div>
                     </div>
@@ -244,11 +254,31 @@
                 </div>
                 <div class="setting-item">
                     <div class="setting-info">
+                        <div class="setting-name">自动记忆关联</div>
+                        <div class="setting-desc">创建记忆时自动关联相似记忆，构建记忆网络</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoLink" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
                         <div class="setting-name">自动复习调度</div>
                         <div class="setting-desc">根据艾宾浩斯遗忘曲线自动安排复习计划</div>
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="autoReview" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">自动重要性评估</div>
+                        <div class="setting-desc">LLM自动评估记忆重要性，优化复习和清理策略</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoImportance" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -279,6 +309,16 @@
                     </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="autoConvert" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <div class="setting-name">周期性摘要</div>
+                        <div class="setting-desc">自动生成每周/每月记忆摘要</div>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoSummarize" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -316,7 +356,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modalTitle">配置 API 密钥</h3>
-                <button onclick="closeModal()" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.5rem;">&times;</button>
+                <button id="closeModalBtn" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1.5rem;">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -333,8 +373,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal()">取消</button>
-                <button class="btn-primary" onclick="saveApiKey()">保存</button>
+                <button class="btn-secondary" id="cancelModalBtn">取消</button>
+                <button class="btn-primary" id="saveApiKeyBtn">保存</button>
             </div>
         </div>
     </div>
@@ -364,18 +404,32 @@
 
         async function loadSettings() {
             try {
-                const res = await fetch(`${API_BASE}/settings`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    const s = data.data.custom_settings || {};
+                // Load global settings
+                const globalRes = await fetch(`${API_BASE}/system/public`);
+                const globalData = await globalRes.json();
+                
+                if (globalData.success) {
+                    const s = globalData.data || {};
+                    document.getElementById('autoContextLoad').checked = s.autoContextLoad !== false;
                     document.getElementById('autoExtract').checked = s.autoExtract !== false;
+                    document.getElementById('autoLink').checked = s.autoLink !== false;
                     document.getElementById('autoReview').checked = s.autoReview !== false;
+                    document.getElementById('autoImportance').checked = s.autoImportance !== false;
                     document.getElementById('autoCleanup').checked = s.autoCleanup !== false;
                     document.getElementById('autoTag').checked = s.autoTag !== false;
                     document.getElementById('autoConvert').checked = s.autoConvert !== false;
+                    document.getElementById('autoSummarize').checked = s.autoSummarize !== false;
                     document.getElementById('passiveReview').checked = s.passiveReview !== false;
+                }
+                
+                // Check if user is admin
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.role !== 'admin') {
+                    // Non-admin users can view but not change global settings
+                    document.querySelectorAll('#autoContextLoad, #autoExtract, #autoLink, #autoReview, #autoImportance, #autoCleanup, #autoTag, #autoConvert, #autoSummarize').forEach(cb => {
+                        cb.disabled = true;
+                        cb.closest('.setting-item').style.opacity = '0.7';
+                    });
                 }
             } catch (e) {
                 console.error('Load settings error:', e);
@@ -431,7 +485,7 @@
                                 <div class="provider-status ${hasKey ? 'configured' : ''}">${hasKey ? '已配置' : '未配置'}</div>
                             </div>
                         </div>
-                        <button class="btn-configure" onclick="openModal('${p.id}')">${hasKey ? '修改' : '配置'}</button>
+                        <button class="btn-configure configure-provider-btn" data-provider-id="${p.id}">${hasKey ? '修改' : '配置'}</button>
                     </div>
                 `;
             }).join('');
@@ -489,23 +543,35 @@
         }
 
         async function saveSettings() {
+            // Check if user is admin
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            if (user.role !== 'admin') {
+                showToast('只有管理员可以修改全局设置');
+                loadSettings(); // Reload to reset checkboxes
+                return;
+            }
+            
             const settings = {
+                autoContextLoad: document.getElementById('autoContextLoad').checked,
                 autoExtract: document.getElementById('autoExtract').checked,
+                autoLink: document.getElementById('autoLink').checked,
                 autoReview: document.getElementById('autoReview').checked,
+                autoImportance: document.getElementById('autoImportance').checked,
                 autoCleanup: document.getElementById('autoCleanup').checked,
                 autoTag: document.getElementById('autoTag').checked,
                 autoConvert: document.getElementById('autoConvert').checked,
+                autoSummarize: document.getElementById('autoSummarize').checked,
                 passiveReview: document.getElementById('passiveReview').checked
             };
             
             try {
-                const res = await fetch(`${API_BASE}/settings`, {
+                const res = await fetch(`${API_BASE}/system`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ custom_settings: settings })
+                    body: JSON.stringify(settings)
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -518,6 +584,17 @@
 
         document.querySelectorAll('.toggle-switch input').forEach(input => {
             input.addEventListener('change', saveSettings);
+        });
+
+        document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+        document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+        document.getElementById('saveApiKeyBtn').addEventListener('click', saveApiKey);
+
+        document.getElementById('providerList').addEventListener('click', (e) => {
+            const btn = e.target.closest('.configure-provider-btn');
+            if (btn) {
+                openModal(btn.dataset.providerId);
+            }
         });
 
         function showToast(msg) {

@@ -28,15 +28,27 @@ router.post('/', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         const { title } = req.body;
-        const result = await db.query(
-            'INSERT INTO sessions (user_id, title, messages, created_at) VALUES (?, ?, ?, NOW())',
-            [userId, title || '新会话', JSON.stringify([])]
+        const id = require('uuid').v4();
+        await db.query(
+            'INSERT INTO sessions (id, user_id, title, messages, created_at) VALUES (?, ?, ?, ?, NOW())',
+            [id, userId, title || '新会话', JSON.stringify([])]
         );
         res.status(201).json({ 
             success: true, 
-            data: { sessionId: result.insertId, title: title || '新会话' } 
+            data: { session: { id, title: title || '新会话' } } 
         });
     } catch (error) {
+        if (error.code === 'ER_DUP_ENTRY') {
+            const id = require('uuid').v4();
+            await db.query(
+                'INSERT INTO sessions (id, user_id, title, messages, created_at) VALUES (?, ?, ?, ?, NOW())',
+                [id, userId, title || '新会话', JSON.stringify([])]
+            );
+            return res.status(201).json({ 
+                success: true, 
+                data: { session: { id, title: title || '新会话' } } 
+            });
+        }
         next(error);
     }
 });

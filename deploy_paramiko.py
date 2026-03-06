@@ -3,10 +3,10 @@ import os
 import sys
 
 config = {
-    'hostname': '134.185.111.252',
+    'hostname': '134.185.111.25',
     'port': 1022,
     'username': 'root',
-    'password': 'Qwer1234@',
+    'password': 'C^74+ek@dN',
     'timeout': 60,
     'banner_timeout': 60
 }

@@ -48,7 +48,14 @@ router.post('/', async (req, res, next) => {
             [memoryId, tagName]
         );
         
-        res.status(201).json({ success: true, message: '标签添加成功' });
+        res.status(201).json({ 
+            success: true, 
+            message: '标签添加成功',
+            data: {
+                memoryId,
+                tagName
+            }
+        });
     } catch (error) {
         next(error);
     }

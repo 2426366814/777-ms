@@ -1,0 +1,177 @@
+# 777-MS Memory System 深度检测配置
+# 自动生成于: 2026-03-03
+# 版本: v8.23
+
+project:
+  name: 777-ms-memory-system
+  version: 0.5.5
+  type: web_application
+  framework: express
+  language: javascript
+  
+remote:
+  enabled: true
+  host: 134.185.111.25
+  port: 1022
+  username: root
+  password: 'C^74+ek@dN'
+  remote_path: /home/wwwroot/memory.91wz.org
+  public_url: https://memory.91wz.org
+  
+database:
+  type: mysql
+  host: 127.0.0.1
+  port: 3306
+  name: memory
+  
+redis:
+  enabled: true
+  host: localhost
+  port: 6379
+  
+multi_user:
+  enabled: true
+  roles:
+    - admin
+    - user
+  test_accounts:
+    - username: admin
+      password: admin123
+      role: admin
+    - username: testuser1
+      password: test123456
+      role: user
+    - username: testuser2
+      password: test123456
+      role: user
+      
+detection:
+  phases:
+    - phase: phase_minus1
+      name: 配置自动载入
+      enabled: true
+    - phase: phase_0
+      name: 文档优先执行
+      enabled: true
+    - phase: phase_1
+      name: 初始化
+      enabled: true
+    - phase: phase_2
+      name: 并发静态检测
+      enabled: true
+    - phase: phase_3
+      name: 并发动态检测
+      enabled: true
+    - phase: phase_4
+      name: 视觉分析
+      enabled: true
+    - phase: phase_4_5
+      name: 多用户系统检测
+      enabled: true
+    - phase: phase_5
+      name: 无障碍检测
+      enabled: true
+    - phase: phase_6
+      name: SEO检测
+      enabled: true
+    - phase: phase_7
+      name: 性能检测
+      enabled: true
+    - phase: phase_8
+      name: 安全测试
+      enabled: true
+    - phase: phase_9
+      name: API测试
+      enabled: true
+    - phase: phase_10
+      name: 数据库检测
+      enabled: true
+    - phase: phase_11
+      name: LLM智能分析
+      enabled: true
+    - phase: phase_12
+      name: 智能修复
+      enabled: true
+    - phase: phase_13
+      name: 循环验证
+      enabled: true
+      max_iterations: 7
+    - phase: phase_14
+      name: 需求覆盖验证
+      enabled: true
+      
+  playwright:
+    headless: false
+    screenshot_on_step: true
+    screenshot_dir: ./reports/screenshots
+    
+  security:
+    sql_injection: true
+    xss: true
+    csrf: true
+    auth_bypass: true
+    data_isolation: true
+    
+  performance:
+    response_time_threshold: 500
+    memory_threshold: 512
+    
+routes:
+  api_prefix: /api/v1
+  endpoints:
+    - path: /api/v1/memories
+      methods: [GET, POST, PUT, DELETE]
+      auth: true
+    - path: /api/v1/user
+      methods: [GET, POST, PUT]
+      auth: true
+    - path: /api/v1/admin
+      methods: [GET, POST, PUT, DELETE]
+      auth: true
+      role: admin
+    - path: /api/v1/chat
+      methods: [GET, POST]
+      auth: true
+    - path: /api/v1/llm
+      methods: [GET, POST]
+      auth: true
+    - path: /api/v1/knowledge
+      methods: [GET, POST, PUT, DELETE]
+      auth: true
+    - path: /api/v1/review
+      methods: [GET, POST]
+      auth: true
+    - path: /api/v1/tags
+      methods: [GET, POST, PUT, DELETE]
+      auth: true
+    - path: /api/v1/categories
+      methods: [GET, POST, PUT, DELETE]
+      auth: true
+    - path: /api/v1/backup
+      methods: [GET, POST]
+      auth: true
+    - path: /api/v1/settings
+      methods: [GET, PUT]
+      auth: true
+    - path: /api/v1/providers
+      methods: [GET, POST, PUT, DELETE]
+      auth: true
+    - path: /health
+      methods: [GET]
+      auth: false
+      
+history:
+  last_inspection: 2026-03-04
+  last_result: passed
+  issues_found: 0
+  issues_fixed: 2
+  score: 100
+  fixes:
+    - date: 2026-03-04
+      issue: 数据库默认密码硬编码
+      file: src/utils/database.js
+      status: fixed
+    - date: 2026-03-04
+      issue: 标签创建响应格式不一致
+      file: src/routes/tags.js
+      status: fixed

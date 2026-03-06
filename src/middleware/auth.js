@@ -8,6 +8,7 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
 const logger = require('../utils/logger');
+const { CacheService } = require('../services/cache');
 
 // JWT 认证
 const authenticate = async (req, res, next) => {
@@ -24,6 +25,29 @@ const authenticate = async (req, res, next) => {
         const token = authHeader.substring(7);
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        const userId = decoded.userId;
+        
+        const tokenBlacklisted = await CacheService.get(`blacklist:${token}`);
+        if (tokenBlacklisted) {
+            return res.status(401).json({
+                success: false,
+                message: '令牌已失效，请重新登录',
+                code: 'TOKEN_REVOKED'
+            });
+        }
+        
+        const userBlacklisted = await CacheService.get(`user_blacklist:${userId}`);
+        if (userBlacklisted) {
+            const logoutAt = new Date(userBlacklisted.logoutAt).getTime() / 1000;
+            if (decoded.iat < logoutAt) {
+                return res.status(401).json({
+                    success: false,
+                    message: '该账号已在其他设备登出，请重新登录',
+                    code: 'USER_LOGGED_OUT'
+                });
+            }
+        }
         
         // 将用户信息附加到请求对象
         req.user = {
@@ -50,7 +74,32 @@ const authenticate = async (req, res, next) => {
         });
     }
 };
+// 管理员权限检查中间件
+const isAdmin = async (req, res, next) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({
+                success: false,
+                message: "未认证"
+            });
+        }
 
+        if (req.user.role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "需要管理员权限"
+            });
+        }
+
+        next();
+    } catch (error) {
+        logger.error("管理员权限检查失败:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "权限检查失败"
+        });
+    }
+};
 // API Key 认证（用于 IDE 对接）
 const authenticateApiKey = async (req, res, next) => {
     try {
@@ -179,6 +228,7 @@ const requireRole = (roles) => {
 
 module.exports = {
     authenticate,
+    isAdmin,
     authenticateApiKey,
     optionalAuth,
     requireRole,

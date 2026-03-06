@@ -6,11 +6,18 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const Joi = require('joi');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 const logger = require('../utils/logger');
 const { generateToken, generateRefreshToken, generateApiKey } = require('../middleware/auth');
 const User = require('../models/User');
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET environment variable is not set');
+    process.exit(1);
+}
 
 // 注册验证 schema
 const registerSchema = Joi.object({
@@ -32,7 +39,6 @@ const loginSchema = Joi.object({
  */
 router.post('/register', async (req, res, next) => {
     try {
-        // 验证输入
         const { error, value } = registerSchema.validate(req.body);
         if (error) {
             return res.status(400).json({
@@ -44,7 +50,6 @@ router.post('/register', async (req, res, next) => {
 
         const { username, password, email } = value;
 
-        // 创建用户
         const user = await User.create({
             username,
             password,
@@ -75,7 +80,6 @@ router.post('/register', async (req, res, next) => {
  */
 router.post('/login', async (req, res, next) => {
     try {
-        // 验证输入
         const { error, value } = loginSchema.validate(req.body);
         if (error) {
             return res.status(400).json({
@@ -87,7 +91,6 @@ router.post('/login', async (req, res, next) => {
 
         const { username, password } = value;
 
-        // 从数据库查找用户
         const user = await User.findByUsername(username);
         if (!user) {
             return res.status(401).json({
@@ -96,7 +99,6 @@ router.post('/login', async (req, res, next) => {
             });
         }
 
-        // 验证密码
         const isValid = await User.verifyPassword(password, user.password);
         if (!isValid) {
             return res.status(401).json({
@@ -105,11 +107,9 @@ router.post('/login', async (req, res, next) => {
             });
         }
 
-        // 生成令牌
         const token = generateToken(user);
         const refreshToken = generateRefreshToken(user);
 
-        // 记录登录日志
         const db = require('../utils/database');
         const logId = require('uuid').v4();
         const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
@@ -160,11 +160,9 @@ router.post('/refresh', async (req, res, next) => {
             });
         }
 
-        const jwt = require('jsonwebtoken');
-        
         let decoded;
         try {
-            decoded = jwt.verify(refreshToken, process.env.JWT_SECRET || 'your-secret-key');
+            decoded = jwt.verify(refreshToken, JWT_SECRET);
         } catch (err) {
             return res.status(401).json({
                 success: false,
@@ -219,11 +217,10 @@ router.get('/profile', async (req, res, next) => {
         }
         
         const token = authHeader.split(' ')[1];
-        const jwt = require('jsonwebtoken');
         
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            decoded = jwt.verify(token, JWT_SECRET);
         } catch (err) {
             return res.status(401).json({
                 success: false,
@@ -274,11 +271,10 @@ router.post('/apikey', async (req, res, next) => {
         }
         
         const token = authHeader.split(' ')[1];
-        const jwt = require('jsonwebtoken');
         
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            decoded = jwt.verify(token, JWT_SECRET);
         } catch (err) {
             return res.status(401).json({
                 success: false,
@@ -315,11 +311,10 @@ router.put('/profile', async (req, res, next) => {
         }
         
         const token = authHeader.split(' ')[1];
-        const jwt = require('jsonwebtoken');
         
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            decoded = jwt.verify(token, JWT_SECRET);
         } catch (err) {
             return res.status(401).json({ success: false, message: '令牌无效或已过期' });
         }
@@ -372,11 +367,10 @@ router.put('/password', async (req, res, next) => {
         }
         
         const token = authHeader.split(' ')[1];
-        const jwt = require('jsonwebtoken');
         
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            decoded = jwt.verify(token, JWT_SECRET);
         } catch (err) {
             return res.status(401).json({ success: false, message: '令牌无效或已过期' });
         }
@@ -452,11 +446,10 @@ router.get('/api-key', async (req, res, next) => {
         }
         
         const token = authHeader.split(' ')[1];
-        const jwt = require('jsonwebtoken');
         
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            decoded = jwt.verify(token, JWT_SECRET);
         } catch (err) {
             return res.status(401).json({ success: false, message: '令牌无效或已过期' });
         }
@@ -487,11 +480,10 @@ router.post('/api-key/regenerate', async (req, res, next) => {
         }
         
         const token = authHeader.split(' ')[1];
-        const jwt = require('jsonwebtoken');
         
         let decoded;
         try {
-            decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            decoded = jwt.verify(token, JWT_SECRET);
         } catch (err) {
             return res.status(401).json({ success: false, message: '令牌无效或已过期' });
         }
@@ -525,6 +517,84 @@ router.get('/check-username', async (req, res, next) => {
         const user = await User.findByUsername(username);
         
         res.json({ success: true, exists: !!user });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   POST /api/v1/user/logout
+ * @desc    用户登出（将Token加入黑名单）
+ * @access  Private
+ */
+router.post('/logout', async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
+        
+        const token = authHeader.split(' ')[1];
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET);
+        } catch (err) {
+            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
+        }
+        
+        const userId = decoded.userId || decoded.id;
+        const { CacheService } = require('../services/cache');
+        
+        const tokenExp = decoded.exp || Math.floor(Date.now() / 1000) + 86400;
+        const ttl = tokenExp - Math.floor(Date.now() / 1000);
+        
+        if (ttl > 0) {
+            await CacheService.set(`blacklist:${token}`, { userId, logoutAt: new Date().toISOString() }, ttl);
+        }
+        
+        logger.info(`用户登出: ${userId}`);
+        
+        res.json({ success: true, message: '登出成功' });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   POST /api/v1/user/logout-all
+ * @desc    登出所有设备（将用户所有Token加入黑名单）
+ * @access  Private
+ */
+router.post('/logout-all', async (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
+        
+        const token = authHeader.split(' ')[1];
+        
+        let decoded;
+        try {
+            decoded = jwt.verify(token, JWT_SECRET);
+        } catch (err) {
+            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
+        }
+        
+        const userId = decoded.userId || decoded.id;
+        const { CacheService } = require('../services/cache');
+        
+        const tokenExp = decoded.exp || Math.floor(Date.now() / 1000) + 86400;
+        const ttl = tokenExp - Math.floor(Date.now() / 1000);
+        
+        if (ttl > 0) {
+            await CacheService.set(`user_blacklist:${userId}`, { logoutAt: new Date().toISOString() }, ttl);
+        }
+        
+        logger.info(`用户登出所有设备: ${userId}`);
+        
+        res.json({ success: true, message: '已登出所有设备' });
     } catch (error) {
         next(error);
     }

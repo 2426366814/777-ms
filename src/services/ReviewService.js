@@ -6,8 +6,13 @@
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const LLMService = require('./LLMService');
+const crypto = require('crypto');
 
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30, 60, 120];
+
+function generateUUID() {
+    return crypto.randomUUID();
+}
 
 class ReviewService {
     constructor() {
@@ -18,16 +23,17 @@ class ReviewService {
     async createReviewItem(userId, memoryId, memoryContent) {
         const nextReview = new Date();
         nextReview.setDate(nextReview.getDate() + REVIEW_INTERVALS[0]);
+        const id = generateUUID();
         
         const result = await db.query(
             `INSERT INTO review_items 
-             (user_id, memory_id, content, review_count, next_review_date, created_at) 
-             VALUES (?, ?, ?, 0, ?, NOW())`,
-            [userId, memoryId, memoryContent, nextReview]
+             (id, user_id, memory_id, content, review_count, next_review_at, created_at) 
+             VALUES (?, ?, ?, ?, 0, ?, NOW())`,
+            [id, userId, memoryId, memoryContent, nextReview]
         );
         
-        logger.info(`Created review item ${result.insertId} for user ${userId}`);
-        return { id: result.insertId, memoryId, nextReview };
+        logger.info(`Created review item ${id} for user ${userId}`);
+        return { id, memoryId, nextReview };
     }
 
     async getDueReviews(userId, limit = 20) {
@@ -35,8 +41,8 @@ class ReviewService {
             `SELECT r.*, m.category, m.importance, m.tags
              FROM review_items r
              LEFT JOIN memories m ON r.memory_id = m.id
-             WHERE r.user_id = ? AND r.next_review_date <= NOW()
-             ORDER BY r.next_review_date ASC
+             WHERE r.user_id = ? AND r.next_review_at <= NOW()
+             ORDER BY r.next_review_at ASC
              LIMIT ?`,
             [userId, limit]
         );
@@ -46,7 +52,7 @@ class ReviewService {
             memoryId: r.memory_id,
             content: r.content,
             reviewCount: r.review_count,
-            nextReview: r.next_review_date,
+            nextReview: r.next_review_at,
             category: r.category,
             importance: r.importance,
             tags: r.tags ? r.tags.split(',') : []
@@ -58,10 +64,10 @@ class ReviewService {
         endDate.setDate(endDate.getDate() + days);
         
         const reviews = await db.query(
-            `SELECT DATE(next_review_date) as review_date, COUNT(*) as count
+            `SELECT DATE(next_review_at) as review_date, COUNT(*) as count
              FROM review_items
-             WHERE user_id = ? AND next_review_date BETWEEN NOW() AND ?
-             GROUP BY DATE(next_review_date)
+             WHERE user_id = ? AND next_review_at BETWEEN NOW() AND ?
+             GROUP BY DATE(next_review_at)
              ORDER BY review_date`,
             [userId, endDate]
         );
@@ -89,7 +95,7 @@ class ReviewService {
         
         await db.query(
             `UPDATE review_items 
-             SET review_count = ?, next_review_date = ?, last_review_at = NOW(), updated_at = NOW()
+             SET review_count = ?, next_review_at = ?, last_review_at = NOW(), updated_at = NOW()
              WHERE id = ?`,
             [newCount, nextReview, reviewId]
         );
@@ -170,7 +176,7 @@ class ReviewService {
         const stats = await db.query(
             `SELECT 
                 COUNT(*) as total,
-                SUM(CASE WHEN next_review_date <= NOW() THEN 1 ELSE 0 END) as due,
+                SUM(CASE WHEN next_review_at <= NOW() THEN 1 ELSE 0 END) as due,
                 SUM(CASE WHEN last_review_at IS NOT NULL THEN 1 ELSE 0 END) as reviewed,
                 AVG(review_count) as avg_reviews
              FROM review_items WHERE user_id = ?`,

@@ -26,20 +26,42 @@ function renderSidebar() {
         <div class="sidebar-user">
             <a href="/profile" class="nav-item ${window.location.pathname === '/profile' ? 'active' : ''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
             ${user.role === 'admin' ? '<a href="/admin" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>管理后台</a>' : ''}
-            <button class="nav-item logout-btn" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
+            <button class="nav-item logout-btn" id="sidebarLogoutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
         </div>
     `;
     
     const sidebar = document.getElementById('sidebar');
     if (sidebar) {
         sidebar.innerHTML = sidebarHtml;
+        const logoutBtn = document.getElementById('sidebarLogoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', logout);
+        }
     }
 }
 
 function logout() {
+    const token = localStorage.getItem('token');
+    
+    // Call backend logout API to blacklist token
+    if (token) {
+        fetch('/api/v1/user/logout', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        }).catch(err => {
+            console.log('Logout API call failed:', err);
+        });
+    }
+    
+    // Clear local storage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/';
+    
+    // Redirect to login page
+    window.location.href = '/login';
 }
 
 document.addEventListener('DOMContentLoaded', renderSidebar);

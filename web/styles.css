@@ -624,19 +624,19 @@ select.input {
 .list-item {
     display: flex;
     align-items: center;
-    gap: 18px;
-    padding: 18px;
+    gap: 12px;
+    padding: 12px 16px;
     background: var(--bg-glass);
     backdrop-filter: blur(var(--blur-sm));
     -webkit-backdrop-filter: blur(var(--blur-sm));
     border-radius: var(--radius-md);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     cursor: pointer;
     transition: all var(--transition-normal);
     border: 1px solid transparent;
     position: relative;
     overflow: hidden;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     width: 100%;
     box-sizing: border-box;
 }
@@ -698,6 +698,27 @@ select.input {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.item-index {
+    min-width: 28px;
+    height: 28px;
+    background: var(--gradient-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #fff;
+    flex-shrink: 0;
 }
 
 .badge {
