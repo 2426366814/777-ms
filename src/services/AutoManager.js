@@ -39,7 +39,12 @@ class AutoManager {
             autoTag: true,
             autoConvert: true,
             autoSummarize: true,
-            passiveReview: true
+            passiveReview: true,
+            autoBackup: false,
+            backupFrequency: 'daily',
+            backupTime: '02:00',
+            backupRetention: '7',
+            backupType: 'full'
         };
         
         this.limits = {
@@ -56,7 +61,11 @@ class AutoManager {
             const settings = await db.query('SELECT setting_key, setting_value FROM system_settings');
             for (const s of settings) {
                 if (s.setting_key in this.config) {
-                    this.config[s.setting_key] = s.setting_value === 'true';
+                    if (s.setting_value === 'true' || s.setting_value === 'false') {
+                        this.config[s.setting_key] = s.setting_value === 'true';
+                    } else {
+                        this.config[s.setting_key] = s.setting_value;
+                    }
                 }
             }
             this.configLoaded = true;

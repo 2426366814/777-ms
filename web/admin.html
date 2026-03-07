@@ -125,7 +125,44 @@
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">数据备份</h3>
-                        <button class="btn btn-primary btn-sm" id="createBackupBtn">创建备份</button>
+                        <div class="flex gap-2">
+                            <button class="btn btn-secondary btn-sm" id="exportAllBtn">导出全部</button>
+                            <button class="btn btn-primary btn-sm" id="createBackupBtn">创建备份</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:200px;">
+                                <label style="display:block;margin-bottom:8px;font-weight:500;">备份包含</label>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupIncludeMemories" checked>
+                                        <span>记忆</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupIncludeKnowledge" checked>
+                                        <span>知识库</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupIncludeSessions" checked>
+                                        <span>会话</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div style="flex:1;min-width:200px;">
+                                <label style="display:block;margin-bottom:8px;font-weight:500;">备份选项</label>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupCompress">
+                                        <span>压缩备份</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupEncrypt">
+                                        <span>加密备份</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div id="backupsList" class="loading"><div class="spinner"></div></div>
                 </div>
@@ -203,12 +240,51 @@
                                 </div>
                                 <label class="toggle-switch"><input type="checkbox" id="adminAutoSummarize" checked><span class="toggle-slider"></span></label>
                             </div>
-                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
                                 <div>
                                     <div style="font-weight:500;">被动复习模式</div>
                                     <div style="font-size:0.875rem;color:var(--text-secondary);">对话时自动插入复习问题，在聊天中自然复习</div>
                                 </div>
                                 <label class="toggle-switch"><input type="checkbox" id="adminPassiveReview" checked><span class="toggle-slider"></span></label>
+                            </div>
+                            <div class="setting-item" style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border-color);">
+                                <div>
+                                    <div style="font-weight:500;">自动备份</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);">自动定期备份用户数据</div>
+                                </div>
+                                <label class="toggle-switch"><input type="checkbox" id="adminAutoBackup"><span class="toggle-slider"></span></label>
+                            </div>
+                            <div id="autoBackupSettings" style="display:none;padding-left:0;">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px;">
+                                    <div>
+                                        <label style="display:block;margin-bottom:8px;font-weight:500;">备份频率</label>
+                                        <select class="input" id="backupFrequency">
+                                            <option value="daily">每天</option>
+                                            <option value="weekly">每周</option>
+                                            <option value="monthly">每月</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block;margin-bottom:8px;font-weight:500;">备份时间</label>
+                                        <input type="time" class="input" id="backupTime" value="02:00">
+                                    </div>
+                                    <div>
+                                        <label style="display:block;margin-bottom:8px;font-weight:500;">保留备份数</label>
+                                        <select class="input" id="backupRetention">
+                                            <option value="7">7个</option>
+                                            <option value="14">14个</option>
+                                            <option value="30">30个</option>
+                                            <option value="90">90个</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label style="display:block;margin-bottom:8px;font-weight:500;">备份类型</label>
+                                        <select class="input" id="backupType">
+                                            <option value="full">完整备份</option>
+                                            <option value="incremental">增量备份</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -401,11 +477,93 @@
         async function loadBackups() {
             const el = document.getElementById('backupsList');
             el.className = 'list-container';
-            el.innerHTML = '<div class="empty-state"><p>备份功能开发中...</p></div>';
+            
+            try {
+                const data = await api('/backup/list');
+                if (data.success && data.data.backups) {
+                    const backups = data.data.backups;
+                    el.innerHTML = backups.length ? backups.map((b, index) => `
+                        <div class="list-item">
+                            <div class="item-index">${index + 1}</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">备份 ${new Date(b.created_at).toLocaleString('zh-CN')}</div>
+                                <div class="list-item-meta">
+                                    ${b.backup_type || 'manual'} · ${formatFileSize(b.file_size)} · 
+                                    <span style="color:${b.status === 'completed' ? 'var(--accent-green)' : 'var(--accent-yellow)'}">${b.status || 'unknown'}</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-1 flex-shrink-0">
+                                <button class="btn btn-secondary btn-sm" data-action="restore-backup" data-file="${b.file_path}">恢复</button>
+                                <button class="btn btn-danger btn-sm" data-action="delete-backup" data-file="${b.file_path}">删除</button>
+                            </div>
+                        </div>
+                    `).join('') : '<div class="empty-state"><p>暂无备份</p></div>';
+                }
+            } catch (e) {
+                el.innerHTML = '<div class="empty-state"><p>加载备份列表失败</p></div>';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (!bytes) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
         async function createBackup() {
-            showToast('备份功能开发中...');
+            const includeMemories = document.getElementById('backupIncludeMemories').checked;
+            const includeKnowledge = document.getElementById('backupIncludeKnowledge').checked;
+            const includeSessions = document.getElementById('backupIncludeSessions').checked;
+            const compress = document.getElementById('backupCompress').checked;
+            const encrypt = document.getElementById('backupEncrypt').checked;
+            
+            const data = await api('/backup/create', {
+                method: 'POST',
+                body: JSON.stringify({
+                    type: 'manual',
+                    include: { memories: includeMemories, knowledge: includeKnowledge, sessions: includeSessions },
+                    options: { compress, encrypt }
+                })
+            });
+            
+            if (data.success) {
+                showToast('备份创建成功');
+                loadBackups();
+            } else {
+                showToast(data.message || '备份创建失败');
+            }
+        }
+
+        async function restoreBackup(filePath) {
+            if (!confirm('确定要恢复此备份吗？这将覆盖当前数据！')) return;
+            
+            const data = await api('/backup/restore/' + encodeURIComponent(filePath), { method: 'POST' });
+            
+            if (data.success) {
+                showToast('备份恢复成功');
+                loadBackups();
+            } else {
+                showToast(data.message || '恢复失败');
+            }
+        }
+
+        async function deleteBackup(filePath) {
+            if (!confirm('确定要删除此备份吗？')) return;
+            
+            const data = await api('/backup/' + encodeURIComponent(filePath), { method: 'DELETE' });
+            
+            if (data.success) {
+                showToast('备份已删除');
+                loadBackups();
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        }
+
+        async function exportAll() {
+            window.location.href = '/api/v1/backup/export';
         }
 
         async function loadAutoSettings() {
@@ -422,7 +580,22 @@
                 document.getElementById('adminAutoConvert').checked = s.autoConvert !== false;
                 document.getElementById('adminAutoSummarize').checked = s.autoSummarize !== false;
                 document.getElementById('adminPassiveReview').checked = s.passiveReview !== false;
+                document.getElementById('adminAutoBackup').checked = s.autoBackup === true;
+                
+                // 加载自动备份规则
+                if (s.backupFrequency) document.getElementById('backupFrequency').value = s.backupFrequency;
+                if (s.backupTime) document.getElementById('backupTime').value = s.backupTime;
+                if (s.backupRetention) document.getElementById('backupRetention').value = s.backupRetention;
+                if (s.backupType) document.getElementById('backupType').value = s.backupType;
+                
+                // 显示/隐藏自动备份设置
+                toggleAutoBackupSettings(s.autoBackup === true);
             }
+        }
+
+        function toggleAutoBackupSettings(show) {
+            const el = document.getElementById('autoBackupSettings');
+            el.style.display = show ? 'block' : 'none';
         }
 
         async function saveAutoSettings() {
@@ -436,7 +609,12 @@
                 autoTag: document.getElementById('adminAutoTag').checked,
                 autoConvert: document.getElementById('adminAutoConvert').checked,
                 autoSummarize: document.getElementById('adminAutoSummarize').checked,
-                passiveReview: document.getElementById('adminPassiveReview').checked
+                passiveReview: document.getElementById('adminPassiveReview').checked,
+                autoBackup: document.getElementById('adminAutoBackup').checked,
+                backupFrequency: document.getElementById('backupFrequency').value,
+                backupTime: document.getElementById('backupTime').value,
+                backupRetention: document.getElementById('backupRetention').value,
+                backupType: document.getElementById('backupType').value
             };
             
             const data = await api('/system', { method: 'PUT', body: JSON.stringify(settings) });
@@ -475,11 +653,32 @@
             document.getElementById('createProviderBtn').addEventListener('click', createProvider);
             
             document.getElementById('createBackupBtn').addEventListener('click', createBackup);
+            document.getElementById('exportAllBtn').addEventListener('click', exportAll);
             
             document.getElementById('resetAutoSettingsBtn').addEventListener('click', resetAutoSettings);
             
             document.querySelectorAll('#autotasks-panel input[type="checkbox"]').forEach(cb => {
                 cb.addEventListener('change', saveAutoSettings);
+            });
+            
+            document.getElementById('adminAutoBackup').addEventListener('change', (e) => {
+                toggleAutoBackupSettings(e.target.checked);
+            });
+            
+            document.querySelectorAll('#autoBackupSettings select, #autoBackupSettings input[type="time"]').forEach(el => {
+                el.addEventListener('change', saveAutoSettings);
+            });
+            
+            // 备份列表事件委托
+            document.getElementById('backupsList').addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                const action = btn.dataset.action;
+                if (action === 'restore-backup') {
+                    restoreBackup(btn.dataset.file);
+                } else if (action === 'delete-backup') {
+                    deleteBackup(btn.dataset.file);
+                }
             });
             
             // Event delegation for dynamic user/provider buttons

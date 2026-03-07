@@ -162,11 +162,33 @@
 
     <div class="toast" id="toast"></div>
 
-    <script src="/app.js"></script>
     <script>
         const API_BASE = '/api/v1';
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user') || '{}');
         let currentMemory = null;
         let charts = {};
+
+        if (!token) window.location.href = '/login';
+        if (user.role === 'admin') document.getElementById('adminLink').style.display = 'flex';
+
+        function logout() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch('/api/v1/user/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                }).catch(err => console.log('Logout API call failed:', err));
+            }
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', logout);
 
         function showToast(msg) {
             const toast = document.getElementById('toast');

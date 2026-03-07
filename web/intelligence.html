@@ -12,8 +12,8 @@
             flex-direction: column;
             gap: 10px;
             margin-bottom: 16px;
-            max-height: 300px;
-            overflow-y: auto;
+            max-height: none;
+            overflow-y: visible;
         }
         .provider-select .list-item {
             width: 100%;
@@ -588,7 +588,7 @@
             const container = document.getElementById(containerId);
             if (container) {
                 container.querySelectorAll('.provider-option').forEach(opt => {
-                    opt.classList.toggle('selected', opt.textContent.trim() === (providers.find(p => p.id === providerId)?.display_name || providers.find(p => p.id === providerId)?.name));
+                    opt.classList.toggle('selected', opt.dataset.providerId === providerId);
                 });
             }
             

@@ -8,6 +8,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate, isAdmin } = require('../middleware/auth');
+const backupService = require('../services/BackupService');
 
 // 默认自动任务设置
 const defaultAutoSettings = {
@@ -20,7 +21,12 @@ const defaultAutoSettings = {
     autoTag: true,
     autoConvert: true,
     autoSummarize: true,
-    passiveReview: true
+    passiveReview: true,
+    autoBackup: false,
+    backupFrequency: 'daily',
+    backupTime: '02:00',
+    backupRetention: '7',
+    backupType: 'full'
 };
 
 // 获取所有系统设置（管理员）
@@ -30,7 +36,11 @@ router.get('/all', authenticate, isAdmin, async (req, res) => {
         
         const result = {};
         for (const s of settings) {
-            result[s.setting_key] = s.setting_value === 'true';
+            if (s.setting_value === 'true' || s.setting_value === 'false') {
+                result[s.setting_key] = s.setting_value === 'true';
+            } else {
+                result[s.setting_key] = s.setting_value;
+            }
         }
         
         // 合并默认值
@@ -56,7 +66,11 @@ router.get('/public', async (req, res) => {
         
         const result = {};
         for (const s of settings) {
-            result[s.setting_key] = s.setting_value === 'true';
+            if (s.setting_value === 'true' || s.setting_value === 'false') {
+                result[s.setting_key] = s.setting_value === 'true';
+            } else {
+                result[s.setting_key] = s.setting_value;
+            }
         }
         
         // 合并默认值
@@ -84,13 +98,20 @@ router.put('/', authenticate, isAdmin, async (req, res) => {
         
         for (const [key, value] of Object.entries(newSettings)) {
             if (key in defaultAutoSettings) {
+                const stringValue = typeof value === 'boolean' ? String(value) : value;
                 await db.query(
                     `INSERT INTO system_settings (setting_key, setting_value, updated_by, updated_at) 
                      VALUES (?, ?, ?, NOW())
                      ON DUPLICATE KEY UPDATE setting_value = ?, updated_by = ?, updated_at = NOW()`,
-                    [key, String(value), username, String(value), username]
+                    [key, stringValue, username, stringValue, username]
                 );
             }
+        }
+        
+        try {
+            await backupService.updateSettings(newSettings);
+        } catch (err) {
+            logger.warn('Failed to update BackupService settings:', err.message);
         }
         
         logger.info(`管理员 ${username} 更新了系统设置`, { settings: newSettings });
@@ -114,11 +135,12 @@ router.post('/reset', authenticate, isAdmin, async (req, res) => {
         const username = req.user.username;
         
         for (const [key, value] of Object.entries(defaultAutoSettings)) {
+            const stringValue = typeof value === 'boolean' ? String(value) : value;
             await db.query(
                 `INSERT INTO system_settings (setting_key, setting_value, updated_by, updated_at) 
                  VALUES (?, ?, ?, NOW())
                  ON DUPLICATE KEY UPDATE setting_value = ?, updated_by = ?, updated_at = NOW()`,
-                [key, String(value), username, String(value), username]
+                [key, stringValue, username, stringValue, username]
             );
         }
         

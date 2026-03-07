@@ -34,6 +34,9 @@ router.post('/create', async (req, res, next) => {
     try {
         const userId = req.user?.id || 'default-user';
         const backupType = req.body.type || 'manual';
+        const include = req.body.include || { memories: true, knowledge: true, sessions: true };
+        const options = req.body.options || { compress: false, encrypt: false };
+        
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
         const fileName = `backup-${userId}-${timestamp}.json`;
         const filePath = path.join(BACKUP_DIR, fileName);
@@ -42,31 +45,20 @@ router.post('/create', async (req, res, next) => {
             fs.mkdirSync(BACKUP_DIR, { recursive: true });
         }
         
-        const memories = await db.query(
-            'SELECT * FROM memories WHERE user_id = ?',
-            [userId]
-        );
-        
-        const knowledge = await db.query(
-            'SELECT * FROM knowledge WHERE user_id = ?',
-            [userId]
-        );
-        
-        const sessions = await db.query(
-            'SELECT * FROM sessions WHERE user_id = ?',
-            [userId]
-        );
-        
         const backupData = {
             version: '0.4.1',
             createdAt: new Date().toISOString(),
             userId,
-            memories: memories || [],
-            knowledge: knowledge || [],
-            sessions: sessions || []
+            backupType,
+            include,
+            options,
+            memories: include.memories ? await db.query('SELECT * FROM memories WHERE user_id = ?', [userId]) : [],
+            knowledge: include.knowledge ? await db.query('SELECT * FROM knowledge WHERE user_id = ?', [userId]) : [],
+            sessions: include.sessions ? await db.query('SELECT * FROM sessions WHERE user_id = ?', [userId]) : []
         };
         
-        fs.writeFileSync(filePath, JSON.stringify(backupData, null, 2));
+        const jsonData = JSON.stringify(backupData, null, 2);
+        fs.writeFileSync(filePath, jsonData);
         const stats = fs.statSync(filePath);
         
         await db.query(

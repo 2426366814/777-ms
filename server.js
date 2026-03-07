@@ -236,6 +236,18 @@ async function startAutoManager() {
     }
 }
 
+async function startBackupService() {
+    try {
+        const backupService = require('./src/services/BackupService');
+        await backupService.init();
+        logger.info('BackupService started successfully');
+        return true;
+    } catch (error) {
+        logger.error('Failed to start BackupService:', error.message);
+        return false;
+    }
+}
+
 async function initializeDatabase() {
     try {
         const connected = await db.testConnection();
@@ -260,6 +272,7 @@ async function startServer() {
     await initializeDatabase();
     
     await startAutoManager();
+    await startBackupService();
     
     server.listen(PORT, HOST, () => {
         logger.info(`Server running on http://${HOST}:${PORT}`);
@@ -281,6 +294,14 @@ async function gracefulShutdown() {
         logger.info('AutoManager stopped');
     } catch (err) {
         logger.warn('Error stopping AutoManager:', err.message);
+    }
+    
+    try {
+        const backupService = require('./src/services/BackupService');
+        backupService.stopAllJobs();
+        logger.info('BackupService stopped');
+    } catch (err) {
+        logger.warn('Error stopping BackupService:', err.message);
     }
     
     server.close(() => {

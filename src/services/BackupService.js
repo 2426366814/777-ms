@@ -14,6 +14,13 @@ class BackupService {
         this.backupDir = process.env.BACKUP_DIR || './backups';
         this.scheduledJobs = new Map();
         this.isInitialized = false;
+        this.currentConfig = {
+            autoBackup: false,
+            backupFrequency: 'daily',
+            backupTime: '02:00',
+            backupRetention: '7',
+            backupType: 'full'
+        };
     }
     
     async init() {
@@ -23,27 +30,85 @@ class BackupService {
             fs.mkdirSync(this.backupDir, { recursive: true });
         }
         
-        this.scheduleDailyBackup();
+        await this.loadSettings();
+        this.scheduleBackup();
         this.isInitialized = true;
         logger.info('BackupService initialized');
     }
     
-    scheduleDailyBackup() {
-        const job = cron.schedule('0 3 * * *', async () => {
-            logger.info('Starting scheduled daily backup...');
+    async loadSettings() {
+        try {
+            const settings = await db.query('SELECT setting_key, setting_value FROM system_settings');
+            for (const s of settings) {
+                if (s.setting_key in this.currentConfig) {
+                    if (s.setting_value === 'true' || s.setting_value === 'false') {
+                        this.currentConfig[s.setting_key] = s.setting_value === 'true';
+                    } else {
+                        this.currentConfig[s.setting_key] = s.setting_value;
+                    }
+                }
+            }
+            logger.info('BackupService settings loaded:', this.currentConfig);
+        } catch (error) {
+            logger.warn('Failed to load BackupService settings, using defaults:', error.message);
+        }
+    }
+    
+    async updateSettings(newSettings) {
+        for (const [key, value] of Object.entries(newSettings)) {
+            if (key in this.currentConfig) {
+                this.currentConfig[key] = value;
+            }
+        }
+        
+        this.rescheduleBackup();
+        logger.info('BackupService settings updated:', newSettings);
+    }
+    
+    scheduleBackup() {
+        this.stopAllJobs();
+        
+        if (!this.currentConfig.autoBackup) {
+            logger.info('Auto backup is disabled');
+            return;
+        }
+        
+        const [hour, minute] = this.currentConfig.backupTime.split(':').map(Number);
+        let cronExpression;
+        
+        switch (this.currentConfig.backupFrequency) {
+            case 'daily':
+                cronExpression = `${minute} ${hour} * * *`;
+                break;
+            case 'weekly':
+                cronExpression = `${minute} ${hour} * * 0`;
+                break;
+            case 'monthly':
+                cronExpression = `${minute} ${hour} 1 * *`;
+                break;
+            default:
+                cronExpression = `${minute} ${hour} * * *`;
+        }
+        
+        const job = cron.schedule(cronExpression, async () => {
+            logger.info('Starting scheduled backup...');
             try {
                 await this.backupAllUsers();
-                logger.info('Daily backup completed successfully');
+                logger.info('Scheduled backup completed successfully');
             } catch (error) {
-                logger.error('Daily backup failed:', error.message);
+                logger.error('Scheduled backup failed:', error.message);
             }
         }, {
             scheduled: true,
             timezone: 'Asia/Shanghai'
         });
         
-        this.scheduledJobs.set('daily', job);
-        logger.info('Daily backup scheduled at 3:00 AM Asia/Shanghai');
+        this.scheduledJobs.set('auto-backup', job);
+        logger.info(`Auto backup scheduled at ${this.currentConfig.backupTime} (${this.currentConfig.backupFrequency}) Asia/Shanghai`);
+    }
+    
+    rescheduleBackup() {
+        this.scheduleBackup();
     }
     
     async backupAllUsers() {
@@ -59,7 +124,7 @@ class BackupService {
                 await this.backupUser(user.user_id, 'auto');
             }
             
-            await this.cleanupOldBackups(30);
+            await this.cleanupOldBackups(parseInt(this.currentConfig.backupRetention) || 7);
         } catch (error) {
             logger.error('Backup all users failed:', error.message);
             throw error;
