@@ -4,6 +4,10 @@
 .env.production
 .env.*.local
 
+# 深度检测配置 - 包含服务器和密码信息
+.deep-inspector.yaml
+deep-inspector.yaml
+
 # 依赖目录
 node_modules/
 
