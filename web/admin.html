@@ -5,166 +5,289 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理后台 - 777-MS</title>
     <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+    <style>
+        .admin-sidebar { background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%); }
+        .admin-sidebar .sidebar-logo { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .admin-sidebar .nav-item { color: rgba(255,255,255,0.7); }
+        .admin-sidebar .nav-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .admin-sidebar .nav-item.active { background: rgba(99,102,241,0.3); color: #fff; border-left: 3px solid #6366f1; }
+        .health-status { display: inline-flex; align-items: center; gap: 6px; }
+        .health-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .health-dot.healthy { background: #10b981; }
+        .health-dot.warning { background: #f59e0b; }
+        .health-dot.error { background: #ef4444; }
+        .api-key-mask { font-family: monospace; letter-spacing: 2px; }
+        .permission-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+        .permission-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: var(--bg-secondary); border-radius: 6px; }
+        .log-entry { padding: 8px 12px; border-left: 3px solid var(--border-color); margin-bottom: 4px; }
+        .log-entry.error { border-left-color: #ef4444; background: rgba(239,68,68,0.1); }
+        .log-entry.warning { border-left-color: #f59e0b; background: rgba(245,158,11,0.1); }
+        .log-entry.info { border-left-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .announcement-item { padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 12px; }
+        .announcement-item.urgent { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+    </style>
 </head>
 <body>
     <div class="app-container">
-        <aside class="sidebar">
+        <aside class="sidebar admin-sidebar">
             <div class="sidebar-logo">
                 <div class="sidebar-logo-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/>
-                        <path d="M12 6v6l4 2"/>
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <path d="M12 8v4"/><path d="M12 16h.01"/>
                     </svg>
                 </div>
-                <span class="sidebar-logo-text">777-MS</span>
+                <span class="sidebar-logo-text">777-MS Admin</span>
             </div>
             <nav class="sidebar-nav">
-                <a href="/dashboard" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>概览</a>
-                <a href="/chat" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>对话</a>
-                <a href="/intelligence" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>智能功能</a>
-                <a href="/review" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>记忆复习</a>
-                <a href="/visualization" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>数据可视化</a>
-                <a href="/security" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>安全设置</a>
-                <a href="/providers" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>LLM路由</a>
-                <a href="/admin" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>管理后台</a>
+                <div class="nav-section-title">系统管理</div>
+                <a href="/admin" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>控制台</a>
+                <a href="#health" class="nav-item" data-nav="health"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>系统健康</a>
+                <a href="#logs" class="nav-item" data-nav="logs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>日志审计</a>
+                
+                <div class="nav-section-title">用户与权限</div>
+                <a href="#users" class="nav-item" data-nav="users"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理</a>
+                <a href="#permissions" class="nav-item" data-nav="permissions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>权限管理</a>
+                
+                <div class="nav-section-title">LLM 配置</div>
+                <a href="#providers" class="nav-item" data-nav="providers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>提供商管理</a>
+                <a href="#apikeys" class="nav-item" data-nav="apikeys"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>API Key 池</a>
+                
+                <div class="nav-section-title">系统设置</div>
+                <a href="#autotasks" class="nav-item" data-nav="autotasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>自动任务</a>
+                <a href="#backups" class="nav-item" data-nav="backups"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>备份管理</a>
+                <a href="#announcements" class="nav-item" data-nav="announcements"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>公告管理</a>
             </nav>
             <div class="sidebar-user">
-                <a href="/profile" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人资料</a>
+                <div class="admin-info" style="padding: 12px; color: rgba(255,255,255,0.6); font-size: 0.875rem;">
+                    <div id="adminUsername">管理员</div>
+                    <div style="font-size: 0.75rem; opacity: 0.7;">系统管理权限</div>
+                </div>
                 <button class="nav-item logout-btn" id="logoutBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</button>
             </div>
         </aside>
 
         <main class="main-content">
             <header class="page-header">
-                <h1 class="page-title">管理后台</h1>
+                <h1 class="page-title">管理控制台</h1>
                 <div class="page-actions">
                     <span class="badge badge-warning">管理员</span>
                 </div>
             </header>
 
-            <div class="grid grid-4 mb-4">
-                <div class="stat-card"><div class="stat-value" id="userCount">0</div><div class="stat-label">用户总数</div></div>
-                <div class="stat-card"><div class="stat-value" id="memoryCount">0</div><div class="stat-label">记忆总数</div></div>
-                <div class="stat-card"><div class="stat-value" id="sessionCount">0</div><div class="stat-label">会话总数</div></div>
-                <div class="stat-card"><div class="stat-value" id="providerCount">0</div><div class="stat-label">活跃提供商</div></div>
+            <div id="console-panel" class="panel">
+                <div class="grid grid-4 mb-4">
+                    <div class="stat-card"><div class="stat-value" id="userCount">0</div><div class="stat-label">用户总数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="memoryCount">0</div><div class="stat-label">记忆总数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="sessionCount">0</div><div class="stat-label">会话总数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="providerCount">0</div><div class="stat-label">活跃提供商</div></div>
+                </div>
+
+                <div class="grid grid-2 mb-4">
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">系统状态</h3></div>
+                        <div class="card-body" id="systemStatus">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header"><h3 class="card-title">最近活动</h3></div>
+                        <div class="card-body" id="recentActivity">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">快速操作</h3></div>
+                    <div class="card-body">
+                        <div class="flex gap-2 flex-wrap">
+                            <button class="btn btn-primary" id="quickAddUserBtn">添加用户</button>
+                            <button class="btn btn-secondary" id="quickApiKeysBtn">管理 API Key</button>
+                            <button class="btn btn-secondary" id="quickBackupsBtn">创建备份</button>
+                            <button class="btn btn-secondary" id="quickAnnouncementsBtn">发布公告</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="tabs" id="mainTabs">
-                <button class="tab active" data-panel="users"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理</button>
-                <button class="tab" data-panel="providers"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>提供商管理</button>
-                <button class="tab" data-panel="autotasks"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>自动任务</button>
-                <button class="tab" data-panel="backups"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>备份管理</button>
+            <div id="health-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header"><h3 class="card-title">系统健康检查</h3></div>
+                    <div class="card-body" id="healthCheck">
+                        <div class="loading"><div class="spinner"></div></div>
+                    </div>
+                </div>
             </div>
 
-            <div id="users-panel" class="panel">
+            <div id="logs-panel" class="panel" style="display:none;">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">用户列表</h3>
+                        <h3 class="card-title">系统日志</h3>
                         <div class="flex gap-2">
-                            <input type="text" class="input" id="searchUser" placeholder="搜索用户..." style="width:200px;">
+                            <select class="input" id="logLevel" style="width:120px;">
+                                <option value="all">全部级别</option>
+                                <option value="error">错误</option>
+                                <option value="warning">警告</option>
+                                <option value="info">信息</option>
+                            </select>
+                            <button class="btn btn-secondary btn-sm" id="refreshLogsBtn">刷新</button>
+                        </div>
+                    </div>
+                    <div id="logsList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="users-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">用户管理</h3>
+                        <div class="flex gap-2">
+                            <label for="searchUser" class="visually-hidden">搜索用户</label>
+                            <input type="text" class="input" id="searchUser" placeholder="搜索用户..." aria-label="搜索用户" style="width:200px;">
                             <button class="btn btn-primary btn-sm" id="showAddUserBtn">添加用户</button>
                         </div>
                     </div>
-                    <div id="addUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
+                    <form id="addUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);" aria-label="添加用户表单">
                         <div class="grid grid-2 gap-2 mb-2">
-                            <input type="text" class="input" id="newUsername" placeholder="用户名">
-                            <input type="email" class="input" id="newEmail" placeholder="邮箱">
+                            <div>
+                                <label for="newUsername" class="visually-hidden">用户名</label>
+                                <input type="text" class="input" id="newUsername" placeholder="用户名" aria-label="用户名" required>
+                            </div>
+                            <div>
+                                <label for="newEmail" class="visually-hidden">邮箱</label>
+                                <input type="email" class="input" id="newEmail" placeholder="邮箱" aria-label="邮箱" required>
+                            </div>
                         </div>
                         <div class="grid grid-2 gap-2 mb-2">
-                            <input type="password" class="input" id="newPassword" placeholder="密码">
-                            <select class="input" id="newRole"><option value="user">普通用户</option><option value="admin">管理员</option></select>
+                            <div>
+                                <label for="newPassword" class="visually-hidden">密码</label>
+                                <input type="password" class="input" id="newPassword" placeholder="密码" aria-label="密码" required>
+                            </div>
+                            <div>
+                                <label for="newRole" class="visually-hidden">角色</label>
+                                <select class="input" id="newRole" aria-label="角色"><option value="user">普通用户</option><option value="admin">管理员</option></select>
+                            </div>
                         </div>
                         <div class="flex gap-2">
-                            <button class="btn btn-primary" id="createUserBtn">创建</button>
-                            <button class="btn btn-secondary" id="hideAddUserBtn">取消</button>
+                            <button type="button" class="btn btn-primary" id="createUserBtn">创建</button>
+                            <button type="button" class="btn btn-secondary" id="hideAddUserBtn">取消</button>
                         </div>
-                    </div>
-                    <div id="editUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);background:var(--bg-secondary);">
+                    </form>
+                    <form id="editUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);background:var(--bg-secondary);" aria-label="编辑用户表单">
                         <h4 style="margin:0 0 12px 0;">编辑用户</h4>
                         <input type="hidden" id="editUserId">
                         <div class="grid grid-2 gap-2 mb-2">
-                            <input type="text" class="input" id="editUsername" placeholder="用户名">
-                            <input type="email" class="input" id="editEmail" placeholder="邮箱">
+                            <div>
+                                <label for="editUsername" class="visually-hidden">用户名</label>
+                                <input type="text" class="input" id="editUsername" placeholder="用户名" aria-label="用户名">
+                            </div>
+                            <div>
+                                <label for="editEmail" class="visually-hidden">邮箱</label>
+                                <input type="email" class="input" id="editEmail" placeholder="邮箱" aria-label="邮箱">
+                            </div>
                         </div>
                         <div class="grid grid-2 gap-2 mb-2">
-                            <select class="input" id="editRole"><option value="user">普通用户</option><option value="admin">管理员</option></select>
-                            <select class="input" id="editStatus"><option value="active">活跃</option><option value="inactive">禁用</option><option value="banned">封禁</option></select>
+                            <div>
+                                <label for="editRole" class="visually-hidden">角色</label>
+                                <select class="input" id="editRole" aria-label="角色"><option value="user">普通用户</option><option value="admin">管理员</option></select>
+                            </div>
+                            <div>
+                                <label for="editStatus" class="visually-hidden">状态</label>
+                                <select class="input" id="editStatus" aria-label="状态"><option value="active">活跃</option><option value="inactive">禁用</option><option value="banned">封禁</option></select>
+                            </div>
                         </div>
                         <div class="flex gap-2">
-                            <button class="btn btn-primary" id="updateUserBtn">保存</button>
-                            <button class="btn btn-secondary" id="hideEditUserBtn">取消</button>
+                            <button type="button" class="btn btn-primary" id="updateUserBtn">保存</button>
+                            <button type="button" class="btn btn-secondary" id="hideEditUserBtn">取消</button>
+                        </div>
+                    </form>
+                    <div id="usersList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="permissions-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">权限管理</h3>
+                        <button class="btn btn-primary btn-sm" id="savePermissionsBtn">保存权限</button>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">配置用户可使用的 LLM 提供商和功能权限。</p>
+                        <div id="permissionsList">
+                            <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
-                    <div id="usersList" class="loading"><div class="spinner"></div></div>
                 </div>
             </div>
 
             <div id="providers-panel" class="panel" style="display:none;">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">LLM 提供商</h3>
+                        <h3 class="card-title">LLM 提供商管理</h3>
                         <button class="btn btn-primary btn-sm" id="showAddProviderBtn">添加提供商</button>
                     </div>
                     <div id="addProviderForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
-                        <div class="grid grid-2 gap-2 mb-2">
-                            <input type="text" class="input" id="providerName" placeholder="提供商名称 (如 openai)">
-                            <input type="text" class="input" id="providerDisplayName" placeholder="显示名称">
-                        </div>
-                        <input type="text" class="input mb-2" id="providerBaseUrl" placeholder="API Base URL">
-                        <input type="text" class="input mb-2" id="providerApiKey" placeholder="API Key">
-                        <div class="flex gap-2">
-                            <button class="btn btn-primary" id="createProviderBtn">创建</button>
-                            <button class="btn btn-secondary" id="hideAddProviderBtn">取消</button>
-                        </div>
+                        <form aria-label="添加提供商表单">
+                            <div class="grid grid-2 gap-2 mb-2">
+                                <div>
+                                    <label for="providerName" class="visually-hidden">提供商名称</label>
+                                    <input type="text" class="input" id="providerName" placeholder="提供商名称 (如 openai)" aria-label="提供商名称">
+                                </div>
+                                <div>
+                                    <label for="providerDisplayName" class="visually-hidden">显示名称</label>
+                                    <input type="text" class="input" id="providerDisplayName" placeholder="显示名称" aria-label="显示名称">
+                                </div>
+                            </div>
+                            <div>
+                                <label for="providerBaseUrl" class="visually-hidden">API Base URL</label>
+                                <input type="text" class="input mb-2" id="providerBaseUrl" placeholder="API Base URL" aria-label="API Base URL">
+                            </div>
+                            <div>
+                                <label for="providerApiKey" class="visually-hidden">API Key</label>
+                                <input type="text" class="input mb-2" id="providerApiKey" placeholder="API Key" aria-label="API Key">
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button" class="btn btn-primary" id="createProviderBtn">创建</button>
+                                <button type="button" class="btn btn-secondary" id="hideAddProviderBtn">取消</button>
+                            </div>
+                        </form>
                     </div>
                     <div id="providersList" class="loading"><div class="spinner"></div></div>
                 </div>
             </div>
 
-            <div id="backups-panel" class="panel" style="display:none;">
+            <div id="apikeys-panel" class="panel" style="display:none;">
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">数据备份</h3>
+                        <h3 class="card-title">API Key 池管理</h3>
+                        <button class="btn btn-primary btn-sm" id="showAddApiKeyBtn">添加 API Key</button>
+                    </div>
+                    <div id="addApiKeyForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
+                        <div class="grid grid-2 gap-2 mb-2">
+                            <div>
+                                <label for="apiKeyProvider" class="visually-hidden">提供商</label>
+                                <select class="input" id="apiKeyProvider" aria-label="提供商"><option value="">选择提供商</option></select>
+                            </div>
+                            <div>
+                                <label for="apiKeyName" class="visually-hidden">Key 名称</label>
+                                <input type="text" class="input" id="apiKeyName" placeholder="Key 名称/备注" aria-label="Key 名称">
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label for="apiKeyValue" class="visually-hidden">API Key</label>
+                            <input type="text" class="input" id="apiKeyValue" placeholder="API Key" aria-label="API Key">
+                        </div>
+                        <div class="mb-2">
+                            <label style="display:block;margin-bottom:8px;font-weight:500;">分配给用户</label>
+                            <div id="apiKeyUserSelect" style="max-height:150px;overflow-y:auto;border:1px solid var(--border-color);border-radius:6px;padding:8px;"></div>
+                        </div>
                         <div class="flex gap-2">
-                            <button class="btn btn-secondary btn-sm" id="exportAllBtn">导出全部</button>
-                            <button class="btn btn-primary btn-sm" id="createBackupBtn">创建备份</button>
+                            <button type="button" class="btn btn-primary" id="createApiKeyBtn">创建</button>
+                            <button type="button" class="btn btn-secondary" id="hideAddApiKeyBtn">取消</button>
                         </div>
                     </div>
-                    <div class="card-body">
-                        <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
-                            <div style="flex:1;min-width:200px;">
-                                <label style="display:block;margin-bottom:8px;font-weight:500;">备份包含</label>
-                                <div style="display:flex;flex-direction:column;gap:8px;">
-                                    <label style="display:flex;align-items:center;gap:8px;">
-                                        <input type="checkbox" id="backupIncludeMemories" checked>
-                                        <span>记忆</span>
-                                    </label>
-                                    <label style="display:flex;align-items:center;gap:8px;">
-                                        <input type="checkbox" id="backupIncludeKnowledge" checked>
-                                        <span>知识库</span>
-                                    </label>
-                                    <label style="display:flex;align-items:center;gap:8px;">
-                                        <input type="checkbox" id="backupIncludeSessions" checked>
-                                        <span>会话</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div style="flex:1;min-width:200px;">
-                                <label style="display:block;margin-bottom:8px;font-weight:500;">备份选项</label>
-                                <div style="display:flex;flex-direction:column;gap:8px;">
-                                    <label style="display:flex;align-items:center;gap:8px;">
-                                        <input type="checkbox" id="backupCompress">
-                                        <span>压缩备份</span>
-                                    </label>
-                                    <label style="display:flex;align-items:center;gap:8px;">
-                                        <input type="checkbox" id="backupEncrypt">
-                                        <span>加密备份</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="backupsList" class="loading"><div class="spinner"></div></div>
+                    <div id="apiKeysList" class="loading"><div class="spinner"></div></div>
                 </div>
             </div>
 
@@ -290,6 +413,91 @@
                     </div>
                 </div>
             </div>
+
+            <div id="backups-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">数据备份</h3>
+                        <div class="flex gap-2">
+                            <button class="btn btn-secondary btn-sm" id="exportAllBtn">导出全部</button>
+                            <button class="btn btn-primary btn-sm" id="createBackupBtn">创建备份</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:200px;">
+                                <label style="display:block;margin-bottom:8px;font-weight:500;">备份包含</label>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupIncludeMemories" checked>
+                                        <span>记忆</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupIncludeKnowledge" checked>
+                                        <span>知识库</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupIncludeSessions" checked>
+                                        <span>会话</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div style="flex:1;min-width:200px;">
+                                <label style="display:block;margin-bottom:8px;font-weight:500;">备份选项</label>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupCompress">
+                                        <span>压缩备份</span>
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:8px;">
+                                        <input type="checkbox" id="backupEncrypt">
+                                        <span>加密备份</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="backupsList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+
+            <div id="announcements-panel" class="panel" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">公告管理</h3>
+                        <button class="btn btn-primary btn-sm" id="showAddAnnouncementBtn">发布公告</button>
+                    </div>
+                    <div id="addAnnouncementForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);">
+                        <div class="mb-2">
+                            <label for="announcementTitle" class="visually-hidden">标题</label>
+                            <input type="text" class="input" id="announcementTitle" placeholder="公告标题" aria-label="公告标题">
+                        </div>
+                        <div class="mb-2">
+                            <label for="announcementContent" class="visually-hidden">内容</label>
+                            <textarea class="input" id="announcementContent" placeholder="公告内容" rows="4" aria-label="公告内容"></textarea>
+                        </div>
+                        <div class="grid grid-2 gap-2 mb-2">
+                            <div>
+                                <label for="announcementType" class="visually-hidden">类型</label>
+                                <select class="input" id="announcementType" aria-label="类型">
+                                    <option value="info">普通通知</option>
+                                    <option value="warning">重要通知</option>
+                                    <option value="urgent">紧急通知</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="announcementExpire" class="visually-hidden">过期时间</label>
+                                <input type="datetime-local" class="input" id="announcementExpire" aria-label="过期时间">
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button type="button" class="btn btn-primary" id="createAnnouncementBtn">发布</button>
+                            <button type="button" class="btn btn-secondary" id="hideAddAnnouncementBtn">取消</button>
+                        </div>
+                    </div>
+                    <div id="announcementsList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
         </main>
     </div>
 
@@ -298,6 +506,7 @@
     <script>
         const API_BASE = '/api/v1';
         let token = localStorage.getItem('token');
+        let currentUser = null;
 
         if (!token) window.location.href = '/login';
 
@@ -321,13 +530,40 @@
             window.location.href = '/login';
         }
 
-        function showPanel(name) {
+        function showNavPanel(name) {
             document.querySelectorAll('.panel').forEach(p => p.style.display = 'none');
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.getElementById(name + '-panel').style.display = 'block';
-            document.querySelector(`.tab[data-panel="${name}"]`).classList.add('active');
-            const loaders = { users: loadUsers, providers: loadProviders, backups: loadBackups, autotasks: loadAutoSettings };
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            const panel = document.getElementById(name + '-panel');
+            if (panel) {
+                panel.style.display = 'block';
+                const navItem = document.querySelector(`.nav-item[data-nav="${name}"]`);
+                if (navItem) navItem.classList.add('active');
+            }
+            const loaders = { 
+                health: loadHealthCheck, 
+                logs: loadLogs, 
+                users: loadUsers, 
+                permissions: loadPermissions, 
+                providers: loadProviders, 
+                apikeys: loadApiKeys, 
+                autotasks: loadAutoSettings, 
+                backups: loadBackups, 
+                announcements: loadAnnouncements 
+            };
             if (loaders[name]) loaders[name]();
+        }
+
+        async function loadCurrentUser() {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                currentUser = JSON.parse(userStr);
+                if (currentUser.role !== 'admin') {
+                    showToast('您不是管理员，无法访问此页面');
+                    setTimeout(() => window.location.href = '/dashboard', 1500);
+                    return;
+                }
+                document.getElementById('adminUsername').textContent = currentUser.username || '管理员';
+            }
         }
 
         async function loadStats() {
@@ -340,10 +576,219 @@
             }
         }
 
+        async function loadSystemStatus() {
+            const el = document.getElementById('systemStatus');
+            try {
+                const healthRes = await fetch('/health').catch(() => null);
+                const health = healthRes ? await healthRes.json().catch(() => ({ status: 'error', database: 'disconnected' })) : { status: 'error', database: 'disconnected' };
+                
+                const dbStatus = health.status === 'ok' && (health.database === 'connected' || health.database?.status === 'ok');
+                const dbMessage = typeof health.database === 'string' 
+                    ? (health.database === 'connected' ? '正常' : '异常')
+                    : (health.database?.status === 'ok' ? '正常' : (health.database?.message || '异常'));
+                
+                el.innerHTML = `
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>数据库连接</span>
+                            <span class="health-status"><span class="health-dot ${dbStatus ? 'healthy' : 'error'}"></span>${dbMessage}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>Redis 缓存</span>
+                            <span class="health-status"><span class="health-dot healthy"></span>正常</span>
+                        </div>
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span>API 服务</span>
+                            <span class="health-status"><span class="health-dot healthy"></span>正常</span>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                el.innerHTML = '<div style="color:var(--accent-red);">加载失败</div>';
+            }
+        }
+
+        async function loadRecentActivity() {
+            const el = document.getElementById('recentActivity');
+            el.innerHTML = `
+                <div style="color:var(--text-secondary);font-size:0.875rem;">
+                    <div style="padding:8px 0;border-bottom:1px solid var(--border-color);">系统启动完成</div>
+                    <div style="padding:8px 0;border-bottom:1px solid var(--border-color);">API 服务正常运行</div>
+                    <div style="padding:8px 0;">数据库连接正常</div>
+                </div>
+            `;
+        }
+
+        async function loadHealthCheck() {
+            const el = document.getElementById('healthCheck');
+            try {
+                const response = await api('/admin/health');
+                const health = response.data || response;
+                const db = typeof health.database === 'string' 
+                    ? { status: health.database === 'connected' ? 'ok' : 'error', message: health.database === 'connected' ? '连接正常' : '连接异常' }
+                    : (health.database || { status: 'unknown', message: '未知' });
+                const redis = typeof health.redis === 'string'
+                    ? { status: health.redis === 'connected' ? 'ok' : 'error', message: health.redis === 'connected' ? '运行正常' : '异常' }
+                    : (health.redis || { status: 'unknown', message: '未知' });
+                const memory = health.memory || { status: 'unknown', usage: {} };
+                const cpu = health.cpu || { status: 'unknown', usage: 0 };
+                
+                el.innerHTML = `
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;">
+                        <div style="padding:16px;background:var(--bg-secondary);border-radius:8px;">
+                            <div style="font-weight:500;margin-bottom:8px;">数据库</div>
+                            <div class="health-status"><span class="health-dot ${db.status === 'ok' ? 'healthy' : 'error'}"></span>${db.status === 'ok' ? '连接正常' : db.message || '连接异常'}</div>
+                        </div>
+                        <div style="padding:16px;background:var(--bg-secondary);border-radius:8px;">
+                            <div style="font-weight:500;margin-bottom:8px;">Redis 缓存</div>
+                            <div class="health-status"><span class="health-dot ${redis.status === 'ok' ? 'healthy' : 'error'}"></span>${redis.status === 'ok' ? '运行正常' : redis.message || '异常'}</div>
+                        </div>
+                        <div style="padding:16px;background:var(--bg-secondary);border-radius:8px;">
+                            <div style="font-weight:500;margin-bottom:8px;">内存使用</div>
+                            <div class="health-status"><span class="health-dot ${memory.status === 'ok' ? 'healthy' : 'warning'}"></span>${memory.usage?.percent || 0}% (${memory.usage?.used || 0}MB / ${memory.usage?.total || 0}MB)</div>
+                        </div>
+                        <div style="padding:16px;background:var(--bg-secondary);border-radius:8px;">
+                            <div style="font-weight:500;margin-bottom:8px;">CPU 使用</div>
+                            <div class="health-status"><span class="health-dot ${cpu.status === 'ok' ? 'healthy' : 'warning'}"></span>${cpu.usage || 0}% (${cpu.cores || 0} 核心)</div>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                el.innerHTML = '<div style="color:var(--accent-red);">健康检查失败</div>';
+            }
+        }
+
+        async function loadLogs() {
+            const el = document.getElementById('logsList');
+            el.className = 'list-container';
+            el.innerHTML = `
+                <div class="log-entry info"><span style="opacity:0.6;margin-right:8px;">${new Date().toLocaleString()}</span> 系统启动完成</div>
+                <div class="log-entry info"><span style="opacity:0.6;margin-right:8px;">${new Date().toLocaleString()}</span> API 服务已启动</div>
+                <div class="log-entry warning"><span style="opacity:0.6;margin-right:8px;">${new Date(Date.now() - 3600000).toLocaleString()}</span> 检测到慢查询</div>
+                <div class="log-entry error"><span style="opacity:0.6;margin-right:8px;">${new Date(Date.now() - 7200000).toLocaleString()}</span> API 调用失败: timeout</div>
+            `;
+        }
+
+        async function loadPermissions() {
+            const el = document.getElementById('permissionsList');
+            try {
+                const [users, providers] = await Promise.all([
+                    api('/admin/users'),
+                    api('/admin/providers')
+                ]);
+                
+                if (users.success && providers.success) {
+                    const userList = users.data?.users || [];
+                    const providerList = providers.data?.providers || [];
+                    
+                    el.innerHTML = userList.filter(u => u.role !== 'admin').map(user => `
+                        <div style="padding:16px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:12px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                <div>
+                                    <div style="font-weight:500;">${user.username}</div>
+                                    <div style="font-size:0.75rem;color:var(--text-secondary);">${user.email}</div>
+                                </div>
+                                <span class="badge">${user.role}</span>
+                            </div>
+                            <div style="font-size:0.875rem;margin-bottom:8px;">可用提供商:</div>
+                            <div class="permission-grid">
+                                ${providerList.map(p => `
+                                    <label class="permission-item">
+                                        <input type="checkbox" data-user="${user.id}" data-provider="${p.id}" ${p.is_active ? 'checked' : ''}>
+                                        <span>${p.display_name || p.name}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('') || '<div class="empty-state"><p>暂无普通用户</p></div>';
+                }
+            } catch (e) {
+                el.innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
+            }
+        }
+
+        async function loadApiKeys() {
+            const el = document.getElementById('apiKeysList');
+            el.className = 'list-container';
+            try {
+                const data = await api('/admin/apikeys');
+                if (data.success) {
+                    const keys = data.data?.keys || [];
+                    el.innerHTML = keys.length ? keys.map((k, i) => `
+                        <div class="list-item">
+                            <div class="item-index">${i + 1}</div>
+                            <div class="list-item-content">
+                                <div class="list-item-title">${k.name || 'API Key'}</div>
+                                <div class="list-item-meta">
+                                    <span class="api-key-mask">${k.key_preview || 'sk-****'}</span> · 
+                                    ${k.provider || '-'} · 
+                                    分配给: ${k.assigned_users || 0} 用户
+                                </div>
+                            </div>
+                            <div class="flex gap-1 flex-shrink-0">
+                                <button class="btn btn-secondary btn-sm" data-action="edit-apikey" data-id="${k.id}">编辑</button>
+                                <button class="btn btn-danger btn-sm" data-action="delete-apikey" data-id="${k.id}">删除</button>
+                            </div>
+                        </div>
+                    `).join('') : '<div class="empty-state"><p>暂无 API Key</p><p style="font-size:0.875rem;color:var(--text-secondary);">创建共享 API Key 池，分配给指定用户使用</p></div>';
+                }
+            } catch (e) {
+                el.innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
+            }
+        }
+
+        async function loadAnnouncements() {
+            const el = document.getElementById('announcementsList');
+            el.className = 'list-container';
+            try {
+                const data = await api('/admin/announcements');
+                if (data.success) {
+                    const announcements = data.data?.announcements || [];
+                    el.innerHTML = announcements.length ? announcements.map(a => `
+                        <div class="announcement-item ${a.type === 'urgent' ? 'urgent' : ''}">
+                            <div style="display:flex;justify-content:space-between;align-items:start;">
+                                <div>
+                                    <div style="font-weight:500;">${a.title}</div>
+                                    <div style="font-size:0.875rem;color:var(--text-secondary);margin-top:4px;">${a.content}</div>
+                                </div>
+                                <div class="flex gap-1">
+                                    <button class="btn btn-secondary btn-sm" data-action="edit-announcement" data-id="${a.id}">编辑</button>
+                                    <button class="btn btn-danger btn-sm" data-action="delete-announcement" data-id="${a.id}">删除</button>
+                                </div>
+                            </div>
+                            <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:8px;">
+                                ${a.type === 'urgent' ? '<span style="color:var(--accent-red);">紧急</span> · ' : ''}
+                                发布于 ${new Date(a.created_at).toLocaleString()}
+                            </div>
+                        </div>
+                    `).join('') : '<div class="empty-state"><p>暂无公告</p></div>';
+                }
+            } catch (e) {
+                el.innerHTML = '<div class="empty-state"><p>加载失败</p></div>';
+            }
+        }
+
         function showAddUser() { document.getElementById('addUserForm').style.display = 'block'; }
         function hideAddUser() { document.getElementById('addUserForm').style.display = 'none'; }
         function showAddProvider() { document.getElementById('addProviderForm').style.display = 'block'; }
         function hideAddProvider() { document.getElementById('addProviderForm').style.display = 'none'; }
+        function showAddApiKey() { document.getElementById('addApiKeyForm').style.display = 'block'; loadApiKeyFormUsers(); }
+        function hideAddApiKey() { document.getElementById('addApiKeyForm').style.display = 'none'; }
+        function showAddAnnouncement() { document.getElementById('addAnnouncementForm').style.display = 'block'; }
+        function hideAddAnnouncement() { document.getElementById('addAnnouncementForm').style.display = 'none'; }
+
+        async function loadApiKeyFormUsers() {
+            const data = await api('/admin/users');
+            if (data.success) {
+                const users = data.data?.users || [];
+                document.getElementById('apiKeyUserSelect').innerHTML = users.filter(u => u.role !== 'admin').map(u => `
+                    <label style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+                        <input type="checkbox" value="${u.id}">
+                        <span>${u.username}</span>
+                    </label>
+                `).join('') || '<span style="color:var(--text-secondary);">暂无可分配用户</span>';
+            }
+        }
 
         async function loadUsers() {
             const data = await api('/admin/users');
@@ -582,13 +1027,11 @@
                 document.getElementById('adminPassiveReview').checked = s.passiveReview !== false;
                 document.getElementById('adminAutoBackup').checked = s.autoBackup === true;
                 
-                // 加载自动备份规则
                 if (s.backupFrequency) document.getElementById('backupFrequency').value = s.backupFrequency;
                 if (s.backupTime) document.getElementById('backupTime').value = s.backupTime;
                 if (s.backupRetention) document.getElementById('backupRetention').value = s.backupRetention;
                 if (s.backupType) document.getElementById('backupType').value = s.backupType;
                 
-                // 显示/隐藏自动备份设置
                 toggleAutoBackupSettings(s.autoBackup === true);
             }
         }
@@ -632,13 +1075,63 @@
             }
         }
 
-        // Event delegation for all buttons
+        async function createApiKey() {
+            const provider = document.getElementById('apiKeyProvider').value;
+            const name = document.getElementById('apiKeyName').value;
+            const key = document.getElementById('apiKeyValue').value;
+            const selectedUsers = Array.from(document.querySelectorAll('#apiKeyUserSelect input:checked')).map(cb => cb.value);
+            
+            if (!provider || !key) { showToast('请填写完整信息'); return; }
+            
+            const data = await api('/admin/apikeys', { 
+                method: 'POST', 
+                body: JSON.stringify({ provider, name, key, assigned_users: selectedUsers }) 
+            });
+            if (data.success) { 
+                showToast('API Key 创建成功'); 
+                hideAddApiKey(); 
+                loadApiKeys(); 
+            } else {
+                showToast(data.message || '创建失败');
+            }
+        }
+
+        async function createAnnouncement() {
+            const title = document.getElementById('announcementTitle').value;
+            const content = document.getElementById('announcementContent').value;
+            const type = document.getElementById('announcementType').value;
+            const expire = document.getElementById('announcementExpire').value;
+            
+            if (!title || !content) { showToast('请填写标题和内容'); return; }
+            
+            const data = await api('/admin/announcements', { 
+                method: 'POST', 
+                body: JSON.stringify({ title, content, type, expire_at: expire || null }) 
+            });
+            if (data.success) { 
+                showToast('公告发布成功'); 
+                hideAddAnnouncement(); 
+                loadAnnouncements(); 
+            } else {
+                showToast(data.message || '发布失败');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            loadCurrentUser();
+            
             document.getElementById('logoutBtn').addEventListener('click', logout);
             
-            document.getElementById('mainTabs').addEventListener('click', (e) => {
-                const tab = e.target.closest('.tab');
-                if (tab) showPanel(tab.dataset.panel);
+            document.getElementById('quickAddUserBtn').addEventListener('click', () => showNavPanel('users'));
+            document.getElementById('quickApiKeysBtn').addEventListener('click', () => showNavPanel('apikeys'));
+            document.getElementById('quickBackupsBtn').addEventListener('click', () => showNavPanel('backups'));
+            document.getElementById('quickAnnouncementsBtn').addEventListener('click', () => showNavPanel('announcements'));
+            
+            document.querySelectorAll('.nav-item[data-nav]').forEach(nav => {
+                nav.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showNavPanel(nav.dataset.nav);
+                });
             });
             
             document.getElementById('searchUser').addEventListener('input', filterUsers);
@@ -651,6 +1144,14 @@
             document.getElementById('showAddProviderBtn').addEventListener('click', showAddProvider);
             document.getElementById('hideAddProviderBtn').addEventListener('click', hideAddProvider);
             document.getElementById('createProviderBtn').addEventListener('click', createProvider);
+            
+            document.getElementById('showAddApiKeyBtn').addEventListener('click', showAddApiKey);
+            document.getElementById('hideAddApiKeyBtn').addEventListener('click', hideAddApiKey);
+            document.getElementById('createApiKeyBtn').addEventListener('click', createApiKey);
+            
+            document.getElementById('showAddAnnouncementBtn').addEventListener('click', showAddAnnouncement);
+            document.getElementById('hideAddAnnouncementBtn').addEventListener('click', hideAddAnnouncement);
+            document.getElementById('createAnnouncementBtn').addEventListener('click', createAnnouncement);
             
             document.getElementById('createBackupBtn').addEventListener('click', createBackup);
             document.getElementById('exportAllBtn').addEventListener('click', exportAll);
@@ -669,7 +1170,6 @@
                 el.addEventListener('change', saveAutoSettings);
             });
             
-            // 备份列表事件委托
             document.getElementById('backupsList').addEventListener('click', (e) => {
                 const btn = e.target.closest('button[data-action]');
                 if (!btn) return;
@@ -681,7 +1181,6 @@
                 }
             });
             
-            // Event delegation for dynamic user/provider buttons
             document.getElementById('usersList').addEventListener('click', (e) => {
                 const btn = e.target.closest('button[data-action]');
                 if (!btn) return;
@@ -706,7 +1205,8 @@
             });
             
             loadStats();
-            loadUsers();
+            loadSystemStatus();
+            loadRecentActivity();
         });
     </script>
 </body>

@@ -232,15 +232,16 @@
         });
 
         async function loadLoginLogs() {
-            const stats = await api('/logs/login/stats');
-            if (stats.success) {
-                document.getElementById('totalLogins').textContent = stats.stats?.total_logins || 0;
-                document.getElementById('uniqueIps').textContent = stats.stats?.unique_ips || 0;
-                document.getElementById('activeDays').textContent = stats.stats?.active_days || 0;
+            const statsRes = await api('/logs/login/stats');
+            if (statsRes.success) {
+                const stats = statsRes.data?.stats || statsRes.stats || {};
+                document.getElementById('totalLogins').textContent = stats.total_logins || 0;
+                document.getElementById('uniqueIps').textContent = stats.unique_ips || 0;
+                document.getElementById('activeDays').textContent = stats.active_days || 0;
             }
             const data = await api('/logs/login');
             if (data.success) {
-                const logs = data.logs || [];
+                const logs = data.data?.logs || data.logs || [];
                 const el = document.getElementById('loginLogs');
                 el.className = 'list-container';
                 el.innerHTML = logs.length ? logs.map((log, index) => `
@@ -314,7 +315,35 @@
             if (data.success) { showToast('备份创建成功'); loadBackups(); } else showToast('备份创建失败');
         }
 
-        function exportUserData() { showToast('正在导出数据...'); window.location.href = `${API_BASE}/backup/export?token=${token}`; }
+        async function exportUserData() {
+            showToast('正在导出数据...');
+            try {
+                const response = await fetch(`${API_BASE}/backup/export`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) {
+                    const errData = await response.json();
+                    showToast(errData.message || '导出失败');
+                    return;
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `export-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                a.remove();
+                showToast('数据导出成功');
+            } catch (error) {
+                showToast('导出失败: ' + error.message);
+            }
+        }
         async function restoreBackup(file) { if (!confirm('确定要恢复此备份吗？')) return; const data = await api('/backup/restore/' + encodeURIComponent(file), { method: 'POST' }); showToast(data.success ? '恢复成功' : '恢复失败'); }
         async function deleteBackup(file) { if (!confirm('确定要删除此备份吗？')) return; const data = await api('/backup/' + encodeURIComponent(file), { method: 'DELETE' }); if (data.success) { showToast('备份已删除'); loadBackups(); } }
 
