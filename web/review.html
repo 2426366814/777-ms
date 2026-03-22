@@ -298,72 +298,96 @@
         }
 
         async function loadSchedule() {
-            const data = await api('/review/schedule');
             const el = document.getElementById('scheduleList');
-            el.className = 'list-container';
-            if (data.success) {
-                el.innerHTML = data.upcoming.length === 0 ?
-                    '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>暂无复习计划</p></div>' :
-                    data.upcoming.map((s, i) => `
-                        <div class="list-item">
-                            <div class="item-index">${i + 1}</div>
-                            <div class="list-item-content">
-                                <div class="list-item-title">${(s.content || '').substring(0, 100)}...</div>
-                                <div class="list-item-meta">${new Date(s.next_review_at).toLocaleString()}</div>
+            try {
+                const data = await api('/review/schedule');
+                el.className = 'list-container';
+                if (data.success) {
+                    el.innerHTML = data.upcoming.length === 0 ?
+                        '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>暂无复习计划</p></div>' :
+                        data.upcoming.map((s, i) => `
+                            <div class="list-item">
+                                <div class="item-index">${i + 1}</div>
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${(s.content || '').substring(0, 100)}...</div>
+                                    <div class="list-item-meta">${new Date(s.next_review_at).toLocaleString()}</div>
+                                </div>
+                                <span class="badge ${(s.difficulty || 'normal') === 'easy' ? 'badge-success' : (s.difficulty || 'normal') === 'hard' ? 'badge-danger' : 'badge-warning'}">${s.difficulty || '普通'}</span>
                             </div>
-                            <span class="badge ${s.difficulty === 'easy' ? 'badge-success' : s.difficulty === 'hard' ? 'badge-danger' : 'badge-warning'}">${s.difficulty}</span>
-                        </div>
-                    `).join('');
+                        `).join('');
+                } else {
+                    el.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
+                }
+            } catch (err) {
+                console.error('Load schedule error:', err);
+                el.className = 'list-container';
+                el.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
             }
         }
 
         async function loadStats() {
-            const stats = await api('/review/stats');
-            if (stats.success) {
-                if (charts.stats) charts.stats.destroy();
-                charts.stats = new Chart(document.getElementById('statsChart'), {
-                    type: 'bar',
-                    data: { labels: (stats.stats.retentionByDay || []).map(r => r.date), datasets: [{ label: '复习记忆数', data: (stats.stats.retentionByDay || []).map(r => r.total), backgroundColor: '#22c55e' }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { ticks: { color: '#6b6b6b' }, grid: { color: '#1a1a2a' } }, y: { ticks: { color: '#6b6b6b' }, grid: { color: '#1a1a2a' } } } }
-                });
-                
-                if (charts.difficulty) charts.difficulty.destroy();
-                charts.difficulty = new Chart(document.getElementById('difficultyChart'), {
-                    type: 'doughnut',
-                    data: { labels: ['简单', '普通', '困难'], datasets: [{ data: [(stats.stats.difficultyDistribution || []).find(d => d.difficulty === 'easy')?.count || 0, (stats.stats.difficultyDistribution || []).find(d => d.difficulty === 'normal')?.count || 0, (stats.stats.difficultyDistribution || []).find(d => d.difficulty === 'hard')?.count || 0], backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'] }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#9ca3af' } } } }
-                });
+            try {
+                const stats = await api('/review/stats');
+                if (stats.success) {
+                    if (charts.stats) charts.stats.destroy();
+                    charts.stats = new Chart(document.getElementById('statsChart'), {
+                        type: 'bar',
+                        data: { labels: (stats.stats.retentionByDay || []).map(r => r.date), datasets: [{ label: '复习记忆数', data: (stats.stats.retentionByDay || []).map(r => r.total), backgroundColor: '#22c55e' }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { ticks: { color: '#6b6b6b' }, grid: { color: '#1a1a2a' } }, y: { ticks: { color: '#6b6b6b' }, grid: { color: '#1a1a2a' } } } }
+                    });
+                    
+                    if (charts.difficulty) charts.difficulty.destroy();
+                    charts.difficulty = new Chart(document.getElementById('difficultyChart'), {
+                        type: 'doughnut',
+                        data: { labels: ['简单', '普通', '困难'], datasets: [{ data: [(stats.stats.difficultyDistribution || []).find(d => d.difficulty === 'easy')?.count || 0, (stats.stats.difficultyDistribution || []).find(d => d.difficulty === 'normal')?.count || 0, (stats.stats.difficultyDistribution || []).find(d => d.difficulty === 'hard')?.count || 0], backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'] }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#9ca3af' } } } }
+                    });
+                }
+            } catch (err) {
+                console.error('Load stats error:', err);
             }
         }
 
         async function loadCurve() {
-            const data = await api('/review/curve');
-            if (data.success) {
-                if (charts.curve) charts.curve.destroy();
-                charts.curve = new Chart(document.getElementById('curveChart'), {
-                    type: 'line',
-                    data: { labels: data.curve.map(c => c.day + '天'), datasets: [{ label: '记忆保持率', data: data.curve.map(c => (c.retention * 100).toFixed(1)), borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.1)', fill: true, tension: 0.4 }] },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { ticks: { color: '#6b6b6b' }, grid: { color: '#1a1a2a' } }, y: { min: 0, max: 100, ticks: { color: '#6b6b6b', callback: v => v + '%' }, grid: { color: '#1a1a2a' } } } }
-                });
+            try {
+                const data = await api('/review/curve');
+                if (data.success) {
+                    if (charts.curve) charts.curve.destroy();
+                    charts.curve = new Chart(document.getElementById('curveChart'), {
+                        type: 'line',
+                        data: { labels: data.curve.map(c => c.day + '天'), datasets: [{ label: '记忆保持率', data: data.curve.map(c => (c.retention * 100).toFixed(1)), borderColor: '#22c55e', backgroundColor: 'rgba(34, 197, 94, 0.1)', fill: true, tension: 0.4 }] },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } }, scales: { x: { ticks: { color: '#6b6b6b' }, grid: { color: '#1a1a2a' } }, y: { min: 0, max: 100, ticks: { color: '#6b6b6b', callback: v => v + '%' }, grid: { color: '#1a1a2a' } } } }
+                    });
+                }
+            } catch (err) {
+                console.error('Load curve error:', err);
             }
         }
 
         async function loadHistory() {
-            const data = await api('/review/history?limit=20');
             const el = document.getElementById('historyList');
-            el.className = 'list-container';
-            if (data.success) {
-                el.innerHTML = data.history.length === 0 ?
-                    '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>暂无复习历史</p></div>' :
-                    data.history.map((h, i) => `
-                        <div class="list-item">
-                            <div class="item-index">${i + 1}</div>
-                            <div class="list-item-content">
-                                <div class="list-item-title">${(h.content || '').substring(0, 150)}...</div>
-                                <div class="list-item-meta">复习次数: ${h.review_count || 0} · 难度: ${h.difficulty || 'normal'} · 上次复习: ${h.last_review_at ? new Date(h.last_review_at).toLocaleString() : '未复习'}</div>
+            try {
+                const data = await api('/review/history?limit=20');
+                el.className = 'list-container';
+                if (data.success) {
+                    el.innerHTML = data.history.length === 0 ?
+                        '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>暂无复习历史</p></div>' :
+                        data.history.map((h, i) => `
+                            <div class="list-item">
+                                <div class="item-index">${i + 1}</div>
+                                <div class="list-item-content">
+                                    <div class="list-item-title">${(h.content || '').substring(0, 150)}...</div>
+                                    <div class="list-item-meta">复习次数: ${h.review_count || 0} · 难度: ${h.difficulty || '普通'} · 上次复习: ${h.last_review_at ? new Date(h.last_review_at).toLocaleString() : '未复习'}</div>
+                                </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `).join('');
+                } else {
+                    el.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
+                }
+            } catch (err) {
+                console.error('Load history error:', err);
+                el.className = 'list-container';
+                el.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
             }
         }
 
