@@ -3,6 +3,8 @@
  * XSS防护、输入验证、安全工具函数
  */
 
+const crypto = require('crypto');
+
 const XSS_PATTERNS = [
     /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
     /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
@@ -90,6 +92,12 @@ function sanitizeHtml(text, options = {}) {
         XSS_PATTERNS.forEach(pattern => {
             result = result.replace(pattern, '');
         });
+        
+        result = result.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+        result = result.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
+        result = result.replace(/javascript\s*:/gi, '');
+        result = result.replace(/data\s*:/gi, '');
+        result = result.replace(/vbscript\s*:/gi, '');
         
         result = result.replace(/<(?!(\/?(?:b|i|u|strong|em|br|p|span)\s*>))/gi, '&lt;');
         
@@ -255,16 +263,10 @@ function validateInput(rules) {
 }
 
 function generateSecureToken(length = 32) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    const randomValues = new Uint8Array(length);
-    
-    for (let i = 0; i < length; i++) {
-        const randomIndex = randomValues[i] % chars.length;
-        result += chars[randomIndex];
-    }
-    
-    return result;
+    const safeLength = Math.max(16, Math.min(128, parseInt(length) || 32));
+    return crypto.randomBytes(Math.ceil(safeLength / 2))
+        .toString('hex')
+        .slice(0, safeLength);
 }
 
 function hashString(str) {
@@ -275,6 +277,42 @@ function hashString(str) {
         hash = hash & hash;
     }
     return Math.abs(hash).toString(16);
+}
+
+function sanitizePath(inputPath, basePath = process.cwd()) {
+    if (!inputPath || typeof inputPath !== 'string') {
+        return null;
+    }
+    
+    const normalizedBase = require('path').resolve(basePath);
+    const normalizedInput = require('path').resolve(normalizedBase, inputPath);
+    
+    if (!normalizedInput.startsWith(normalizedBase)) {
+        return null;
+    }
+    
+    if (normalizedInput.includes('..')) {
+        return null;
+    }
+    
+    return normalizedInput;
+}
+
+function isPathSafe(inputPath, basePath = process.cwd()) {
+    const sanitized = sanitizePath(inputPath, basePath);
+    return sanitized !== null;
+}
+
+function sanitizeFilename(filename) {
+    if (!filename || typeof filename !== 'string') {
+        return '';
+    }
+    
+    return filename
+        .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
+        .replace(/\.\./g, '')
+        .replace(/^\.+/, '')
+        .substring(0, 255);
 }
 
 module.exports = {
@@ -290,6 +328,9 @@ module.exports = {
     validateInput,
     generateSecureToken,
     hashString,
+    sanitizePath,
+    isPathSafe,
+    sanitizeFilename,
     XSS_PATTERNS,
     SQL_INJECTION_PATTERNS,
     HTML_ENTITIES

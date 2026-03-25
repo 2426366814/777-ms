@@ -1,140 +1,144 @@
-/**
- * 加密服务
- * 使用 AES-256-GCM 加密敏感数据
- */
-
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const logger = require('../utils/logger');
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
-if (!ENCRYPTION_KEY) {
-    console.error('WARNING: ENCRYPTION_KEY environment variable is not set. Using random key - encrypted data will not persist across restarts!');
-}
+const ENCRYPTION_KEY_PATH = process.env.ENCRYPTION_KEY_PATH || path.join(process.cwd(), '.encryption_key');
+const ALGORITHM = 'aes-256-gcm';
+const IV_LENGTH = 16;
+const SALT_LENGTH = 64;
+const TAG_LENGTH = 16;
+const PBKDF2_ITERATIONS = 100000;
 
-class EncryptionService {
-    constructor() {
-        this.algorithm = 'aes-256-gcm';
-        this.keyLength = 32;
-        this.ivLength = 16;
-        this.saltLength = 64;
-        this.tagLength = 16;
-        this.iterations = 100000;
-        this.secretKey = ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
-    }
+let encryptionKey = null;
+
+function getOrCreateEncryptionKey() {
+    if (encryptionKey) return encryptionKey;
     
-    deriveKey(password, salt) {
-        return crypto.pbkdf2Sync(password, salt, this.iterations, this.keyLength, 'sha512');
-    }
-    
-    encrypt(plaintext, password = null) {
-        try {
-            const salt = crypto.randomBytes(this.saltLength);
-            const iv = crypto.randomBytes(this.ivLength);
-            const key = this.deriveKey(password || this.secretKey, salt);
-            
-            const cipher = crypto.createCipheriv(this.algorithm, key, iv);
-            
-            let encrypted = cipher.update(plaintext, 'utf8', 'hex');
-            encrypted += cipher.final('hex');
-            
-            const authTag = cipher.getAuthTag();
-            
-            return {
-                success: true,
-                data: {
-                    encrypted,
-                    salt: salt.toString('hex'),
-                    iv: iv.toString('hex'),
-                    authTag: authTag.toString('hex')
-                }
-            };
-        } catch (error) {
-            return { success: false, error: error.message };
+    try {
+        if (fs.existsSync(ENCRYPTION_KEY_PATH)) {
+            encryptionKey = fs.readFileSync(ENCRYPTION_KEY_PATH, 'utf8').trim();
+            if (encryptionKey.length === 64) {
+                return encryptionKey;
+            }
         }
+    } catch (err) {
+        logger.warn('Failed to read encryption key:', err.message);
     }
     
-    decrypt(encryptedData, password = null) {
-        try {
-            const { encrypted, salt, iv, authTag } = encryptedData;
-            
-            const key = this.deriveKey(password || this.secretKey, Buffer.from(salt, 'hex'));
-            
-            const decipher = crypto.createDecipheriv(
-                this.algorithm,
-                key,
-                Buffer.from(iv, 'hex')
-            );
-            
-            decipher.setAuthTag(Buffer.from(authTag, 'hex'));
-            
-            let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-            decrypted += decipher.final('utf8');
-            
-            return { success: true, data: decrypted };
-        } catch (error) {
-            return { success: false, error: error.message };
-        }
-    }
+    encryptionKey = crypto.randomBytes(32).toString('hex');
     
-    encryptMemory(memory) {
-        if (!memory.content) {
-            return { success: false, error: 'No content to encrypt' };
+    try {
+        const keyDir = path.dirname(ENCRYPTION_KEY_PATH);
+        if (!fs.existsSync(keyDir)) {
+            fs.mkdirSync(keyDir, { recursive: true });
         }
-        
-        const result = this.encrypt(memory.content);
-        
-        if (result.success) {
-            return {
-                success: true,
-                data: {
-                    memoryId: memory.id,
-                    encryptedContent: result.data.encrypted,
-                    salt: result.data.salt,
-                    iv: result.data.iv,
-                    authTag: result.data.authTag
-                }
-            };
-        }
-        
-        return result;
-    }
-    
-    decryptMemory(encryptedMemory) {
-        return this.decrypt({
-            encrypted: encryptedMemory.encrypted_content || encryptedMemory.encryptedContent,
-            salt: encryptedMemory.salt,
-            iv: encryptedMemory.iv,
-            authTag: encryptedMemory.auth_tag || encryptedMemory.authTag
+        fs.writeFileSync(ENCRYPTION_KEY_PATH, encryptionKey, { 
+            mode: 0o600,
+            encoding: 'utf8' 
         });
+        logger.info('Generated new encryption key at:', ENCRYPTION_KEY_PATH);
+    } catch (err) {
+        logger.error('Failed to save encryption key:', err.message);
     }
     
-    hashPassword(password) {
-        const salt = crypto.randomBytes(this.saltLength);
-        const hash = crypto.pbkdf2Sync(password, salt, this.iterations, this.keyLength, 'sha512');
-        
-        return {
-            hash: hash.toString('hex'),
-            salt: salt.toString('hex')
-        };
-    }
-    
-    verifyPassword(password, storedHash, storedSalt) {
-        const hash = crypto.pbkdf2Sync(password, Buffer.from(storedSalt, 'hex'), this.iterations, this.keyLength, 'sha512');
-        return hash.toString('hex') === storedHash;
-    }
-    
-    generateApiKey() {
-        const prefix = '777';
-        const randomBytes = crypto.randomBytes(16).toString('hex');
-        return `${prefix}_${randomBytes}`;
-    }
-    
-    generateToken(length = 32) {
-        return crypto.randomBytes(length).toString('hex');
-    }
-    
-    hashData(data) {
-        return crypto.createHash('sha256').update(data).digest('hex');
-    }
+    return encryptionKey;
 }
 
-module.exports = new EncryptionService();
+function deriveKey(masterKey, salt) {
+    return crypto.pbkdf2Sync(
+        masterKey,
+        salt,
+        PBKDF2_ITERATIONS,
+        32,
+        'sha256'
+    );
+}
+
+function encrypt(text) {
+    if (!text || typeof text !== 'string') {
+        throw new Error('Invalid text to encrypt');
+    }
+    
+    const masterKey = getOrCreateEncryptionKey();
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const salt = crypto.randomBytes(SALT_LENGTH);
+    
+    const derivedKey = deriveKey(masterKey, salt.toString('hex'));
+    const cipher = crypto.createCipheriv(ALGORITHM, derivedKey, iv);
+    
+    let encrypted = cipher.update(text, 'utf8');
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    
+    const tag = cipher.getAuthTag();
+    
+    return Buffer.concat([salt, iv, tag, encrypted]).toString('base64');
+}
+
+function decrypt(encryptedData) {
+    if (!encryptedData || typeof encryptedData !== 'string') {
+        throw new Error('Invalid encrypted data');
+    }
+    
+    const masterKey = getOrCreateEncryptionKey();
+    const data = Buffer.from(encryptedData, 'base64');
+    
+    const salt = data.subarray(0, SALT_LENGTH);
+    const iv = data.subarray(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
+    const tag = data.subarray(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
+    const encrypted = data.subarray(SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
+    
+    const derivedKey = deriveKey(masterKey, salt.toString('hex'));
+    const decipher = crypto.createDecipheriv(ALGORITHM, derivedKey, iv);
+    decipher.setAuthTag(tag);
+    
+    let decrypted = decipher.update(encrypted);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    
+    return decrypted.toString('utf8');
+}
+
+function hash(text) {
+    if (!text || typeof text !== 'string') {
+        throw new Error('Invalid text to hash');
+    }
+    return crypto.createHash('sha256').update(text).digest('hex');
+}
+
+function hashApiKey(apiKey) {
+    if (!apiKey || typeof apiKey !== 'string') {
+        throw new Error('Invalid API key to hash');
+    }
+    return crypto.createHash('sha256').update(apiKey).digest('hex');
+}
+
+function mask(text, visibleChars = 4) {
+    if (!text || typeof text !== 'string') {
+        return '****';
+    }
+    const safeVisible = Math.max(0, Math.min(visibleChars, Math.floor(text.length / 2)));
+    const start = text.substring(0, safeVisible);
+    const end = text.substring(text.length - safeVisible);
+    const middle = '*'.repeat(Math.max(4, text.length - safeVisible * 2));
+    return `${start}${middle}${end}`;
+}
+
+function constantTimeCompare(a, b) {
+    if (typeof a !== 'string' || typeof b !== 'string') {
+        return false;
+    }
+    if (a.length !== b.length) {
+        return false;
+    }
+    return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
+module.exports = {
+    encrypt,
+    decrypt,
+    hash,
+    hashApiKey,
+    mask,
+    constantTimeCompare,
+    getOrCreateEncryptionKey
+};

@@ -5,8 +5,12 @@
 
 const winston = require('winston');
 const path = require('path');
+const fs = require('fs');
 
-// 日志格式
+const logDir = path.join(process.cwd(), 'logs');
+if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+}
 const logFormat = winston.format.combine(
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
     winston.format.errors({ stack: true }),
@@ -26,9 +30,6 @@ const consoleFormat = winston.format.combine(
         return msg;
     })
 );
-
-// 创建日志目录
-const logDir = path.join(process.cwd(), 'logs');
 
 // 创建 logger 实例
 const logger = winston.createLogger({

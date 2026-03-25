@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const knowledgeGraphService = require('../services/KnowledgeGraphService');
 const memoryExtractor = require('../services/MemoryExtractor');
+const llmConfigService = require('../services/LLMConfigService');
 const { authenticate } = require('../middleware/auth');
 
 router.use(authenticate);
@@ -63,10 +64,11 @@ router.get('/related/:memoryId', async (req, res) => {
 router.post('/extract', async (req, res) => {
     try {
         const { message, provider } = req.body;
+        const actualProvider = provider || await llmConfigService.getDefaultProvider();
         const result = await memoryExtractor.extractFromMessage(
             req.user.id, 
             message, 
-            provider || 'openai'
+            actualProvider
         );
         res.json(result);
     } catch (error) {
@@ -77,10 +79,11 @@ router.post('/extract', async (req, res) => {
 router.post('/extract/conversation', async (req, res) => {
     try {
         const { messages, provider } = req.body;
+        const actualProvider = provider || await llmConfigService.getDefaultProvider();
         const result = await memoryExtractor.extractFromConversation(
             req.user.id, 
             messages, 
-            provider || 'openai'
+            actualProvider
         );
         res.json(result);
     } catch (error) {
@@ -101,7 +104,8 @@ router.post('/save', async (req, res) => {
 router.post('/tags/generate', async (req, res) => {
     try {
         const { content, provider } = req.body;
-        const result = await memoryExtractor.generateTags(req.user.id, content, provider || 'openai');
+        const actualProvider = provider || await llmConfigService.getDefaultProvider();
+        const result = await memoryExtractor.generateTags(req.user.id, content, actualProvider);
         res.json(result);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -111,7 +115,8 @@ router.post('/tags/generate', async (req, res) => {
 router.post('/importance/assess', async (req, res) => {
     try {
         const { content, provider } = req.body;
-        const result = await memoryExtractor.assessImportance(req.user.id, content, provider || 'openai');
+        const actualProvider = provider || await llmConfigService.getDefaultProvider();
+        const result = await memoryExtractor.assessImportance(req.user.id, content, actualProvider);
         res.json(result);
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -121,10 +126,11 @@ router.post('/importance/assess', async (req, res) => {
 router.post('/summarize', async (req, res) => {
     try {
         const { memoryIds, provider } = req.body;
+        const actualProvider = provider || await llmConfigService.getDefaultProvider();
         const result = await memoryExtractor.summarizeMemories(
             req.user.id, 
             memoryIds, 
-            provider || 'openai'
+            actualProvider
         );
         res.json(result);
     } catch (error) {

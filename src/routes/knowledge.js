@@ -17,6 +17,17 @@ const { authenticate } = require('../middleware/auth');
 
 router.use(authenticate);
 
+const ALLOWED_SORT_FIELDS = Object.freeze({
+    'created_at': 'created_at',
+    'updated_at': 'updated_at',
+    'title': 'title'
+});
+
+const ALLOWED_SORT_ORDERS = Object.freeze({
+    'asc': 'ASC',
+    'desc': 'DESC'
+});
+
 const upload = multer({ 
     storage: multer.memoryStorage(),
     limits: { fileSize: 50 * 1024 * 1024 }
@@ -62,7 +73,10 @@ router.get('/', async (req, res, next) => {
         }
 
         const { page, limit, category, tag, search, sortBy, sortOrder } = value;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const offset = (page - 1) * limit;
 
         let sql = 'SELECT * FROM knowledge WHERE user_id = ?';
@@ -78,7 +92,9 @@ router.get('/', async (req, res, next) => {
             params.push(`%${search}%`, `%${search}%`);
         }
 
-        sql += ` ORDER BY ${sortBy} ${sortOrder} LIMIT ? OFFSET ?`;
+        const safeSortBy = ALLOWED_SORT_FIELDS[sortBy] || 'created_at';
+        const safeSortOrder = ALLOWED_SORT_ORDERS[sortOrder] || 'DESC';
+        sql += ` ORDER BY ${safeSortBy} ${safeSortOrder} LIMIT ? OFFSET ?`;
         params.push(limit, offset);
 
         const knowledge = await db.query(sql, params);
@@ -107,7 +123,10 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
 
         const knowledge = await db.query(
             'SELECT * FROM knowledge WHERE id = ? AND user_id = ?',
@@ -141,7 +160,10 @@ router.post('/', async (req, res, next) => {
             });
         }
 
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const knowledgeId = uuidv4();
 
         await db.query(
@@ -180,7 +202,10 @@ router.put('/:id', async (req, res, next) => {
         }
 
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
 
         const existing = await db.query(
             'SELECT id FROM knowledge WHERE id = ? AND user_id = ?',
@@ -213,7 +238,10 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
 
         const existing = await db.query(
             'SELECT id FROM knowledge WHERE id = ? AND user_id = ?',
@@ -243,7 +271,10 @@ router.delete('/:id', async (req, res, next) => {
 router.post('/search', async (req, res, next) => {
     try {
         const { query, limit = 10 } = req.body;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
 
         if (!query) {
             return res.status(400).json({
@@ -279,7 +310,10 @@ router.post('/upload', upload.single('file'), async (req, res, next) => {
             });
         }
 
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const fileInfo = DocumentConverter.getFileInfo(req.file.originalname);
 
         if (!fileInfo.supported) {

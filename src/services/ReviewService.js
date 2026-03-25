@@ -6,6 +6,7 @@
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const LLMService = require('./LLMService');
+const llmConfigService = require('./LLMConfigService');
 const crypto = require('crypto');
 
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30, 60, 120];
@@ -17,7 +18,6 @@ function generateUUID() {
 class ReviewService {
     constructor() {
         this.autoReviewEnabled = process.env.AUTO_REVIEW_ENABLED !== 'false';
-        this.defaultProvider = process.env.DEFAULT_LLM_PROVIDER || 'deepseek';
     }
 
     async createReviewItem(userId, memoryId, memoryContent) {
@@ -129,7 +129,17 @@ class ReviewService {
 请只输出问题本身，不要包含其他内容。`;
 
         try {
-            const response = await LLMService.chat(userId, provider || this.defaultProvider, [
+            const actualProvider = provider || await llmConfigService.getDefaultProvider();
+            if (!actualProvider) {
+                return {
+                    question: `请回忆以下内容：${item.content.substring(0, 100)}...`,
+                    memoryId: item.memory_id,
+                    content: item.content,
+                    error: 'No LLM provider available'
+                };
+            }
+            
+            const response = await LLMService.chat(userId, actualProvider, [
                 { role: 'user', content: prompt }
             ], { maxTokens: 200 });
             

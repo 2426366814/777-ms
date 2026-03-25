@@ -7,8 +7,6 @@ const db = require('../utils/database');
 const logger = require('../utils/logger');
 const LLMService = require('./LLMService');
 
-const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER || 'deepseek';
-
 class MemoryLinker {
     constructor() {
         this.similarityThreshold = parseFloat(process.env.SIMILARITY_THRESHOLD) || 0.3;

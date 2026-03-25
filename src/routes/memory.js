@@ -10,10 +10,10 @@ const { v4: uuidv4 } = require('uuid');
 const router = express.Router();
 const logger = require('../utils/logger');
 const memoryService = require('../services/memoryService');
-const { authenticate } = require('../middleware/auth');
+const { authenticateWithApiKey } = require('../middleware/auth');
 const { sanitizeHtml, detectXSS, detectSQLInjection, sanitizeSearchQuery } = require('../utils/security');
 
-router.use(authenticate);
+router.use(authenticateWithApiKey);
 
 const createMemorySchema = Joi.object({
     content: Joi.string().min(1).max(10000).required(),
@@ -60,7 +60,8 @@ router.get('/', async (req, res, next) => {
         if (value.search) {
             const sqlCheck = detectSQLInjection(value.search);
             if (sqlCheck.isSQLInjection) {
-                logger.warn(`SQL注入检测: 用户 ${req.user?.id} 提交了可疑搜索: ${value.search}`);
+                const clientIP = req.ip || req.connection.remoteAddress;
+                logger.warn(`SQL注入检测: 用户 ${req.user?.id} IP ${clientIP} 提交了可疑搜索: ${value.search}`);
                 return res.status(400).json({
                     success: false,
                     message: '搜索参数包含非法字符'
@@ -72,6 +73,8 @@ router.get('/', async (req, res, next) => {
         if (value.category) {
             const sqlCheck = detectSQLInjection(value.category);
             if (sqlCheck.isSQLInjection) {
+                const clientIP = req.ip || req.connection.remoteAddress;
+                logger.warn(`SQL注入检测: 用户 ${req.user?.id} IP ${clientIP} 提交了可疑分类: ${value.category}`);
                 return res.status(400).json({
                     success: false,
                     message: '分类参数包含非法字符'
@@ -82,6 +85,8 @@ router.get('/', async (req, res, next) => {
         if (value.tag) {
             const sqlCheck = detectSQLInjection(value.tag);
             if (sqlCheck.isSQLInjection) {
+                const clientIP = req.ip || req.connection.remoteAddress;
+                logger.warn(`SQL注入检测: 用户 ${req.user?.id} IP ${clientIP} 提交了可疑标签: ${value.tag}`);
                 return res.status(400).json({
                     success: false,
                     message: '标签参数包含非法字符'

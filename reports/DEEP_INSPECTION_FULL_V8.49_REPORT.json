@@ -1,0 +1,516 @@
+{
+  "startTime": "2026-03-20T07:42:11.188Z",
+  "phases": {
+    "0": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "Config file exists",
+          "status": "pass"
+        },
+        {
+          "name": "package.json valid",
+          "status": "pass",
+          "data": {
+            "name": "777-ms-memory-system",
+            "version": "0.1.0"
+          }
+        },
+        {
+          "name": ".env file exists",
+          "status": "pass"
+        },
+        {
+          "name": "Node.js version",
+          "status": "pass",
+          "data": {
+            "version": "v24.13.0"
+          }
+        },
+        {
+          "name": "Source files count",
+          "status": "pass",
+          "data": {
+            "jsFiles": 54
+          }
+        }
+      ]
+    },
+    "1": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "server.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/utils/database.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/middleware/auth.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/routes/user.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/routes/admin.js syntax",
+          "status": "pass"
+        }
+      ],
+      "issues": []
+    },
+    "2": {
+      "status": "completed",
+      "features": [
+        {
+          "name": "user",
+          "status": "implemented"
+        },
+        {
+          "name": "admin",
+          "status": "implemented"
+        },
+        {
+          "name": "memory",
+          "status": "implemented"
+        },
+        {
+          "name": "chat",
+          "status": "implemented"
+        },
+        {
+          "name": "knowledge",
+          "status": "implemented"
+        },
+        {
+          "name": "review",
+          "status": "implemented"
+        },
+        {
+          "name": "tags",
+          "status": "implemented"
+        },
+        {
+          "name": "backup",
+          "status": "implemented"
+        },
+        {
+          "name": "settings",
+          "status": "implemented"
+        },
+        {
+          "name": "system",
+          "status": "implemented"
+        },
+        {
+          "name": "Frontend pages",
+          "status": "implemented",
+          "count": 20
+        }
+      ]
+    },
+    "3": {
+      "status": "completed",
+      "tests": [
+        {
+          "name": "Health check",
+          "status": "fail",
+          "error": ""
+        },
+        {
+          "name": "Homepage",
+          "status": "fail",
+          "error": ""
+        }
+      ]
+    },
+    "4": {
+      "status": "completed",
+      "tests": [
+        {
+          "name": "Concurrent requests",
+          "status": "partial",
+          "data": {
+            "total": 5,
+            "success": 0
+          }
+        }
+      ]
+    },
+    "5": {
+      "status": "completed",
+      "tests": [
+        {
+          "name": "404 handling",
+          "status": "fail"
+        },
+        {
+          "name": "API error handling",
+          "status": "fail"
+        }
+      ]
+    },
+    "6": {
+      "status": "error",
+      "tests": [
+        {
+          "name": "SSH connection",
+          "status": "fail",
+          "error": "Command failed: ssh -p 1022 -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@43.167.167.211:1022 \"echo 'SSH OK'\"\n'ssh' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n"
+        }
+      ],
+      "error": "Protocol \"https:\" not supported. Expected \"http:\""
+    },
+    "7": {
+      "status": "completed",
+      "tests": [
+        {
+          "name": "Tags CRUD",
+          "status": "partial"
+        },
+        {
+          "name": "Categories route",
+          "status": "pass"
+        }
+      ]
+    },
+    "8": {
+      "status": "completed",
+      "tests": [
+        {
+          "name": "Empty state handling",
+          "status": "pass",
+          "data": {
+            "filesWithEmptyState": 3
+          }
+        }
+      ]
+    },
+    "9": {
+      "status": "completed",
+      "iterations": [
+        {
+          "iteration": 1,
+          "healthCheck": false,
+          "timestamp": "2026-03-20T07:42:15.527Z"
+        },
+        {
+          "iteration": 2,
+          "healthCheck": false,
+          "timestamp": "2026-03-20T07:42:16.049Z"
+        },
+        {
+          "iteration": 3,
+          "healthCheck": false,
+          "timestamp": "2026-03-20T07:42:16.558Z"
+        },
+        {
+          "iteration": 4,
+          "healthCheck": false,
+          "timestamp": "2026-03-20T07:42:17.069Z"
+        },
+        {
+          "iteration": 5,
+          "healthCheck": false,
+          "timestamp": "2026-03-20T07:42:17.580Z"
+        },
+        {
+          "iteration": 6,
+          "healthCheck": false,
+          "timestamp": "2026-03-20T07:42:18.089Z"
+        },
+        {
+          "iteration": 7,
+          "healthCheck": false,
+          "timestamp": "2026-03-20T07:42:18.601Z"
+        }
+      ],
+      "successRate": "0/7"
+    },
+    "10": {
+      "status": "completed",
+      "actions": [
+        {
+          "name": "Git status",
+          "status": "has_changes",
+          "changes": 479
+        },
+        {
+          "name": "Last commit",
+          "status": "ok",
+          "data": "84f969d security: 将深度检测配置文件添加到 .gitignore"
+        }
+      ]
+    },
+    "1.5": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "admin.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "advanced.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "backup.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "batch.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "categories.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "chat.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "ide.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "intelligence.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "knowledge.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "llm.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "logs.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "memory.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "providers.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "recommendations.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "reminders.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "review.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "session.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "settings.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "share.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "system.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "tags.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "templates.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "usage.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "user.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "versions.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "visualization.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "express installed",
+          "status": "pass",
+          "version": "^4.18.2"
+        },
+        {
+          "name": "mysql2 installed",
+          "status": "pass",
+          "version": "^3.6.5"
+        },
+        {
+          "name": "jsonwebtoken installed",
+          "status": "pass",
+          "version": "^9.0.2"
+        },
+        {
+          "name": "bcryptjs installed",
+          "status": "pass",
+          "version": "^2.4.3"
+        },
+        {
+          "name": "joi installed",
+          "status": "pass",
+          "version": "^17.11.0"
+        }
+      ],
+      "conflicts": []
+    },
+    "1.6": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "Database config exists",
+          "status": "pass"
+        }
+      ],
+      "tables": [
+        "users",
+        "user_api_keys",
+        "memories",
+        "knowledge",
+        "sessions",
+        "llm_providers",
+        "login_logs",
+        "api_key_pool",
+        "announcements",
+        "user_permissions",
+        "system_logs",
+        "permission_value",
+        "backup_history",
+        "memory_tags",
+        "categories",
+        "review_queue",
+        "memory_entities",
+        "memory_relations",
+        "memory_relation",
+        "user_llm_configs",
+        "provider_models",
+        "llm_usage_logs",
+        "api_logs",
+        "security_alerts",
+        "provider_api_keys",
+        "llm_models",
+        "api_key",
+        "display_name",
+        "reminders",
+        "memory_reviews",
+        "user_settings",
+        "share_links",
+        "system_settings",
+        "setting_value",
+        "BackupService",
+        "memory_templates",
+        "usage_stats",
+        "memory_versions",
+        "database",
+        "memory_links",
+        "pending_extractions",
+        "pending_conversions",
+        "notifications",
+        "content",
+        "LLM",
+        "memory_reminders",
+        "next_review",
+        "next_review_at",
+        "review_count",
+        "confidence",
+        "api_calls",
+        "similarity",
+        "provider_metrics",
+        "user_routing_preferences",
+        "routing_decision_logs",
+        "success_rate",
+        "metrics",
+        "strategy",
+        "review_items"
+      ],
+      "mismatches": []
+    },
+    "3.5": {
+      "status": "completed",
+      "screenshots": []
+    },
+    "4.5": {
+      "status": "completed",
+      "tests": [
+        {
+          "name": "User role field",
+          "status": "pass"
+        },
+        {
+          "name": "Admin route protection",
+          "status": "pass"
+        }
+      ]
+    }
+  },
+  "errors": [
+    {
+      "timestamp": "2026-03-20T07:42:15.517Z",
+      "level": "ERROR",
+      "message": "Phase 6 failed: Protocol \"https:\" not supported. Expected \"http:\"",
+      "data": null
+    }
+  ],
+  "warnings": [
+    {
+      "timestamp": "2026-03-20T07:42:11.272Z",
+      "level": "WARN",
+      "message": "⚠️ Health check failed: ",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:42:11.275Z",
+      "level": "WARN",
+      "message": "⚠️ Homepage not accessible: ",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:42:15.141Z",
+      "level": "WARN",
+      "message": "⚠️ Failed to screenshot homepage: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1777/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:1777/\", waiting until \"load\"\u001b[22m\n",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:42:15.404Z",
+      "level": "WARN",
+      "message": "⚠️ Failed to screenshot login: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:1777/login\nCall log:\n\u001b[2m  - navigating to \"http://localhost:1777/login\", waiting until \"load\"\u001b[22m\n",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:42:15.516Z",
+      "level": "WARN",
+      "message": "⚠️ SSH connection failed: Command failed: ssh -p 1022 -o ConnectTimeout=5 -o StrictHostKeyChecking=no root@43.167.167.211:1022 \"echo 'SSH OK'\"\n'ssh' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n",
+      "data": null
+    }
+  ],
+  "screenshots": [],
+  "serverPid": null,
+  "endTime": "2026-03-20T07:42:19.363Z",
+  "duration": 8175
+}

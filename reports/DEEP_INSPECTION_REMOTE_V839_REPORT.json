@@ -1,0 +1,315 @@
+{
+  "startTime": "2026-03-19T15:02:12.358Z",
+  "tests": [
+    {
+      "category": "首页",
+      "test": "页面加载",
+      "status": "PASS",
+      "details": "首页正常加载",
+      "timestamp": "2026-03-19T15:02:18.430Z"
+    },
+    {
+      "category": "登录",
+      "test": "用户登录",
+      "status": "PASS",
+      "details": "Token: eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...",
+      "timestamp": "2026-03-19T15:02:26.749Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "dashboard页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:02:41.727Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "chat页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:02:44.684Z"
+    },
+    {
+      "category": "交互测试",
+      "test": "chat输入框",
+      "status": "PASS",
+      "details": "输入成功",
+      "timestamp": "2026-03-19T15:02:45.079Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "intelligence页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:02:54.974Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "review页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:03:00.222Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "knowledge页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:03:03.931Z"
+    },
+    {
+      "category": "交互测试",
+      "test": "knowledge按钮",
+      "status": "PASS",
+      "details": "点击成功",
+      "timestamp": "2026-03-19T15:03:04.528Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "visualization页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:03:21.139Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "security页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:03:32.295Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "providers页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:03:41.669Z"
+    },
+    {
+      "category": "用户面板",
+      "test": "profile页面",
+      "status": "PASS",
+      "details": "页面加载成功",
+      "timestamp": "2026-03-19T15:03:52.940Z"
+    },
+    {
+      "category": "交互测试",
+      "test": "profile输入框",
+      "status": "PASS",
+      "details": "输入成功",
+      "timestamp": "2026-03-19T15:03:53.311Z"
+    },
+    {
+      "category": "登录",
+      "test": "管理员登录",
+      "status": "PASS",
+      "details": "Token: eyJhbGciOiJIUzI1NiIsInR5cCI6Ik...",
+      "timestamp": "2026-03-19T15:04:05.919Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "panel标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:14.939Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "users标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:15.355Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "health标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:17.738Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "logs标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:19.100Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "backups标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:20.510Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "providers标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:21.897Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "permissions标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:24.277Z"
+    },
+    {
+      "category": "管理员面板",
+      "test": "apikeys标签",
+      "status": "PASS",
+      "details": "标签页加载成功",
+      "timestamp": "2026-03-19T15:04:25.678Z"
+    },
+    {
+      "category": "API",
+      "test": "健康检查",
+      "status": "PASS",
+      "details": "健康检查返回正常",
+      "timestamp": "2026-03-19T15:04:29.059Z"
+    },
+    {
+      "category": "权限隔离",
+      "test": "普通用户访问管理页",
+      "status": "PASS",
+      "details": "正确重定向",
+      "timestamp": "2026-03-19T15:04:49.863Z"
+    }
+  ],
+  "issues": [],
+  "screenshots": [
+    {
+      "name": "01_homepage",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_01_homepage.png"
+    },
+    {
+      "name": "02_user_login_result",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_02_user_login_result.png"
+    },
+    {
+      "name": "03_user_dashboard",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_dashboard.png"
+    },
+    {
+      "name": "03_user_chat",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_chat.png"
+    },
+    {
+      "name": "03_user_chat_input",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_chat_input.png"
+    },
+    {
+      "name": "03_user_intelligence",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_intelligence.png"
+    },
+    {
+      "name": "03_user_review",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_review.png"
+    },
+    {
+      "name": "03_user_knowledge",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_knowledge.png"
+    },
+    {
+      "name": "03_user_knowledge_button",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_knowledge_button.png"
+    },
+    {
+      "name": "03_user_visualization",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_visualization.png"
+    },
+    {
+      "name": "03_user_security",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_security.png"
+    },
+    {
+      "name": "03_user_providers",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_providers.png"
+    },
+    {
+      "name": "03_user_profile",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_profile.png"
+    },
+    {
+      "name": "03_user_profile_input",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_03_user_profile_input.png"
+    },
+    {
+      "name": "04_admin_login_result",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_04_admin_login_result.png"
+    },
+    {
+      "name": "05_admin_panel",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_panel.png"
+    },
+    {
+      "name": "05_admin_users",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_users.png"
+    },
+    {
+      "name": "05_admin_health",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_health.png"
+    },
+    {
+      "name": "05_admin_logs",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_logs.png"
+    },
+    {
+      "name": "05_admin_backups",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_backups.png"
+    },
+    {
+      "name": "05_admin_providers",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_providers.png"
+    },
+    {
+      "name": "05_admin_permissions",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_permissions.png"
+    },
+    {
+      "name": "05_admin_apikeys",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_05_admin_apikeys.png"
+    },
+    {
+      "name": "06_health_api",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_06_health_api.png"
+    },
+    {
+      "name": "07_permission_test",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v839_remote_07_permission_test.png"
+    }
+  ],
+  "interactions": [
+    {
+      "page": "https://memory.91wz.org/chat",
+      "action": "input",
+      "element": "textarea",
+      "result": "成功",
+      "timestamp": "2026-03-19T15:02:45.079Z"
+    },
+    {
+      "page": "https://memory.91wz.org/knowledge",
+      "action": "click",
+      "element": "button:has-text(\"添加\")",
+      "result": "成功",
+      "timestamp": "2026-03-19T15:03:04.528Z"
+    },
+    {
+      "page": "https://memory.91wz.org/profile",
+      "action": "input",
+      "element": "input[type=\"text\"]:not([readonly])",
+      "result": "成功",
+      "timestamp": "2026-03-19T15:03:53.311Z"
+    }
+  ],
+  "endTime": "2026-03-19T15:04:49.863Z",
+  "summary": {
+    "total": 25,
+    "passed": 25,
+    "failed": 0,
+    "warnings": 0,
+    "issues": 0,
+    "interactions": 3
+  }
+}

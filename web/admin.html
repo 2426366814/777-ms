@@ -25,6 +25,168 @@
         .log-entry.info { border-left-color: #3b82f6; background: rgba(59,130,246,0.1); }
         .announcement-item { padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 12px; }
         .announcement-item.urgent { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+        
+        /* 右侧滑出面板样式 */
+        .slide-panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .slide-panel-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .slide-panel {
+            position: fixed;
+            top: 0;
+            right: -420px;
+            width: 420px;
+            height: 100vh;
+            background: var(--bg-primary);
+            box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .slide-panel.active {
+            right: 0;
+        }
+        .slide-panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-secondary);
+        }
+        .slide-panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        .slide-panel-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .slide-panel-close:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        .slide-panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .slide-panel-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        .form-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 6px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-badge.active { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .status-badge.inactive { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .status-badge.banned { background: rgba(239, 68, 68, 0.25); color: #dc2626; }
+        
+        /* 用户信息头部 */
+        .user-info-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+        .user-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            font-weight: 600;
+        }
+        .user-details h3 {
+            margin: 0 0 4px 0;
+            font-size: 1.1rem;
+        }
+        .user-details p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 480px) {
+            .slide-panel {
+                width: 100%;
+                right: -100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -148,61 +310,76 @@
                             <button class="btn btn-primary btn-sm" id="showAddUserBtn">添加用户</button>
                         </div>
                     </div>
-                    <form id="addUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);" aria-label="添加用户表单">
-                        <div class="grid grid-2 gap-2 mb-2">
-                            <div>
-                                <label for="newUsername" class="visually-hidden">用户名</label>
-                                <input type="text" class="input" id="newUsername" placeholder="用户名" aria-label="用户名" required>
-                            </div>
-                            <div>
-                                <label for="newEmail" class="visually-hidden">邮箱</label>
-                                <input type="email" class="input" id="newEmail" placeholder="邮箱" aria-label="邮箱" required>
-                            </div>
-                        </div>
-                        <div class="grid grid-2 gap-2 mb-2">
-                            <div>
-                                <label for="newPassword" class="visually-hidden">密码</label>
-                                <input type="password" class="input" id="newPassword" placeholder="密码" aria-label="密码" required>
-                            </div>
-                            <div>
-                                <label for="newRole" class="visually-hidden">角色</label>
-                                <select class="input" id="newRole" aria-label="角色"><option value="user">普通用户</option><option value="admin">管理员</option></select>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button type="button" class="btn btn-primary" id="createUserBtn">创建</button>
-                            <button type="button" class="btn btn-secondary" id="hideAddUserBtn">取消</button>
-                        </div>
-                    </form>
-                    <form id="editUserForm" style="display:none;padding:16px;border-bottom:1px solid var(--border-color);background:var(--bg-secondary);" aria-label="编辑用户表单">
-                        <h4 style="margin:0 0 12px 0;">编辑用户</h4>
-                        <input type="hidden" id="editUserId">
-                        <div class="grid grid-2 gap-2 mb-2">
-                            <div>
-                                <label for="editUsername" class="visually-hidden">用户名</label>
-                                <input type="text" class="input" id="editUsername" placeholder="用户名" aria-label="用户名">
-                            </div>
-                            <div>
-                                <label for="editEmail" class="visually-hidden">邮箱</label>
-                                <input type="email" class="input" id="editEmail" placeholder="邮箱" aria-label="邮箱">
-                            </div>
-                        </div>
-                        <div class="grid grid-2 gap-2 mb-2">
-                            <div>
-                                <label for="editRole" class="visually-hidden">角色</label>
-                                <select class="input" id="editRole" aria-label="角色"><option value="user">普通用户</option><option value="admin">管理员</option></select>
-                            </div>
-                            <div>
-                                <label for="editStatus" class="visually-hidden">状态</label>
-                                <select class="input" id="editStatus" aria-label="状态"><option value="active">活跃</option><option value="inactive">禁用</option><option value="banned">封禁</option></select>
-                            </div>
-                        </div>
-                        <div class="flex gap-2">
-                            <button type="button" class="btn btn-primary" id="updateUserBtn">保存</button>
-                            <button type="button" class="btn btn-secondary" id="hideEditUserBtn">取消</button>
-                        </div>
-                    </form>
                     <div id="usersList" class="loading"><div class="spinner"></div></div>
+                </div>
+            </div>
+            
+            <!-- 用户编辑滑出面板 -->
+            <div class="slide-panel-overlay" id="userPanelOverlay"></div>
+            <div class="slide-panel" id="userSlidePanel">
+                <div class="slide-panel-header">
+                    <h3 class="slide-panel-title" id="panelTitle">编辑用户</h3>
+                    <button class="slide-panel-close" id="closePanelBtn" aria-label="关闭面板">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="slide-panel-body">
+                    <div class="user-info-header" id="userInfoHeader" style="display:none;">
+                        <div class="user-avatar" id="panelUserAvatar">U</div>
+                        <div class="user-details">
+                            <h3 id="panelUserDisplay">用户名</h3>
+                            <p id="panelUserEmail">user@example.com</p>
+                        </div>
+                    </div>
+                    <form id="userForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="form-group">
+                            <label class="form-label" for="editUsername">用户名</label>
+                            <input type="text" class="form-input" id="editUsername" placeholder="请输入用户名" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="editEmail">邮箱地址</label>
+                            <input type="email" class="form-input" id="editEmail" placeholder="请输入邮箱地址" required>
+                        </div>
+                        <div class="form-group" id="passwordGroup" style="display:none;">
+                            <label class="form-label" for="editPassword">密码</label>
+                            <input type="password" class="form-input" id="editPassword" placeholder="请输入密码">
+                            <p class="form-hint">密码长度至少6位</p>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="editRole">用户角色</label>
+                                <select class="form-input" id="editRole">
+                                    <option value="user">普通用户</option>
+                                    <option value="admin">管理员</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="editStatus">账户状态</label>
+                                <select class="form-input" id="editStatus">
+                                    <option value="active">活跃</option>
+                                    <option value="inactive">禁用</option>
+                                    <option value="banned">封禁</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="createdAtGroup" style="display:none;">
+                            <label class="form-label">注册时间</label>
+                            <p id="userCreatedAt" style="color: var(--text-secondary); margin: 0;"></p>
+                        </div>
+                        <div class="form-group" id="lastLoginGroup" style="display:none;">
+                            <label class="form-label">最后登录</label>
+                            <p id="userLastLogin" style="color: var(--text-secondary); margin: 0;"></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="slide-panel-footer">
+                    <button class="btn btn-secondary" id="cancelPanelBtn">取消</button>
+                    <button class="btn btn-danger" id="deleteUserBtn" style="display:none;">删除用户</button>
+                    <button class="btn btn-primary" id="saveUserBtn">保存更改</button>
                 </div>
             </div>
 
@@ -768,14 +945,82 @@
             }
         }
 
-        function showAddUser() { document.getElementById('addUserForm').style.display = 'block'; }
-        function hideAddUser() { document.getElementById('addUserForm').style.display = 'none'; }
         function showAddProvider() { document.getElementById('addProviderForm').style.display = 'block'; }
         function hideAddProvider() { document.getElementById('addProviderForm').style.display = 'none'; }
         function showAddApiKey() { document.getElementById('addApiKeyForm').style.display = 'block'; loadApiKeyFormUsers(); }
         function hideAddApiKey() { document.getElementById('addApiKeyForm').style.display = 'none'; }
         function showAddAnnouncement() { document.getElementById('addAnnouncementForm').style.display = 'block'; }
         function hideAddAnnouncement() { document.getElementById('addAnnouncementForm').style.display = 'none'; }
+        
+        // 滑出面板控制函数
+        let currentPanelMode = 'edit';
+        
+        function openUserPanel(mode = 'edit', userData = null) {
+            currentPanelMode = mode;
+            const overlay = document.getElementById('userPanelOverlay');
+            const panel = document.getElementById('userSlidePanel');
+            const panelTitle = document.getElementById('panelTitle');
+            const userInfoHeader = document.getElementById('userInfoHeader');
+            const passwordGroup = document.getElementById('passwordGroup');
+            const createdAtGroup = document.getElementById('createdAtGroup');
+            const lastLoginGroup = document.getElementById('lastLoginGroup');
+            const deleteUserBtn = document.getElementById('deleteUserBtn');
+            const saveBtn = document.getElementById('saveUserBtn');
+            
+            overlay.classList.add('active');
+            panel.classList.add('active');
+            
+            if (mode === 'add') {
+                panelTitle.textContent = '添加用户';
+                userInfoHeader.style.display = 'none';
+                passwordGroup.style.display = 'block';
+                createdAtGroup.style.display = 'none';
+                lastLoginGroup.style.display = 'none';
+                deleteUserBtn.style.display = 'none';
+                saveBtn.textContent = '创建用户';
+                
+                document.getElementById('editUserId').value = '';
+                document.getElementById('editUsername').value = '';
+                document.getElementById('editEmail').value = '';
+                document.getElementById('editPassword').value = '';
+                document.getElementById('editRole').value = 'user';
+                document.getElementById('editStatus').value = 'active';
+            } else {
+                panelTitle.textContent = '编辑用户';
+                userInfoHeader.style.display = 'flex';
+                passwordGroup.style.display = 'none';
+                createdAtGroup.style.display = 'block';
+                lastLoginGroup.style.display = 'block';
+                deleteUserBtn.style.display = 'inline-flex';
+                saveBtn.textContent = '保存更改';
+                
+                if (userData) {
+                    document.getElementById('editUserId').value = userData.id || '';
+                    document.getElementById('editUsername').value = userData.username || '';
+                    document.getElementById('editEmail').value = userData.email || '';
+                    document.getElementById('editRole').value = userData.role || 'user';
+                    document.getElementById('editStatus').value = userData.status || 'active';
+                    
+                    const avatar = document.getElementById('panelUserAvatar');
+                    avatar.textContent = (userData.username || 'U').charAt(0).toUpperCase();
+                    document.getElementById('panelUserDisplay').textContent = userData.username || '未知用户';
+                    document.getElementById('panelUserEmail').textContent = userData.email || '-';
+                    document.getElementById('userCreatedAt').textContent = userData.created_at ? new Date(userData.created_at).toLocaleString('zh-CN') : '-';
+                    document.getElementById('userLastLogin').textContent = userData.last_login_at ? new Date(userData.last_login_at).toLocaleString('zh-CN') : '从未登录';
+                }
+            }
+        }
+        
+        function closeUserPanel() {
+            const overlay = document.getElementById('userPanelOverlay');
+            const panel = document.getElementById('userSlidePanel');
+            overlay.classList.remove('active');
+            panel.classList.remove('active');
+        }
+        
+        function showAddUser() {
+            openUserPanel('add');
+        }
 
         async function loadApiKeyFormUsers() {
             const data = await api('/admin/users');
@@ -812,68 +1057,99 @@
             const el = document.getElementById('usersList');
             el.className = 'list-container';
             el.innerHTML = users.length ? users.map((u, index) => `
-                <div class="list-item">
+                <div class="list-item" style="cursor:pointer;" data-user-id="${u.id}">
                     <div class="item-index">${index + 1}</div>
                     <div class="list-item-content">
                         <div class="list-item-title" title="${u.username || ''}">${u.username || '-'}</div>
-                        <div class="list-item-meta">${u.email || '-'} · ${u.role || 'user'} · <span style="color:${u.status === 'active' ? 'var(--accent-green)' : 'var(--accent-red)'}">${u.status || '-'}</span></div>
+                        <div class="list-item-meta">${u.email || '-'} · ${u.role || 'user'} · <span class="status-badge ${u.status || 'active'}">${u.status === 'active' ? '活跃' : (u.status === 'banned' ? '封禁' : '禁用')}</span></div>
                     </div>
                     <div class="flex gap-1 flex-shrink-0">
-                        <button class="btn btn-secondary btn-sm" data-action="edit-user" data-id="${u.id}" data-username="${u.username || ''}" data-email="${u.email || ''}" data-role="${u.role || 'user'}" data-status="${u.status || 'active'}">编辑</button>
+                        <button class="btn btn-secondary btn-sm" data-action="edit-user" data-id="${u.id}">编辑</button>
                         <button class="btn btn-secondary btn-sm" data-action="reset-pwd" data-id="${u.id}">重置密码</button>
                         <button class="btn btn-danger btn-sm" data-action="delete-user" data-id="${u.id}">删除</button>
                     </div>
                 </div>
-            `).join('') : '<div class="empty-state"><p>暂无用户</p></div>';
+            `).join('') : '<div class="empty-state"><p>暂无用户</p><p style="font-size:0.875rem;color:var(--text-secondary);">点击上方"添加用户"创建新用户</p></div>';
         }
 
-        function showEditUser(id, username, email, role, status) {
-            document.getElementById('editUserId').value = id;
-            document.getElementById('editUsername').value = username;
-            document.getElementById('editEmail').value = email;
-            document.getElementById('editRole').value = role;
-            document.getElementById('editStatus').value = status;
-            document.getElementById('editUserForm').style.display = 'block';
+        function showEditUserById(id) {
+            const user = window.allUsers ? window.allUsers.find(u => u.id === id) : null;
+            if (user) {
+                openUserPanel('edit', user);
+            }
         }
 
-        function hideEditUser() {
-            document.getElementById('editUserForm').style.display = 'none';
-        }
-
-        async function updateUser() {
+        async function saveUser() {
             const id = document.getElementById('editUserId').value;
             const username = document.getElementById('editUsername').value;
             const email = document.getElementById('editEmail').value;
             const role = document.getElementById('editRole').value;
             const status = document.getElementById('editStatus').value;
+            const password = document.getElementById('editPassword').value;
             
-            const data = await api('/admin/users/' + id, {
-                method: 'PUT',
-                body: JSON.stringify({ username, email, role, status })
-            });
-            if (data.success) {
-                showToast('用户更新成功');
-                hideEditUser();
-                loadUsers();
+            if (!username || !email) {
+                showToast('请填写用户名和邮箱');
+                return;
+            }
+            
+            if (currentPanelMode === 'add') {
+                if (!password) {
+                    showToast('请输入密码');
+                    return;
+                }
+                const data = await api('/admin/users', {
+                    method: 'POST',
+                    body: JSON.stringify({ username, email, password, role })
+                });
+                if (data.success) {
+                    showToast('用户创建成功');
+                    closeUserPanel();
+                    loadUsers();
+                    loadStats();
+                } else {
+                    showToast(data.message || '创建失败');
+                }
             } else {
-                showToast(data.message || '更新失败');
+                const data = await api('/admin/users/' + id, {
+                    method: 'PUT',
+                    body: JSON.stringify({ username, email, role, status })
+                });
+                if (data.success) {
+                    showToast('用户更新成功');
+                    closeUserPanel();
+                    loadUsers();
+                } else {
+                    showToast(data.message || '更新失败');
+                }
             }
         }
 
-        async function createUser() {
-            const username = document.getElementById('newUsername').value;
-            const email = document.getElementById('newEmail').value;
-            const password = document.getElementById('newPassword').value;
-            if (!username || !email || !password) { showToast('请填写完整信息'); return; }
-            const data = await api('/admin/users', { method: 'POST', body: JSON.stringify({ username, email, password, role: document.getElementById('newRole').value }) });
-            if (data.success) { showToast('用户创建成功'); hideAddUser(); loadUsers(); loadStats(); }
-            else { showToast(data.message || '创建失败'); }
-        }
-
-        async function deleteUser(id) {
-            if (!confirm('确定删除此用户？')) return;
+        async function deleteUserFromPanel() {
+            const id = document.getElementById('editUserId').value;
+            if (!id) return;
+            
+            if (!confirm('确定要删除此用户吗？此操作不可恢复！')) return;
+            
             const data = await api('/admin/users/' + id, { method: 'DELETE' });
-            if (data.success) { showToast('已删除'); loadUsers(); loadStats(); }
+            if (data.success) {
+                showToast('用户已删除');
+                closeUserPanel();
+                loadUsers();
+                loadStats();
+            } else {
+                showToast(data.message || '删除失败');
+            }
+        }
+        
+        async function deleteUserById(id) {
+            const data = await api('/admin/users/' + id, { method: 'DELETE' });
+            if (data.success) {
+                showToast('用户已删除');
+                loadUsers();
+                loadStats();
+            } else {
+                showToast(data.message || '删除失败');
+            }
         }
 
         async function resetPassword(id) {
@@ -1122,7 +1398,7 @@
             
             document.getElementById('logoutBtn').addEventListener('click', logout);
             
-            document.getElementById('quickAddUserBtn').addEventListener('click', () => showNavPanel('users'));
+            document.getElementById('quickAddUserBtn').addEventListener('click', () => { showNavPanel('users'); setTimeout(() => showAddUser(), 100); });
             document.getElementById('quickApiKeysBtn').addEventListener('click', () => showNavPanel('apikeys'));
             document.getElementById('quickBackupsBtn').addEventListener('click', () => showNavPanel('backups'));
             document.getElementById('quickAnnouncementsBtn').addEventListener('click', () => showNavPanel('announcements'));
@@ -1136,10 +1412,13 @@
             
             document.getElementById('searchUser').addEventListener('input', filterUsers);
             document.getElementById('showAddUserBtn').addEventListener('click', showAddUser);
-            document.getElementById('hideAddUserBtn').addEventListener('click', hideAddUser);
-            document.getElementById('createUserBtn').addEventListener('click', createUser);
-            document.getElementById('updateUserBtn').addEventListener('click', updateUser);
-            document.getElementById('hideEditUserBtn').addEventListener('click', hideEditUser);
+            
+            // 滑出面板事件
+            document.getElementById('closePanelBtn').addEventListener('click', closeUserPanel);
+            document.getElementById('cancelPanelBtn').addEventListener('click', closeUserPanel);
+            document.getElementById('userPanelOverlay').addEventListener('click', closeUserPanel);
+            document.getElementById('saveUserBtn').addEventListener('click', saveUser);
+            document.getElementById('deleteUserBtn').addEventListener('click', deleteUserFromPanel);
             
             document.getElementById('showAddProviderBtn').addEventListener('click', showAddProvider);
             document.getElementById('hideAddProviderBtn').addEventListener('click', hideAddProvider);
@@ -1183,15 +1462,23 @@
             
             document.getElementById('usersList').addEventListener('click', (e) => {
                 const btn = e.target.closest('button[data-action]');
-                if (!btn) return;
-                const action = btn.dataset.action;
-                const id = btn.dataset.id;
-                if (action === 'edit-user') {
-                    showEditUser(id, btn.dataset.username, btn.dataset.email, btn.dataset.role, btn.dataset.status);
-                } else if (action === 'reset-pwd') {
-                    resetPassword(id);
-                } else if (action === 'delete-user') {
-                    deleteUser(id);
+                if (btn) {
+                    const action = btn.dataset.action;
+                    const id = btn.dataset.id;
+                    if (action === 'edit-user') {
+                        showEditUserById(id);
+                    } else if (action === 'reset-pwd') {
+                        resetPassword(id);
+                    } else if (action === 'delete-user') {
+                        if (confirm('确定要删除此用户吗？')) {
+                            deleteUserById(id);
+                        }
+                    }
+                    return;
+                }
+                const listItem = e.target.closest('.list-item[data-user-id]');
+                if (listItem) {
+                    showEditUserById(listItem.dataset.userId);
                 }
             });
             

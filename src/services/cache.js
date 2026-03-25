@@ -6,15 +6,35 @@ const redis = require('redis');
 const logger = require('../utils/logger');
 
 let client = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+const RECONNECT_DELAY_MS = 1000;
 
 const connectRedis = async () => {
     if (client) return client;
     
+    const redisConfig = {
+        url: process.env.REDIS_URL || 'redis://localhost:6379',
+        socket: {
+            reconnectStrategy: (retries) => {
+                if (retries > MAX_RECONNECT_ATTEMPTS) {
+                    logger.error('Redis重连次数超过最大限制');
+                    return new Error('Redis重连失败');
+                }
+                const delay = Math.min(retries * RECONNECT_DELAY_MS, 5000);
+                logger.warn(`Redis将在 ${delay}ms 后尝试第 ${retries} 次重连`);
+                return delay;
+            },
+            connectTimeout: 10000
+        }
+    };
+    
+    if (process.env.REDIS_PASSWORD) {
+        redisConfig.password = process.env.REDIS_PASSWORD;
+    }
+    
     try {
-        client = redis.createClient({
-            url: process.env.REDIS_URL || 'redis://localhost:6379',
-            password: process.env.REDIS_PASSWORD || undefined
-        });
+        client = redis.createClient(redisConfig);
         
         client.on('error', (err) => {
             logger.error('Redis错误:', err);
@@ -22,6 +42,16 @@ const connectRedis = async () => {
         
         client.on('connect', () => {
             logger.info('Redis连接成功');
+            reconnectAttempts = 0;
+        });
+        
+        client.on('disconnect', () => {
+            logger.warn('Redis连接断开');
+        });
+        
+        client.on('reconnecting', () => {
+            reconnectAttempts++;
+            logger.info(`Redis正在重连，第 ${reconnectAttempts} 次`);
         });
         
         await client.connect();
@@ -77,10 +107,17 @@ class CacheService {
         if (!client) return false;
         
         try {
-            const keys = await client.keys(pattern);
-            if (keys.length > 0) {
-                await client.del(keys);
-            }
+            let cursor = 0;
+            let deleted = 0;
+            do {
+                const result = await client.scan(cursor, { MATCH: pattern, COUNT: 100 });
+                cursor = result.cursor;
+                if (result.keys && result.keys.length > 0) {
+                    await client.del(result.keys);
+                    deleted += result.keys.length;
+                }
+            } while (cursor !== 0);
+            logger.info(`批量删除缓存完成: ${deleted} 个键`);
             return true;
         } catch (error) {
             logger.error('批量删除缓存失败:', error);

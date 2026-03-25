@@ -6,7 +6,7 @@
     <title>记忆复习 - 777-MS</title>
     <meta name="description" content="777-MS 记忆复习系统 - 基于艾宾浩斯遗忘曲线的智能复习">
     <meta name="robots" content="noindex, nofollow">
-    <link rel="stylesheet" href="/styles.css?v=20260228-v2">
+    <link rel="stylesheet" href="/styles.css?v=20260322-fix">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -42,6 +42,9 @@
             <header class="page-header">
                 <h1 class="page-title">记忆复习</h1>
                 <div class="page-actions">
+                    <select id="llmProvider" class="form-select" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary); font-size: 13px; margin-right: 8px;">
+                        <option value="">自动选择 LLM</option>
+                    </select>
                     <button class="btn btn-secondary btn-sm" id="refreshBtn">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
                         刷新
@@ -172,6 +175,13 @@
         if (!token) window.location.href = '/login';
         if (user.role === 'admin') document.getElementById('adminLink').style.display = 'flex';
 
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
         function logout() {
             const token = localStorage.getItem('token');
             if (token) {
@@ -198,15 +208,36 @@
         }
 
         async function api(endpoint, options = {}) {
-            const res = await fetch(API_BASE + endpoint, {
-                ...options,
-                headers: {
-                    'Authorization': 'Bearer ' + token,
-                    'Content-Type': 'application/json',
-                    ...options.headers
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            try {
+                const res = await fetch(API_BASE + endpoint, {
+                    ...options,
+                    signal: controller.signal,
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                clearTimeout(timeoutId);
+                
+                if (res.status === 401) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
+                    return { success: false, error: 'Token expired' };
                 }
-            });
-            return res.json();
+                
+                return res.json().catch(() => ({ success: false, error: 'Response parse error' }));
+            } catch (err) {
+                clearTimeout(timeoutId);
+                if (err.name === 'AbortError') {
+                    return { success: false, error: 'Request timeout' };
+                }
+                return { success: false, error: 'Network error' };
+            }
         }
 
         function showPanel(name) {
@@ -241,18 +272,40 @@
 
         document.getElementById('refreshBtn').addEventListener('click', loadReview);
 
+        async function loadProviders() {
+            try {
+                const data = await api('/llm/providers');
+                if (data.success) {
+                    const providers = data.data?.providers || data.providers || [];
+                    const select = document.getElementById('llmProvider');
+                    providers.filter(p => p.isActive === 1 || p.isActive === true).forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id || p.name;
+                        option.textContent = p.displayName || p.display_name || p.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (err) {
+                console.error('Load providers error:', err);
+            }
+        }
+
         async function loadReview() {
             const stats = await api('/review/stats');
-            if (stats.success) {
+            if (stats.success && stats.stats) {
                 document.getElementById('totalMemories').textContent = stats.stats.total_memories || 0;
                 document.getElementById('dueReviews').textContent = stats.stats.due_reviews || 0;
                 document.getElementById('reviewedCount').textContent = stats.stats.reviewed_memories || 0;
-                document.getElementById('avgReviews').textContent = (stats.stats.avg_reviews || 0).toFixed(1);
+                const avgReviews = parseFloat(stats.stats.avg_reviews) || 0;
+                document.getElementById('avgReviews').textContent = avgReviews.toFixed(1);
+            } else {
+                showToast('加载统计数据失败');
             }
             
             const data = await api('/review/due?limit=10');
             const el = document.getElementById('reviewList');
             el.className = 'list-container';
+            
             if (data.success) {
                 if (data.memories.length === 0) {
                     el.innerHTML = '<div class="empty-state"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg><p>太棒了！暂无需要复习的记忆</p></div>';
@@ -261,25 +314,51 @@
                         <div class="list-item" style="border-left: 4px solid var(--primary);">
                             <div class="item-index">${i + 1}</div>
                             <div class="list-item-content">
-                                <div class="list-item-title">${m.content}</div>
+                                <div class="list-item-title">${escapeHtml(m.content)}</div>
                                 <div class="list-item-meta">重要性: ${((m.importance_score || 0.5) * 100).toFixed(0)}% · 复习次数: ${m.review_count || 0} · 保持率: ${((m.retentionScore || 0.5) * 100).toFixed(0)}%</div>
                             </div>
                             <button class="btn btn-primary btn-sm start-review-btn" data-memory-id="${m.id}">开始复习</button>
                         </div>
                     `).join('');
                 }
+            } else {
+                el.innerHTML = '<div class="empty-state"><p>加载失败，请刷新重试</p></div>';
             }
         }
 
         async function startReview(memoryId) {
             currentMemory = memoryId;
-            const data = await api('/review/questions/' + memoryId);
             
-            document.getElementById('modalContent').innerHTML = '<p style="color: var(--text-muted);">请尝试回忆这条记忆...</p>';
-            document.getElementById('modalQuestions').innerHTML = data.success && data.questions ? 
-                data.questions.map(q => `<div class="card mb-2" style="padding: 16px;"><div style="font-size: 12px; color: var(--primary); margin-bottom: 8px;">${q.type} · ${q.difficulty}</div><div style="font-size: 15px; font-weight: 500;">${q.question}</div></div>`).join('') : '';
-            document.getElementById('qualityButtons').style.display = 'block';
+            const provider = document.getElementById('llmProvider')?.value || '';
+            const providerParam = provider ? `?provider=${encodeURIComponent(provider)}` : '';
+            
+            document.getElementById('modalContent').innerHTML = '<p style="color: var(--text-muted);"><div class="spinner" style="margin: 20px auto;"></div>正在生成复习问题...</p>';
+            document.getElementById('modalQuestions').innerHTML = '';
+            document.getElementById('qualityButtons').style.display = 'none';
             document.getElementById('reviewModal').classList.add('active');
+            
+            try {
+                const data = await api('/review/questions/' + memoryId + providerParam);
+                
+                if (data.success && data.questions && data.questions.length > 0) {
+                    document.getElementById('modalContent').innerHTML = '<p style="color: var(--text-muted);">请尝试回忆这条记忆...</p>';
+                    document.getElementById('modalQuestions').innerHTML = data.questions.map(q => 
+                        `<div class="card mb-2" style="padding: 16px;"><div style="font-size: 12px; color: var(--primary); margin-bottom: 8px;">${escapeHtml(q.type || '回忆')} · ${escapeHtml(q.difficulty || '普通')}</div><div style="font-size: 15px; font-weight: 500;">${escapeHtml(q.question)}</div></div>`
+                    ).join('');
+                } else {
+                    document.getElementById('modalContent').innerHTML = '<p style="color: var(--text-muted);">请尝试回忆这条记忆的内容...</p>';
+                    document.getElementById('modalQuestions').innerHTML = data.error ? 
+                        `<div class="card mb-2" style="padding: 16px; background: var(--bg-secondary);"><p style="color: var(--text-muted); font-size: 13px;">⚠️ ${escapeHtml(data.error)}</p><p style="color: var(--text-secondary); font-size: 14px; margin-top: 8px;">您可以继续手动复习，然后评价回忆效果。</p></div>` :
+                        '<div class="card mb-2" style="padding: 16px; background: var(--bg-secondary);"><p style="color: var(--text-muted); font-size: 13px;">💡 尝试用自己的话复述这条记忆的主要内容</p></div>';
+                }
+                
+                document.getElementById('qualityButtons').style.display = 'block';
+            } catch (error) {
+                console.error('Start review error:', error);
+                document.getElementById('modalContent').innerHTML = '<p style="color: var(--text-muted);">请尝试回忆这条记忆...</p>';
+                document.getElementById('modalQuestions').innerHTML = '<div class="card mb-2" style="padding: 16px; background: var(--bg-secondary);"><p style="color: var(--text-muted); font-size: 13px;">💡 尝试用自己的话复述这条记忆的主要内容</p></div>';
+                document.getElementById('qualityButtons').style.display = 'block';
+            }
         }
 
         function closeModal() {
@@ -309,10 +388,10 @@
                             <div class="list-item">
                                 <div class="item-index">${i + 1}</div>
                                 <div class="list-item-content">
-                                    <div class="list-item-title">${(s.content || '').substring(0, 100)}...</div>
+                                    <div class="list-item-title">${escapeHtml((s.content || '').substring(0, 100))}...</div>
                                     <div class="list-item-meta">${new Date(s.next_review_at).toLocaleString()}</div>
                                 </div>
-                                <span class="badge ${(s.difficulty || 'normal') === 'easy' ? 'badge-success' : (s.difficulty || 'normal') === 'hard' ? 'badge-danger' : 'badge-warning'}">${s.difficulty || '普通'}</span>
+                                <span class="badge ${(s.difficulty || 'normal') === 'easy' ? 'badge-success' : (s.difficulty || 'normal') === 'hard' ? 'badge-danger' : 'badge-warning'}">${escapeHtml(s.difficulty || '普通')}</span>
                             </div>
                         `).join('');
                 } else {
@@ -376,8 +455,8 @@
                             <div class="list-item">
                                 <div class="item-index">${i + 1}</div>
                                 <div class="list-item-content">
-                                    <div class="list-item-title">${(h.content || '').substring(0, 150)}...</div>
-                                    <div class="list-item-meta">复习次数: ${h.review_count || 0} · 难度: ${h.difficulty || '普通'} · 上次复习: ${h.last_review_at ? new Date(h.last_review_at).toLocaleString() : '未复习'}</div>
+                                    <div class="list-item-title">${escapeHtml((h.content || '').substring(0, 150))}...</div>
+                                    <div class="list-item-meta">复习次数: ${h.review_count || 0} · 难度: ${escapeHtml(h.difficulty || '普通')} · 上次复习: ${h.last_review_at ? new Date(h.last_review_at).toLocaleString() : '未复习'}</div>
                                 </div>
                             </div>
                         `).join('');
@@ -391,6 +470,7 @@
             }
         }
 
+        loadProviders();
         loadReview();
     </script>
 </body>

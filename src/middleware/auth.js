@@ -4,13 +4,18 @@
  */
 
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const { v4: uuidv4 } = require('uuid');
 
 const logger = require('../utils/logger');
 const { CacheService } = require('../services/cache');
+const EncryptionService = require('../services/EncryptionService');
+const { CONFIG } = require('../config/constants');
 
-// JWT 认证
+const hashApiKey = (apiKey) => {
+    return crypto.createHash(CONFIG.HASH.ALGORITHM).update(apiKey).digest('hex');
+};
+
 const authenticate = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
@@ -49,7 +54,6 @@ const authenticate = async (req, res, next) => {
             }
         }
         
-        // 将用户信息附加到请求对象
         req.user = {
             id: decoded.userId,
             username: decoded.username,
@@ -74,7 +78,7 @@ const authenticate = async (req, res, next) => {
         });
     }
 };
-// 管理员权限检查中间件
+
 const isAdmin = async (req, res, next) => {
     try {
         if (!req.user) {
@@ -100,11 +104,18 @@ const isAdmin = async (req, res, next) => {
         });
     }
 };
-// API Key 认证（用于 IDE 对接）
+
 const authenticateApiKey = async (req, res, next) => {
     try {
-        const apiKey = req.headers['x-api-key'];
+        let apiKey = req.headers['x-api-key'];
         
+        if (!apiKey) {
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                apiKey = authHeader.substring(7);
+            }
+        }
+
         if (!apiKey) {
             return res.status(401).json({
                 success: false,
@@ -112,11 +123,22 @@ const authenticateApiKey = async (req, res, next) => {
             });
         }
 
+        if (!apiKey.startsWith(CONFIG.API_KEY.PREFIX)) {
+            return res.status(401).json({
+                success: false,
+                message: '无效的 API Key 格式'
+            });
+        }
+
         const db = require('../utils/database');
+        const hashedKey = hashApiKey(apiKey);
         
         const users = await db.query(
-            'SELECT id, username, role, api_key FROM users WHERE api_key = ?',
-            [apiKey]
+            `SELECT u.id, u.username, u.role
+             FROM users u 
+             JOIN user_api_keys k ON u.id = k.user_id 
+             WHERE k.api_key_hash = ? AND k.is_active = 1 AND (k.expires_at IS NULL OR k.expires_at > NOW())`,
+            [hashedKey]
         );
         
         if (!users || users.length === 0) {
@@ -144,7 +166,6 @@ const authenticateApiKey = async (req, res, next) => {
     }
 };
 
-// 生成 JWT 令牌
 const generateToken = (user) => {
     return jwt.sign(
         {
@@ -154,14 +175,13 @@ const generateToken = (user) => {
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: process.env.JWT_EXPIRES_IN || '24h',
-            issuer: '777-ms',
-            audience: '777-ms-users'
+            expiresIn: CONFIG.JWT.EXPIRES_IN,
+            issuer: CONFIG.JWT.ISSUER,
+            audience: CONFIG.JWT.AUDIENCE
         }
     );
 };
 
-// 生成刷新令牌
 const generateRefreshToken = (user) => {
     return jwt.sign(
         {
@@ -170,20 +190,17 @@ const generateRefreshToken = (user) => {
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-            issuer: '777-ms'
+            expiresIn: CONFIG.JWT.REFRESH_EXPIRES_IN,
+            issuer: CONFIG.JWT.ISSUER
         }
     );
 };
 
-// 生成 API Key
 const generateApiKey = () => {
-    const prefix = '777_';
     const key = uuidv4().replace(/-/g, '');
-    return prefix + key;
+    return CONFIG.API_KEY.PREFIX + key;
 };
 
-// 可选认证（不强制要求登录）
 const optionalAuth = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
@@ -200,12 +217,93 @@ const optionalAuth = async (req, res, next) => {
         
         next();
     } catch (error) {
-        // 可选认证失败不阻止请求
         next();
     }
 };
 
-// 角色检查
+const authenticateWithApiKey = async (req, res, next) => {
+    try {
+        let apiKey = req.headers['x-api-key'];
+        const authHeader = req.headers.authorization;
+        let token = null;
+        
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.substring(7);
+            if (token.startsWith(CONFIG.API_KEY.PREFIX)) {
+                apiKey = token;
+            }
+        }
+        
+        if (apiKey) {
+            req.headers['x-api-key'] = apiKey;
+            return authenticateApiKey(req, res, next);
+        }
+        
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                
+                const userId = decoded.userId;
+                
+                const tokenBlacklisted = await CacheService.get(`blacklist:${token}`);
+                if (tokenBlacklisted) {
+                    return res.status(401).json({
+                        success: false,
+                        message: '令牌已失效，请重新登录',
+                        code: 'TOKEN_REVOKED'
+                    });
+                }
+                
+                const userBlacklisted = await CacheService.get(`user_blacklist:${userId}`);
+                if (userBlacklisted) {
+                    const logoutAt = new Date(userBlacklisted.logoutAt).getTime() / 1000;
+                    if (decoded.iat < logoutAt) {
+                        return res.status(401).json({
+                            success: false,
+                            message: '该账号已在其他设备登出，请重新登录',
+                            code: 'USER_LOGGED_OUT'
+                        });
+                    }
+                }
+                
+                req.user = {
+                    id: decoded.userId,
+                    username: decoded.username,
+                    role: decoded.role
+                };
+                
+                return next();
+            } catch (jwtError) {
+                logger.error('JWT 验证失败:', jwtError.message);
+                
+                if (jwtError.name === 'TokenExpiredError') {
+                    return res.status(401).json({
+                        success: false,
+                        message: '令牌已过期',
+                        code: 'TOKEN_EXPIRED'
+                    });
+                }
+                
+                return res.status(401).json({
+                    success: false,
+                    message: '无效的认证令牌'
+                });
+            }
+        }
+        
+        return res.status(401).json({
+            success: false,
+            message: '未提供认证令牌'
+        });
+    } catch (error) {
+        logger.error('认证失败:', error.message);
+        return res.status(401).json({
+            success: false,
+            message: '认证失败'
+        });
+    }
+};
+
 const requireRole = (roles) => {
     return (req, res, next) => {
         if (!req.user) {
@@ -226,13 +324,42 @@ const requireRole = (roles) => {
     };
 };
 
+const requireAuth = (req, res, next) => {
+    if (!req.user || !req.user.id) {
+        return res.status(401).json({
+            success: false,
+            message: '未授权访问'
+        });
+    }
+    next();
+};
+
+const validateJwtSecret = () => {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+        throw new Error('JWT_SECRET 环境变量未设置');
+    }
+    if (secret.length < 32) {
+        logger.warn('JWT_SECRET 长度不足32位，建议使用更长的密钥');
+    }
+    const weakSecrets = ['secret', 'password', '123456', 'jwt-secret', 'your-secret-key'];
+    if (weakSecrets.includes(secret.toLowerCase())) {
+        throw new Error('JWT_SECRET 使用了弱密钥，请更换为强密钥');
+    }
+    return true;
+};
+
 module.exports = {
     authenticate,
     isAdmin,
     authenticateApiKey,
+    authenticateWithApiKey,
     optionalAuth,
     requireRole,
+    requireAuth,
+    validateJwtSecret,
     generateToken,
     generateRefreshToken,
-    generateApiKey
+    generateApiKey,
+    hashApiKey
 };

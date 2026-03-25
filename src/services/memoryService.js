@@ -7,8 +7,9 @@ const db = require('../utils/database');
 const logger = require('../utils/logger');
 const { v4: uuidv4 } = require('uuid');
 const LLMService = require('./LLMService');
+const llmConfigService = require('./LLMConfigService');
+const { DB_FIELDS } = require('../config/constants');
 
-const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER || 'deepseek';
 const AUTO_TAG_ENABLED = process.env.AUTO_TAG_ENABLED !== 'false';
 
 class MemoryService {
@@ -71,10 +72,15 @@ class MemoryService {
         
         sql += ` GROUP BY m.id`;
         
-        const validSortFields = ['created_at', 'updated_at', 'importance', 'access_count'];
-        const sortField = validSortFields.includes(sortBy) ? sortBy : 'created_at';
+        const SORT_FIELD_MAP = {
+            'created_at': 'm.created_at',
+            'updated_at': 'm.updated_at',
+            'importance': 'm.importance',
+            'access_count': 'm.access_count'
+        };
+        const sortField = SORT_FIELD_MAP[sortBy] || 'm.created_at';
         const order = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-        sql += ` ORDER BY m.${sortField} ${order}`;
+        sql += ` ORDER BY ${sortField} ${order}`;
         
         sql += ` LIMIT ? OFFSET ?`;
         params.push(limit, offset);
@@ -90,7 +96,13 @@ class MemoryService {
             memories: memories.map(m => ({
                 ...m,
                 tags: m.tags ? m.tags.split(',') : [],
-                metadata: m.metadata ? JSON.parse(m.metadata) : {}
+                metadata: (() => {
+                    try {
+                        return m.metadata ? JSON.parse(m.metadata) : {};
+                    } catch (e) {
+                        return {};
+                    }
+                })()
             })),
             pagination: {
                 page,
@@ -117,38 +129,42 @@ class MemoryService {
                 [query, userId, query, limit]
             );
             
-            return memories.map(m => ({
-                id: m.id,
-                content: m.content,
-                category: m.category,
-                importance: m.importance,
-                tags: m.tags ? m.tags.split(',') : [],
-                relevance: m.relevance
-            }));
+            if (memories.length > 0) {
+                return memories.map(m => ({
+                    id: m.id,
+                    content: m.content,
+                    category: m.category,
+                    importance: m.importance,
+                    tags: m.tags ? m.tags.split(',') : [],
+                    relevance: m.relevance
+                }));
+            }
+            
+            logger.info('Full-text search returned empty, falling back to LIKE search for better Chinese support');
         } catch (error) {
             logger.warn('Full-text search failed, falling back to LIKE search:', error.message);
-            
-            const memories = await db.query(
-                `SELECT m.id, m.content, m.category, m.importance,
-                        GROUP_CONCAT(DISTINCT mt.tag_name) as tags
-                 FROM memories m 
-                 LEFT JOIN memory_tags mt ON m.id = mt.memory_id 
-                 WHERE m.user_id = ? AND m.content LIKE ?
-                 GROUP BY m.id
-                 ORDER BY m.importance DESC
-                 LIMIT ?`,
-                [userId, `%${query}%`, limit]
-            );
-            
-            return memories.map(m => ({
-                id: m.id,
-                content: m.content,
-                category: m.category,
-                importance: m.importance,
-                tags: m.tags ? m.tags.split(',') : [],
-                relevance: 0.5
-            }));
         }
+        
+        const memories = await db.query(
+            `SELECT m.id, m.content, m.category, m.importance,
+                    GROUP_CONCAT(DISTINCT mt.tag_name) as tags
+             FROM memories m 
+             LEFT JOIN memory_tags mt ON m.id = mt.memory_id 
+             WHERE m.user_id = ? AND m.content LIKE ?
+             GROUP BY m.id
+             ORDER BY m.importance DESC
+             LIMIT ?`,
+            [userId, `%${query}%`, limit]
+        );
+        
+        return memories.map(m => ({
+            id: m.id,
+            content: m.content,
+            category: m.category,
+            importance: m.importance,
+            tags: m.tags ? m.tags.split(',') : [],
+            relevance: 0.5
+        }));
     }
 
     async getRecentMemories(userId, limit = 10) {
@@ -273,7 +289,7 @@ class MemoryService {
 
     async getMemoryById(userId, memoryId) {
         const memories = await db.query(
-            `SELECT * FROM memories WHERE id = ? AND user_id = ?`,
+            `SELECT ${DB_FIELDS.MEMORIES.FULL} FROM memories WHERE id = ? AND user_id = ?`,
             [memoryId, userId]
         );
         return memories[0] || null;
@@ -372,6 +388,12 @@ class MemoryService {
             return [];
         }
 
+        const provider = await llmConfigService.getDefaultProvider();
+        if (!provider) {
+            logger.warn('No LLM provider available for auto-tagging');
+            return [];
+        }
+
         try {
             const prompt = `为以下记忆内容生成3-5个相关标签（只返回标签，用逗号分隔，不要其他内容）：
 
@@ -379,7 +401,7 @@ class MemoryService {
 
 标签:`;
 
-            const response = await LLMService.chat('system', DEFAULT_PROVIDER, [
+            const response = await LLMService.chat('system', provider, [
                 { role: 'user', content: prompt }
             ], { maxTokens: 50 });
 
@@ -438,6 +460,12 @@ class MemoryService {
     }
 
     async autoCategorize(content) {
+        const provider = await llmConfigService.getDefaultProvider();
+        if (!provider) {
+            logger.warn('No LLM provider available for auto-categorization');
+            return 'general';
+        }
+
         try {
             const prompt = `为以下记忆内容选择一个最合适的分类（只返回分类名称，不要其他内容）：
 
@@ -447,7 +475,7 @@ class MemoryService {
 
 分类:`;
 
-            const response = await LLMService.chat('system', DEFAULT_PROVIDER, [
+            const response = await LLMService.chat('system', provider, [
                 { role: 'user', content: prompt }
             ], { maxTokens: 10 });
 
@@ -462,6 +490,12 @@ class MemoryService {
     }
 
     async generateSummary(content) {
+        const provider = await llmConfigService.getDefaultProvider();
+        if (!provider) {
+            logger.warn('No LLM provider available for summary generation');
+            return null;
+        }
+
         try {
             const prompt = `为以下内容生成一个简短的摘要（不超过50字）：
 
@@ -469,7 +503,7 @@ ${content.substring(0, 500)}
 
 摘要:`;
 
-            const response = await LLMService.chat('system', DEFAULT_PROVIDER, [
+            const response = await LLMService.chat('system', provider, [
                 { role: 'user', content: prompt }
             ], { maxTokens: 100 });
 

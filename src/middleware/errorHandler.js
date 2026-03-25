@@ -6,16 +6,23 @@
 const logger = require('../utils/logger');
 
 const errorHandler = (err, req, res, next) => {
-    // 记录错误
+    const isProduction = process.env.NODE_ENV === 'production';
+    
     logger.error('错误处理:', {
         message: err.message,
-        stack: err.stack,
+        stack: isProduction ? undefined : err.stack,
         path: req.path,
         method: req.method,
         ip: req.ip
     });
 
-    // 处理特定类型的错误
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({
+            success: false,
+            message: 'JSON 格式错误'
+        });
+    }
+
     if (err.name === 'ValidationError') {
         return res.status(400).json({
             success: false,
@@ -52,16 +59,29 @@ const errorHandler = (err, req, res, next) => {
         });
     }
 
-    // 默认服务器错误
+    if (err.code && err.code.startsWith('ER_')) {
+        return res.status(500).json({
+            success: false,
+            message: isProduction ? '数据库操作失败' : err.message
+        });
+    }
+
     const statusCode = err.statusCode || err.status || 500;
-    const message = process.env.NODE_ENV === 'production' 
-        ? '服务器内部错误' 
+    const safeMessages = [
+        '服务器内部错误',
+        '请求超时',
+        '服务暂时不可用',
+        '请求过于频繁'
+    ];
+    
+    const message = isProduction && !safeMessages.includes(err.message)
+        ? '服务器内部错误'
         : err.message;
 
     res.status(statusCode).json({
         success: false,
         message: message,
-        ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
+        ...(isProduction ? {} : { stack: err.stack })
     });
 };
 

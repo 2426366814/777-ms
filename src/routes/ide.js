@@ -9,19 +9,20 @@ const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 const logger = require('../utils/logger');
+const { authenticateWithApiKey } = require('../middleware/auth');
 const memoryService = require('../services/memoryService');
 const LLMService = require('../services/LLMService');
+const llmConfigService = require('../services/LLMConfigService');
 
 const AUTO_MEMORY_ENABLED = process.env.AUTO_MEMORY_ENABLED !== 'false';
 const AUTO_KNOWLEDGE_ENABLED = process.env.AUTO_KNOWLEDGE_ENABLED !== 'false';
-const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER || 'deepseek';
 
 /**
  * @route   POST /api/v1/ide/chat
  * @desc    IDE 聊天接口 - 自动载入记忆和知识库
  * @access  Private (API Key)
  */
-router.post('/chat', async (req, res, next) => {
+router.post('/chat', authenticateWithApiKey, async (req, res, next) => {
     try {
         const { messages, context, stream = false, autoMemory = true, autoKnowledge = true, provider } = req.body;
         const userId = req.user.id;
@@ -58,7 +59,14 @@ router.post('/chat', async (req, res, next) => {
             ...messages.slice(-10)
         ];
 
-        const actualProvider = provider || DEFAULT_PROVIDER;
+        const actualProvider = provider || await llmConfigService.getDefaultProvider();
+        if (!actualProvider) {
+            return res.status(400).json({
+                success: false,
+                message: '没有可用的 LLM 提供商，请配置您的 API Key'
+            });
+        }
+        
         let response;
         
         try {
@@ -193,7 +201,7 @@ async function autoExtractAndStore(userId, userMessage, assistantResponse, provi
  * @desc    存储 IDE 中的记忆
  * @access  Private (API Key)
  */
-router.post('/memory', async (req, res, next) => {
+router.post('/memory', authenticateWithApiKey, async (req, res, next) => {
     try {
         const { content, type = 'code', metadata = {}, tags = [], importance = 5 } = req.body;
         const userId = req.user.id;
@@ -237,7 +245,7 @@ router.post('/memory', async (req, res, next) => {
  * @desc    检索相关记忆
  * @access  Private (API Key)
  */
-router.get('/memory', async (req, res, next) => {
+router.get('/memory', authenticateWithApiKey, async (req, res, next) => {
     try {
         const { query, limit = 5 } = req.query;
         const userId = req.user.id;
@@ -276,7 +284,7 @@ router.get('/memory', async (req, res, next) => {
  * @desc    MCP 协议接口
  * @access  Private (API Key)
  */
-router.post('/mcp', async (req, res, next) => {
+router.post('/mcp', authenticateWithApiKey, async (req, res, next) => {
     try {
         const { method, params } = req.body;
         const userId = req.user.id;
@@ -380,7 +388,7 @@ router.post('/mcp', async (req, res, next) => {
  * @desc    获取系统状态
  * @access  Private (API Key)
  */
-router.get('/status', async (req, res, next) => {
+router.get('/status', authenticateWithApiKey, async (req, res, next) => {
     try {
         const userId = req.user.id;
 
@@ -403,7 +411,7 @@ router.get('/status', async (req, res, next) => {
                     autoReview: true
                 },
                 llm: {
-                    provider: DEFAULT_PROVIDER,
+                    provider: await llmConfigService.getDefaultProvider() || 'not_configured',
                     status: 'connected'
                 }
             }

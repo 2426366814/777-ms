@@ -443,7 +443,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    providers = data.data.filter(p => p.isActive);
+                    providers = (data.data?.providers || data.providers || []).filter(p => p.isActive);
                     renderProviders();
                 }
             } catch (e) {
@@ -475,7 +475,7 @@
             
             container.innerHTML = providers.map(p => {
                 const config = userConfigs[p.id] || {};
-                const hasKey = config.apiKey || config.api_key_encrypted;
+                const hasKey = config.hasApiKey || config.apiKey || config.api_key_encrypted;
                 return `
                     <div class="provider-item">
                         <div class="provider-info">

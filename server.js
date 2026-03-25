@@ -13,6 +13,7 @@ const http = require('http');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { Server } = require('socket.io');
 
 const logger = require('./src/utils/logger');
@@ -31,7 +32,7 @@ const io = new Server(server, {
 const PORT = process.env.PORT || 1777;
 const HOST = process.env.HOST || '0.0.0.0';
 
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 app.set('io', io);
 
 app.use(helmet({
@@ -75,6 +76,36 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key']
 }));
 
+const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { success: false, message: '请求过于频繁，请稍后再试' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { success: false, message: '登录尝试次数过多，请15分钟后再试' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+const registerLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 3,
+    message: { success: false, message: '注册请求过于频繁，请1小时后再试' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/v1/user/login', authLimiter);
+app.use('/api/v1/users/login', authLimiter);
+app.use('/api/v1/user/register', registerLimiter);
+app.use('/api/v1/users/register', registerLimiter);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -88,9 +119,11 @@ app.use((req, res, next) => {
     next();
 });
 
+const userRouter = require('./src/routes/user');
 const routes = {
     '/api/v1/memories': require('./src/routes/memory'),
-    '/api/v1/user': require('./src/routes/user'),
+    '/api/v1/user': userRouter,
+    '/api/v1/users': userRouter,
     '/api/v1/admin': require('./src/routes/admin'),
     '/api/v1/chat': require('./src/routes/chat'),
     '/api/v1/llm': require('./src/routes/llm'),
@@ -114,8 +147,28 @@ const routes = {
     '/api/v1/batch': require('./src/routes/batch'),
     '/api/v1/logs': require('./src/routes/logs'),
     '/api/v1/sessions': require('./src/routes/session'),
-    '/api/v1/ide': require('./src/routes/ide')
+    '/api/v1/ide': require('./src/routes/ide'),
+    '/api/v1/public-knowledge': require('./src/routes/publicKnowledge'),
+    '/api/v1/admin/public-knowledge': require('./src/routes/adminPublicKnowledge')
 };
+
+// API文档页面路由 (必须在API路由之前)
+app.get('/api', (req, res) => {
+    res.sendFile(path.join(__dirname, 'web', 'api-docs.html'));
+});
+
+// 公开页面路由
+app.get('/status', (req, res) => {
+    res.sendFile(path.join(__dirname, 'web', 'status.html'));
+});
+
+app.get('/privacy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'web', 'privacy.html'));
+});
+
+app.get('/register', (req, res) => {
+    res.redirect('/login?register=true');
+});
 
 for (const [path, router] of Object.entries(routes)) {
     try {
@@ -175,7 +228,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'web', 'index.html'));
 });
 
-const spaRoutes = ['/login', '/dashboard', '/admin', '/profile', '/settings', '/chat', '/knowledge', '/review', '/providers', '/visualization', '/intelligence', '/share', '/security', '/api-docs'];
+const spaRoutes = ['/login', '/dashboard', '/admin', '/profile', '/settings', '/chat', '/knowledge', '/review', '/providers', '/visualization', '/intelligence', '/share', '/security', '/docs', '/pricing'];
 spaRoutes.forEach(route => {
     app.get(route, (req, res) => {
         const pageMap = {
@@ -192,7 +245,8 @@ spaRoutes.forEach(route => {
             '/intelligence': 'intelligence.html',
             '/share': 'share.html',
             '/security': 'security.html',
-            '/api-docs': 'api.html'
+            '/docs': 'docs.html',
+            '/pricing': 'pricing.html'
         };
         const page = pageMap[route] || 'index.html';
         res.sendFile(path.join(__dirname, 'web', page));

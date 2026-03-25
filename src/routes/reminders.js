@@ -62,7 +62,10 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({ success: false, message: '输入数据无效', errors: error.details });
         }
         
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { memoryId, remindAt, type, message } = value;
         
         const id = uuidv4();
@@ -91,7 +94,10 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { remindAt, message, isCompleted } = req.body;
         
         const existing = await db.query('SELECT * FROM reminders WHERE id = ? AND user_id = ?', [id, userId]);
@@ -134,7 +140,10 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         await db.query('DELETE FROM reminders WHERE id = ? AND user_id = ?', [id, userId]);
         
@@ -154,7 +163,10 @@ router.delete('/:id', async (req, res, next) => {
 router.post('/:id/complete', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         await db.query(
             'UPDATE reminders SET is_completed = 1, completed_at = NOW() WHERE id = ? AND user_id = ?',

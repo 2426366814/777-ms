@@ -72,7 +72,10 @@ router.get('/stats', async (req, res, next) => {
  */
 router.get('/history', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { days = 30 } = req.query;
         
         const history = await db.query(
@@ -100,7 +103,10 @@ router.get('/history', async (req, res, next) => {
  */
 router.get('/tokens', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const tokens = await db.query(
             `SELECT 

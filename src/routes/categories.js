@@ -46,7 +46,10 @@ router.get('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const categories = await db.query(
             `SELECT c.*, 
@@ -79,7 +82,10 @@ router.get('/:id', async (req, res, next) => {
  */
 router.post('/', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { name, parentId, sortOrder } = req.body;
         
         if (!name || name.trim().length === 0) {
@@ -132,7 +138,10 @@ router.post('/', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { name, parentId, sortOrder } = req.body;
         
         const existing = await db.query(
@@ -189,7 +198,10 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const existing = await db.query(
             'SELECT * FROM categories WHERE id = ? AND user_id = ?',
@@ -224,7 +236,10 @@ router.delete('/:id', async (req, res, next) => {
 router.get('/:id/memories', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const offset = (page - 1) * limit;
@@ -282,7 +297,10 @@ router.get('/:id/memories', async (req, res, next) => {
  */
 router.post('/reorder', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { orders } = req.body;
         
         if (!orders || !Array.isArray(orders)) {

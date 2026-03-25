@@ -4,13 +4,32 @@
  */
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const Joi = require('joi');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, requireAuth } = require('../middleware/auth');
+const { sanitizeHtml, detectXSS } = require('../utils/security');
+
+const importLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 10,
+    message: { success: false, message: '导入次数过多，请稍后再试' }
+});
+
+const exportLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 20,
+    message: { success: false, message: '导出次数过多，请稍后再试' }
+});
+
+const ALLOWED_TABLES = Object.freeze({
+    'memories': 'memories',
+    'knowledge': 'knowledge'
+});
 
 router.use(authenticate);
 
@@ -76,9 +95,12 @@ function calculateSimilarity(text1, text2) {
  * @desc    导出用户数据
  * @access  Private
  */
-router.get('/export', async (req, res, next) => {
+router.get('/export', exportLimiter, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { format = 'json', type = 'all' } = req.query;
         
         const exportData = {
@@ -116,9 +138,12 @@ router.get('/export', async (req, res, next) => {
  * @desc    导入用户数据
  * @access  Private
  */
-router.post('/import', async (req, res, next) => {
+router.post('/import', importLimiter, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { memories, knowledge, sessions } = req.body;
         
         let imported = { memories: 0, knowledge: 0, sessions: 0 };
@@ -126,9 +151,10 @@ router.post('/import', async (req, res, next) => {
         if (memories && Array.isArray(memories)) {
             for (const memory of memories) {
                 const id = uuidv4();
+                const sanitizedContent = sanitizeHtml(memory.content || '');
                 await db.query(
                     'INSERT INTO memories (id, user_id, content, importance_score, created_at) VALUES (?, ?, ?, ?, NOW())',
-                    [id, userId, memory.content, memory.importance_score || 5]
+                    [id, userId, sanitizedContent, memory.importance_score || 5]
                 );
                 imported.memories++;
             }
@@ -137,20 +163,24 @@ router.post('/import', async (req, res, next) => {
         if (knowledge && Array.isArray(knowledge)) {
             for (const item of knowledge) {
                 const id = uuidv4();
+                const sanitizedTitle = sanitizeHtml(item.title || '');
+                const sanitizedContent = sanitizeHtml(item.content || '');
                 await db.query(
                     'INSERT INTO knowledge (id, user_id, title, content, created_at) VALUES (?, ?, ?, ?, NOW())',
-                    [id, userId, item.title, item.content]
+                    [id, userId, sanitizedTitle, sanitizedContent]
                 );
                 imported.knowledge++;
             }
         }
         
+        
         if (sessions && Array.isArray(sessions)) {
             for (const session of sessions) {
                 const id = uuidv4();
+                const sanitizedTitle = sanitizeHtml(session.title || '');
                 await db.query(
                     'INSERT INTO sessions (id, user_id, title, messages, created_at) VALUES (?, ?, ?, ?, NOW())',
-                    [id, userId, session.title, JSON.stringify(session.messages || [])]
+                    [id, userId, sanitizedTitle, JSON.stringify(session.messages || [])]
                 );
                 imported.sessions++;
             }
@@ -171,14 +201,26 @@ router.post('/import', async (req, res, next) => {
  */
 router.post('/bulk-delete', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
+        
         const { ids, type = 'memories' } = req.body;
         
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
             return res.status(400).json({ success: false, message: '请提供要删除的ID列表' });
         }
         
-        const table = type === 'knowledge' ? 'knowledge' : 'memories';
+        if (ids.length > 100) {
+            return res.status(400).json({ success: false, message: '单次最多删除100条记录' });
+        }
+        
+        const table = ALLOWED_TABLES[type];
+        if (!table) {
+            return res.status(400).json({ success: false, message: '无效的类型' });
+        }
+        
         const placeholders = ids.map(() => '?').join(',');
         
         const result = await db.query(

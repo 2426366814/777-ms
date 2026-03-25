@@ -1,5 +1,7 @@
 const llmService = require('./LLMService');
+const llmConfigService = require('./LLMConfigService');
 const db = require('../utils/database');
+const logger = require('../utils/logger');
 
 class MemoryExtractor {
     constructor() {
@@ -29,14 +31,23 @@ class MemoryExtractor {
 - 如果没有值得记忆的内容，返回空数组 []`;
     }
 
-    async extractFromMessage(userId, message, providerId = 'openai', model = null) {
+    async extractFromMessage(userId, message, providerId = null, model = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return {
+                success: false,
+                error: '没有可用的 LLM 提供商',
+                memories: []
+            };
+        }
+        
         try {
             const messages = [
                 { role: 'system', content: this.systemPrompt },
                 { role: 'user', content: `请从以下对话中提取记忆：\n\n${message}` }
             ];
             
-            const response = await llmService.chat(userId, providerId, messages, {
+            const response = await llmService.chat(userId, actualProvider, messages, {
                 model,
                 temperature: 0.3,
                 maxTokens: 1000
@@ -58,7 +69,16 @@ class MemoryExtractor {
         }
     }
 
-    async extractFromConversation(userId, messages, providerId = 'openai', model = null) {
+    async extractFromConversation(userId, messages, providerId = null, model = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return {
+                success: false,
+                error: '没有可用的 LLM 提供商',
+                memories: []
+            };
+        }
+        
         try {
             const conversationText = messages
                 .map(m => `${m.role === 'user' ? '用户' : '助手'}: ${m.content}`)
@@ -69,7 +89,7 @@ class MemoryExtractor {
                 { role: 'user', content: `请从以下对话中提取记忆：\n\n${conversationText}` }
             ];
             
-            const response = await llmService.chat(userId, providerId, chatMessages, {
+            const response = await llmService.chat(userId, actualProvider, chatMessages, {
                 model,
                 temperature: 0.3,
                 maxTokens: 2000
@@ -100,7 +120,13 @@ class MemoryExtractor {
                 jsonStr = jsonMatch[0];
             }
             
-            const memories = JSON.parse(jsonStr);
+            let memories;
+            try {
+                memories = JSON.parse(jsonStr);
+            } catch (parseError) {
+                logger.warn('解析提取的记忆JSON失败:', parseError.message);
+                memories = [];
+            }
             
             return memories.filter(m => 
                 m.content && 
@@ -108,7 +134,7 @@ class MemoryExtractor {
                 m.importance >= 0.3
             );
         } catch (error) {
-            console.error('Failed to parse memory extraction response:', error);
+            logger.error('Failed to parse memory extraction response:', error);
             return [];
         }
     }
@@ -142,14 +168,19 @@ class MemoryExtractor {
                     tags: memory.tags
                 });
             } catch (error) {
-                console.error('Failed to save memory:', error);
+                logger.error('Failed to save memory:', error);
             }
         }
         
         return savedMemories;
     }
 
-    async summarizeMemories(userId, memoryIds, providerId = 'openai', model = null) {
+    async summarizeMemories(userId, memoryIds, providerId = null, model = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return { success: false, error: '没有可用的 LLM 提供商' };
+        }
+        
         try {
             const memories = await db.query(
                 'SELECT content FROM memories WHERE id IN (?) AND user_id = ?',
@@ -167,7 +198,7 @@ class MemoryExtractor {
                 { role: 'user', content: `请总结以下记忆：\n\n${memoryText}` }
             ];
             
-            const response = await llmService.chat(userId, providerId, messages, {
+            const response = await llmService.chat(userId, actualProvider, messages, {
                 model,
                 temperature: 0.3,
                 maxTokens: 500
@@ -186,14 +217,19 @@ class MemoryExtractor {
         }
     }
 
-    async generateTags(userId, content, providerId = 'openai', model = null) {
+    async generateTags(userId, content, providerId = null, model = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return { success: false, error: '没有可用的 LLM 提供商', tags: [] };
+        }
+        
         try {
             const messages = [
                 { role: 'system', content: '你是一个标签生成专家。为给定的内容生成3-5个相关标签。只输出标签，用逗号分隔。' },
                 { role: 'user', content: `请为以下内容生成标签：\n\n${content}` }
             ];
             
-            const response = await llmService.chat(userId, providerId, messages, {
+            const response = await llmService.chat(userId, actualProvider, messages, {
                 model,
                 temperature: 0.3,
                 maxTokens: 100
@@ -217,7 +253,12 @@ class MemoryExtractor {
         }
     }
 
-    async assessImportance(userId, content, providerId = 'openai', model = null) {
+    async assessImportance(userId, content, providerId = null, model = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return { success: false, error: '没有可用的 LLM 提供商', importance: 0.5 };
+        }
+        
         try {
             const messages = [
                 { 
@@ -234,7 +275,7 @@ class MemoryExtractor {
                 { role: 'user', content: `请评估以下记忆的重要性：\n\n${content}` }
             ];
             
-            const response = await llmService.chat(userId, providerId, messages, {
+            const response = await llmService.chat(userId, actualProvider, messages, {
                 model,
                 temperature: 0.1,
                 maxTokens: 10

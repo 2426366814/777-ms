@@ -1,5 +1,9 @@
 const db = require('../utils/database');
 const llmService = require('./LLMService');
+const llmConfigService = require('./LLMConfigService');
+const { v4: uuidv4 } = require('uuid');
+const { safeJsonObject } = require('../utils/safeJson');
+const logger = require('../utils/logger');
 
 class ForgettingCurveService {
     constructor() {
@@ -10,6 +14,44 @@ class ForgettingCurveService {
             normal: 2.0,
             hard: 1.3
         };
+    }
+
+    async addToReviewQueue(userId, memoryId, nextReviewAt = null) {
+        try {
+            const reviewDate = nextReviewAt || new Date(Date.now() + 24 * 60 * 60 * 1000);
+            await db.query(`
+                INSERT INTO review_queue (id, user_id, memory_id, next_review, status, created_at)
+                VALUES (?, ?, ?, ?, 'pending', NOW())
+                ON DUPLICATE KEY UPDATE 
+                    next_review = VALUES(next_review),
+                    status = 'pending',
+                    updated_at = NOW()
+            `, [uuidv4(), userId, memoryId, reviewDate]);
+            return { success: true };
+        } catch (error) {
+            logger.error('Failed to add to review queue:', error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async initializeMemoryReview(userId, memoryId) {
+        try {
+            const nextReviewAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            
+            await db.query(`
+                INSERT INTO review_items (user_id, memory_id, review_count, current_interval, next_review_at, last_review_at, difficulty)
+                VALUES (?, ?, 0, 1, ?, NOW(), 'normal')
+                ON DUPLICATE KEY UPDATE 
+                    next_review_at = VALUES(next_review_at)
+            `, [userId, memoryId, nextReviewAt]);
+            
+            await this.addToReviewQueue(userId, memoryId, nextReviewAt);
+            
+            return { success: true, nextReviewAt };
+        } catch (error) {
+            logger.error('Failed to initialize memory review:', error.message);
+            return { success: false, error: error.message };
+        }
     }
 
     calculateNextReview(currentInterval, quality, difficulty = 'normal') {
@@ -46,9 +88,9 @@ class ForgettingCurveService {
                    COALESCE(r.review_count, 0) as review_count,
                    COALESCE(r.last_review_at, m.created_at) as last_review_at,
                    COALESCE(r.next_review_at, DATE_ADD(m.created_at, INTERVAL 1 DAY)) as next_review_at,
-                   COALESCE(r.difficulty, 'normal') as difficulty
+                   'normal' as difficulty
             FROM memories m
-            LEFT JOIN memory_reviews r ON m.id = r.memory_id
+            LEFT JOIN review_items r ON m.id = r.memory_id
             WHERE m.user_id = ? 
             AND (r.next_review_at IS NULL OR r.next_review_at <= NOW())
             ORDER BY m.importance_score DESC, r.next_review_at ASC
@@ -59,16 +101,17 @@ class ForgettingCurveService {
             ...m,
             retentionScore: this.calculateRetentionScore(
                 m.created_at, 
-                m.last_review_at, 
+                m.last_review_at || m.created_at,
                 m.review_count, 
                 m.importance_score || 0.5
             )
         }));
     }
 
-    async recordReview(userId, memoryId, quality, providerId = 'openai') {
+    async recordReview(userId, memoryId, quality, providerId = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
         const existing = await db.query(
-            'SELECT * FROM memory_reviews WHERE user_id = ? AND memory_id = ?',
+            'SELECT * FROM review_items WHERE user_id = ? AND memory_id = ?',
             [userId, memoryId]
         );
 
@@ -94,7 +137,7 @@ class ForgettingCurveService {
         }
 
         await db.query(`
-            INSERT INTO memory_reviews (user_id, memory_id, review_count, current_interval, next_review_at, last_review_at, difficulty)
+            INSERT INTO review_items (user_id, memory_id, review_count, current_interval, next_review_at, last_review_at, difficulty)
             VALUES (?, ?, ?, ?, ?, NOW(), ?)
             ON DUPLICATE KEY UPDATE 
                 review_count = review_count + 1,
@@ -109,6 +152,12 @@ class ForgettingCurveService {
             WHERE id = ?
         `, [memoryId]);
 
+        await db.query(`
+            UPDATE review_queue 
+            SET next_review = ?, status = 'pending', updated_at = NOW()
+            WHERE user_id = ? AND memory_id = ?
+        `, [nextReviewAt, userId, memoryId]);
+
         return {
             success: true,
             nextReviewAt,
@@ -117,7 +166,15 @@ class ForgettingCurveService {
         };
     }
 
-    async generateReviewQuestions(userId, memoryId, providerId = 'openai') {
+    async generateReviewQuestions(userId, memoryId, providerId = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return { 
+                success: false, 
+                error: '没有可用的 LLM 提供商，请配置您的 API Key' 
+            };
+        }
+        
         const memory = await db.query(
             'SELECT content FROM memories WHERE id = ? AND user_id = ?',
             [memoryId, userId]
@@ -126,6 +183,8 @@ class ForgettingCurveService {
         if (!memory || memory.length === 0) {
             return { success: false, error: 'Memory not found' };
         }
+
+        const memoryContent = memory[0].content;
 
         const messages = [
             {
@@ -145,7 +204,7 @@ class ForgettingCurveService {
             },
             {
                 role: 'user',
-                content: `为以下记忆生成3个复习问题：\n\n${memory[0].content}`
+                content: `为以下记忆生成3个复习问题：\n\n${memoryContent}`
             }
         ];
 
@@ -157,11 +216,27 @@ class ForgettingCurveService {
 
             const jsonMatch = response.content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                return { success: true, ...JSON.parse(jsonMatch[0]) };
+                const parsed = safeJsonObject(jsonMatch[0], 'generateReviewQuestions');
+                if (parsed && parsed.questions) {
+                    return { success: true, ...parsed };
+                }
+                return { success: false, error: 'Failed to parse review response' };
             }
             return { success: false, error: 'Failed to parse response' };
         } catch (error) {
-            return { success: false, error: error.message };
+            logger.error('Generate review questions error:', error.message);
+            
+            return { 
+                success: true, 
+                questions: [
+                    { question: `请回忆这条记忆的主要内容是什么？`, type: 'recall', difficulty: 'easy' },
+                    { question: `这条记忆中的关键信息有哪些？`, type: 'recognition', difficulty: 'medium' },
+                    { question: `如何将这条记忆应用到实际场景中？`, type: 'application', difficulty: 'hard' }
+                ],
+                keyPoints: ['手动复习模式 - LLM服务暂不可用'],
+                fallback: true,
+                note: error.message
+            };
         }
     }
 
@@ -173,7 +248,7 @@ class ForgettingCurveService {
                 COUNT(DISTINCT CASE WHEN r.review_count > 0 THEN m.id END) as reviewed_memories,
                 AVG(r.review_count) as avg_reviews
             FROM memories m
-            LEFT JOIN memory_reviews r ON m.id = r.memory_id
+            LEFT JOIN review_items r ON m.id = r.memory_id
             WHERE m.user_id = ?
         `, [userId]);
 
@@ -183,23 +258,16 @@ class ForgettingCurveService {
                 COUNT(*) as total,
                 AVG(CASE WHEN r.review_count > 0 THEN 1 ELSE 0 END) as reviewed_ratio
             FROM memories m
-            LEFT JOIN memory_reviews r ON m.id = r.memory_id
+            LEFT JOIN review_items r ON m.id = r.memory_id
             WHERE m.user_id = ? AND m.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             GROUP BY DATE(m.created_at)
             ORDER BY date
         `, [userId]);
 
-        const difficultyDistribution = await db.query(`
-            SELECT difficulty, COUNT(*) as count
-            FROM memory_reviews
-            WHERE user_id = ?
-            GROUP BY difficulty
-        `, [userId]);
-
         return {
             ...(stats && stats.length > 0 ? stats[0] : { total_memories: 0, due_reviews: 0, reviewed_memories: 0, avg_reviews: 0 }),
             retentionByDay: retentionByDay || [],
-            difficultyDistribution: difficultyDistribution || []
+            difficultyDistribution: []
         };
     }
 
@@ -207,7 +275,7 @@ class ForgettingCurveService {
         const memories = await db.query(`
             SELECT m.created_at, m.importance_score, r.review_count, r.last_review_at
             FROM memories m
-            LEFT JOIN memory_reviews r ON m.id = r.memory_id
+            LEFT JOIN review_items r ON m.id = r.memory_id
             WHERE m.user_id = ?
             ORDER BY m.created_at DESC
             LIMIT 100
@@ -246,7 +314,7 @@ class ForgettingCurveService {
         const dueReviews = await db.query(`
             SELECT m.id, m.content, r.next_review_at
             FROM memories m
-            JOIN memory_reviews r ON m.id = r.memory_id
+            JOIN review_items r ON m.id = r.memory_id
             WHERE m.user_id = ? AND r.next_review_at <= DATE_ADD(NOW(), INTERVAL 1 HOUR)
             AND NOT EXISTS (
                 SELECT 1 FROM memory_reminders rem 

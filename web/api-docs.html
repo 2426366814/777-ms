@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 参考 - 777-MS Memory System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260314">
+    <style>
+        .api-container { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+        .api-header { text-align: center; margin-bottom: 48px; padding-top: 80px; }
+        .api-header h1 { font-size: 36px; margin-bottom: 12px; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .api-header p { color: var(--text-secondary); font-size: 18px; }
+        
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); }
+        .nav-container { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; max-width: 1200px; margin: 0 auto; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .logo-icon { width: 32px; height: 32px; background: var(--gradient-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .nav-links { display: flex; align-items: center; gap: 32px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-cyan); }
+        
+        .base-url-box { 
+            background: var(--bg-secondary); 
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+        .base-url-box h3 { font-size: 16px; margin-bottom: 12px; color: var(--text-primary); }
+        .base-url-box code { 
+            font-family: 'Fira Code', monospace; 
+            font-size: 18px; 
+            color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.1);
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+        
+        .api-section { margin-bottom: 48px; }
+        .api-section h2 { font-size: 24px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
+        .api-section h2 i { color: var(--accent-cyan); }
+        
+        .endpoint-grid { display: grid; gap: 16px; }
+        .endpoint-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .endpoint-card:hover { border-color: var(--accent-cyan); }
+        
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            cursor: pointer;
+        }
+        .method-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            min-width: 70px;
+            text-align: center;
+        }
+        .method-get { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .method-post { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .method-put { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+        .method-delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .endpoint-path { font-family: 'Fira Code', monospace; font-size: 14px; color: var(--text-primary); flex: 1; }
+        .endpoint-desc { color: var(--text-secondary); font-size: 14px; }
+        
+        .endpoint-body { padding: 0 20px 20px; border-top: 1px solid var(--border-color); margin-top: 0; padding-top: 16px; }
+        
+        .code-block {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 12px 0;
+            overflow-x: auto;
+        }
+        .code-block code { font-family: 'Fira Code', monospace; font-size: 13px; color: #c9d1d9; white-space: pre-wrap; }
+        .code-block .comment { color: #8b949e; }
+        .code-block .string { color: #a5d6ff; }
+        .code-block .keyword { color: #ff7b72; }
+        
+        .auth-note {
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .auth-note p { color: var(--text-secondary); font-size: 14px; margin: 0; }
+        .auth-note code { color: var(--accent-cyan); background: rgba(6, 182, 212, 0.2); padding: 2px 6px; border-radius: 4px; }
+        
+        .api-footer { text-align: center; padding: 40px 24px; border-top: 1px solid var(--border-color); color: var(--text-secondary); margin-top: 48px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon"><i class="bi bi-cpu"></i></div>
+                <span>777-MS</span>
+            </a>
+            <div class="nav-links">
+                <a href="/docs">文档</a>
+                <a href="/pricing">定价</a>
+                <a href="/api" class="active">API</a>
+                <a href="/dashboard">控制台</a>
+                <a href="/login" class="btn btn-outline">登录</a>
+                <a href="/login?register=true" class="btn btn-primary">免费开始</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="api-container">
+        <div class="api-header">
+            <h1><i class="bi bi-code-slash"></i> API 参考</h1>
+            <p>777-MS 记忆系统 REST API 完整文档</p>
+        </div>
+
+        <div class="base-url-box">
+            <h3>API 基础地址</h3>
+            <code>https://memory.91wz.org/api/v1</code>
+        </div>
+
+        <div class="auth-note">
+            <p><i class="bi bi-shield-check"></i> <strong>API 认证方式</strong> - 系统支持两种认证格式，任选其一即可：</p>
+            <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div style="background: rgba(6, 182, 212, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.2);">
+                    <p style="margin: 0 0 8px 0; font-weight: 600; color: var(--accent-cyan);">方式 1：x-api-key（推荐）</p>
+                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 13px;">x-api-key: 777_xxx</code>
+                    <p style="margin: 8px 0 0 0; font-size: 12px; color: var(--text-secondary);">语义清晰，符合行业标准</p>
+                </div>
+                <div style="background: rgba(6, 182, 212, 0.1); padding: 12px; border-radius: 8px; border: 1px solid rgba(6, 182, 212, 0.2);">
+                    <p style="margin: 0 0 8px 0; font-weight: 600; color: var(--accent-cyan);">方式 2：Authorization: Bearer</p>
+                    <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 13px;">Authorization: Bearer 777_xxx</code>
+                    <p style="margin: 8px 0 0 0; font-size: 12px; color: var(--text-secondary);">兼容性好，通用性强</p>
+                </div>
+            </div>
+            <p style="margin-top: 12px; font-size: 13px; color: var(--text-secondary);"><i class="bi bi-info-circle"></i> 登录后在控制台获取您的 API Key。两种方式功能完全相同。</p>
+        </div>
+
+        <div class="api-section">
+            <h2><i class="bi bi-chat"></i> 聊天接口 (OpenAI 兼容)</h2>
+            <div class="endpoint-grid">
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-path">/chat/completions</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">OpenAI 兼容的聊天补全接口，支持所有 OpenAI SDK</p>
+                        <div class="code-block">
+                            <code><span class="comment"># cURL 示例</span>
+curl https://memory.91wz.org/api/v1/chat/completions \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"Authorization: Bearer YOUR_API_KEY"</span> \
+  -d <span class="string">'{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello!"}]}'</span></code>
+                        </div>
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-path">/models</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">获取可用模型列表</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2><i class="bi bi-brain"></i> 记忆管理接口</h2>
+            <div class="endpoint-grid">
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-path">/memories</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">获取记忆列表，支持分页和筛选</p>
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-path">/memories</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">创建新记忆</p>
+                        <div class="code-block">
+                            <code>{
+  <span class="string">"content"</span>: <span class="string">"记忆内容"</span>,
+  <span class="string">"tags"</span>: [<span class="string">"标签1"</span>, <span class="string">"标签2"</span>],
+  <span class="string">"importance"</span>: 5
+}</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-path">/memories/:id</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">获取单个记忆详情</p>
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-put">PUT</span>
+                        <span class="endpoint-path">/memories/:id</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">更新记忆内容</p>
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-delete">DELETE</span>
+                        <span class="endpoint-path">/memories/:id</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">删除记忆</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2><i class="bi bi-search"></i> 智能搜索接口</h2>
+            <div class="endpoint-grid">
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-path">/search</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">语义搜索记忆内容</p>
+                        <div class="code-block">
+                            <code>{
+  <span class="string">"query"</span>: <span class="string">"搜索关键词"</span>,
+  <span class="string">"limit"</span>: 10
+}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2><i class="bi bi-database"></i> 知识库接口</h2>
+            <div class="endpoint-grid">
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-path">/knowledge</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">获取知识库文件列表</p>
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-path">/knowledge/upload</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">上传知识库文件</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2><i class="bi bi-person"></i> 用户接口</h2>
+            <div class="endpoint-grid">
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-path">/user</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">获取当前用户信息</p>
+                    </div>
+                </div>
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-path">/user/apikeys</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <p class="endpoint-desc">获取用户的 API Key 列表</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="api-footer">
+        <p>© 2025 777-MS Memory System. All rights reserved.</p>
+    </div>
+</body>
+</html>

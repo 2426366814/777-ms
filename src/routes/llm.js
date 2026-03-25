@@ -10,6 +10,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const LLMService = require('../services/LLMService');
+const EncryptionService = require('../services/EncryptionService');
 const { authenticate } = require('../middleware/auth');
 
 const configSchema = Joi.object({
@@ -56,6 +57,8 @@ router.post('/configs', authenticate, async (req, res, next) => {
         const userId = req.user.id;
         const { provider, model, apiKey, baseUrl, temperature, maxTokens } = value;
         
+        const encryptedApiKey = apiKey ? EncryptionService.encrypt(apiKey) : null;
+        
         const existing = await db.queryOne(
             'SELECT id FROM user_llm_configs WHERE user_id = ? AND provider = ?',
             [userId, provider]
@@ -64,13 +67,13 @@ router.post('/configs', authenticate, async (req, res, next) => {
         if (existing) {
             await db.query(
                 'UPDATE user_llm_configs SET api_key_encrypted = ?, custom_base_url = ?, custom_model = ?, updated_at = NOW() WHERE id = ?',
-                [apiKey || null, baseUrl || null, model || null, existing.id]
+                [encryptedApiKey, baseUrl || null, model || null, existing.id]
             );
         } else {
             const { v4: uuidv4 } = require('uuid');
             await db.query(
                 'INSERT INTO user_llm_configs (id, user_id, provider, api_key_encrypted, custom_base_url, custom_model) VALUES (?, ?, ?, ?, ?, ?)',
-                [uuidv4(), userId, provider, apiKey || null, baseUrl || null, model || null]
+                [uuidv4(), userId, provider, encryptedApiKey, baseUrl || null, model || null]
             );
         }
         
@@ -93,15 +96,23 @@ router.get('/providers', async (req, res, next) => {
             'SELECT id, name, display_name, base_url, default_model, models, is_active FROM llm_providers WHERE is_active = 1 ORDER BY sort_order'
         );
         
-        const result = providers.map(p => ({
-            id: p.id,
-            name: p.name,
-            displayName: p.display_name,
-            baseUrl: p.base_url,
-            defaultModel: p.default_model,
-            models: p.models ? (typeof p.models === 'string' ? JSON.parse(p.models) : p.models) : [],
-            isActive: p.is_active
-        }));
+        const result = providers.map(p => {
+            let models = [];
+            try {
+                models = p.models ? (typeof p.models === 'string' ? JSON.parse(p.models) : p.models) : [];
+            } catch (e) {
+                models = [];
+            }
+            return {
+                id: p.id,
+                name: p.name,
+                displayName: p.display_name,
+                baseUrl: p.base_url,
+                defaultModel: p.default_model,
+                models: models,
+                isActive: p.is_active
+            };
+        });
         
         res.json({ success: true, data: { providers: result } });
     } catch (error) {
@@ -199,6 +210,10 @@ router.post('/user-config', authenticate, async (req, res, next) => {
             return res.status(400).json({ success: false, message: '缺少providerId' });
         }
         
+        const encryptedApiKey = apiKey ? EncryptionService.encrypt(apiKey) : null;
+        const baseUrl = customBaseUrl || null;
+        const model = customModel || null;
+        
         const existing = await db.queryOne(
             'SELECT id FROM user_llm_configs WHERE user_id = ? AND provider = ?',
             [userId, providerId]
@@ -207,13 +222,13 @@ router.post('/user-config', authenticate, async (req, res, next) => {
         if (existing) {
             await db.query(
                 'UPDATE user_llm_configs SET api_key_encrypted = ?, custom_base_url = ?, custom_model = ?, updated_at = NOW() WHERE id = ?',
-                [apiKey, customBaseUrl, customModel, existing.id]
+                [encryptedApiKey, baseUrl, model, existing.id]
             );
         } else {
             const { v4: uuidv4 } = require('uuid');
             await db.query(
                 'INSERT INTO user_llm_configs (id, user_id, provider, api_key_encrypted, custom_base_url, custom_model) VALUES (?, ?, ?, ?, ?, ?)',
-                [uuidv4(), userId, providerId, apiKey, customBaseUrl, customModel]
+                [uuidv4(), userId, providerId, encryptedApiKey, baseUrl, model]
             );
         }
         
@@ -290,6 +305,15 @@ router.get('/config/:provider', authenticate, async (req, res, next) => {
             [provider]
         );
         
+        let providerModels = [];
+        if (providerInfo && providerInfo.models) {
+            try {
+                providerModels = typeof providerInfo.models === 'string' ? JSON.parse(providerInfo.models) : providerInfo.models;
+            } catch (e) {
+                providerModels = [];
+            }
+        }
+        
         res.json({ 
             success: true, 
             data: { 
@@ -300,7 +324,7 @@ router.get('/config/:provider', authenticate, async (req, res, next) => {
                     displayName: providerInfo.display_name,
                     baseUrl: providerInfo.base_url,
                     defaultModel: providerInfo.default_model,
-                    models: providerInfo.models ? (typeof providerInfo.models === 'string' ? JSON.parse(providerInfo.models) : providerInfo.models) : []
+                    models: providerModels
                 } : null
             } 
         });

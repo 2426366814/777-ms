@@ -1,4 +1,5 @@
 const db = require('../utils/database');
+const logger = require('../utils/logger');
 
 class ProviderRouterService {
     constructor() {
@@ -179,7 +180,7 @@ class ProviderRouterService {
                     updated_at = NOW()
             `, [providerId, metrics.successRate, metrics.avgLatency, metrics.p50, metrics.p95, metrics.p99, metrics.totalRequests, metrics.successfulRequests, metrics.failedRequests]);
         } catch (e) {
-            console.error('Failed to update metrics:', e.message);
+            logger.error('Failed to update metrics:', e.message);
         }
     }
 
@@ -205,7 +206,7 @@ class ProviderRouterService {
                     };
                 }
             } catch (e) {
-                console.error('Failed to get provider metrics:', e.message);
+                logger.error('Failed to get provider metrics:', e.message);
             }
         }
 
@@ -229,7 +230,7 @@ class ProviderRouterService {
 
             return rows || [];
         } catch (e) {
-            console.error('Failed to get available providers:', e.message);
+            logger.error('Failed to get available providers:', e.message);
             return [];
         }
     }
@@ -245,12 +246,24 @@ class ProviderRouterService {
                 const row = rows[0] || rows;
                 return {
                     strategy: row.strategy || 'balanced',
-                    preferredProviders: row.preferred_providers ? JSON.parse(row.preferred_providers) : [],
-                    blockedProviders: row.blocked_providers ? JSON.parse(row.blocked_providers) : []
+                    preferredProviders: (() => {
+                        try {
+                            return row.preferred_providers ? JSON.parse(row.preferred_providers) : [];
+                        } catch (e) {
+                            return [];
+                        }
+                    })(),
+                    blockedProviders: (() => {
+                        try {
+                            return row.blocked_providers ? JSON.parse(row.blocked_providers) : [];
+                        } catch (e) {
+                            return [];
+                        }
+                    })()
                 };
             }
         } catch (e) {
-            console.error('Failed to get user preferences:', e.message);
+            logger.error('Failed to get user preferences:', e.message);
         }
 
         return {
@@ -277,7 +290,7 @@ class ProviderRouterService {
                 JSON.stringify(prefs.blockedProviders || [])
             ]);
         } catch (e) {
-            console.error('Failed to set user preferences:', e.message);
+            logger.error('Failed to set user preferences:', e.message);
         }
     }
 
@@ -296,7 +309,7 @@ class ProviderRouterService {
                 selected.score
             ]);
         } catch (e) {
-            console.error('Failed to log routing decision:', e.message);
+            logger.error('Failed to log routing decision:', e.message);
         }
     }
 
@@ -336,7 +349,7 @@ class ProviderRouterService {
             `);
             return rows || [];
         } catch (e) {
-            console.error('Failed to get all providers:', e.message);
+            logger.error('Failed to get all providers:', e.message);
             return [];
         }
     }
@@ -358,7 +371,7 @@ class ProviderRouterService {
             `, [limit]);
             return rows || [];
         } catch (e) {
-            console.error('Failed to get routing logs:', e.message);
+            logger.error('Failed to get routing logs:', e.message);
             return [];
         }
     }

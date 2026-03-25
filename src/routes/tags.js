@@ -32,7 +32,10 @@ router.get('/', async (req, res, next) => {
 router.post('/', async (req, res, next) => {
     try {
         const { memoryId, tagName } = req.body;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const memories = await db.query(
             'SELECT id FROM memories WHERE id = ? AND user_id = ?',
@@ -64,7 +67,10 @@ router.post('/', async (req, res, next) => {
 router.delete('/', async (req, res, next) => {
     try {
         const { memoryId, tagName } = req.body;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         await db.query(
             `DELETE mt FROM memory_tags mt 
@@ -81,7 +87,10 @@ router.delete('/', async (req, res, next) => {
 
 router.get('/popular', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const limit = parseInt(req.query.limit) || 20;
         
         const tags = await db.query(
@@ -104,7 +113,10 @@ router.get('/popular', async (req, res, next) => {
 router.get('/search', async (req, res, next) => {
     try {
         const { q } = req.query;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const tags = await db.query(
             `SELECT DISTINCT tag_name 

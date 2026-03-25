@@ -7,8 +7,7 @@ const cron = require('node-cron');
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const LLMService = require('./LLMService');
-
-const DEFAULT_PROVIDER = process.env.DEFAULT_LLM_PROVIDER || 'deepseek';
+const llmConfigService = require('./LLMConfigService');
 
 class MemorySummarizer {
     constructor() {
@@ -171,7 +170,13 @@ ${memoryText}
 ${periodText}总结：`;
 
         try {
-            const response = await LLMService.chat('system', DEFAULT_PROVIDER, [
+            const provider = await llmConfigService.getDefaultProvider();
+            if (!provider) {
+                logger.warn('No LLM provider available for summary generation');
+                return null;
+            }
+            
+            const response = await LLMService.chat('system', provider, [
                 { role: 'user', content: prompt }
             ], { maxTokens: 300 });
 

@@ -1,0 +1,68 @@
+{
+  "passed": 10,
+  "failed": 0,
+  "warnings": 19,
+  "errors": [],
+  "screenshots": [
+    {
+      "name": "01_login_page",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\01_login_page.png"
+    },
+    {
+      "name": "02_login_filled",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\02_login_filled.png"
+    },
+    {
+      "name": "03_after_login",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\03_after_login.png"
+    },
+    {
+      "name": "user_仪表盘",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_仪表盘.png"
+    },
+    {
+      "name": "user_AI对话",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_AI对话.png"
+    },
+    {
+      "name": "user_智能功能",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_智能功能.png"
+    },
+    {
+      "name": "user_记忆复习",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_记忆复习.png"
+    },
+    {
+      "name": "user_知识库",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_知识库.png"
+    },
+    {
+      "name": "user_数据可视化",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_数据可视化.png"
+    },
+    {
+      "name": "user_安全设置",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_安全设置.png"
+    },
+    {
+      "name": "user_提供商管理",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_提供商管理.png"
+    },
+    {
+      "name": "user_用户资料",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_用户资料.png"
+    },
+    {
+      "name": "user_管理后台",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\user_管理后台.png"
+    },
+    {
+      "name": "admin_01_panel",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\admin_01_panel.png"
+    },
+    {
+      "name": "admin_tab_1_概览",
+      "path": "e:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\deep_v851\\admin_tab_1_概览.png"
+    }
+  ]
+}

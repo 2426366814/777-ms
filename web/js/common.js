@@ -1,25 +1,47 @@
+const API_BASE = '/api/v1';
 
-var API_BASE = '/api/v1';
-var token = localStorage.getItem('token');
+const getToken = () => localStorage.getItem('token');
 
 function api(endpoint, options = {}) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
     return fetch(API_BASE + endpoint, {
         ...options,
+        signal: controller.signal,
         headers: {
-            'Authorization': 'Bearer ' + token,
+            'Authorization': 'Bearer ' + getToken(),
             'Content-Type': 'application/json',
             ...options.headers
         }
-    }).then(r => r.json()).catch(err => ({ success: false, error: err.message }));
+    }).then(r => {
+        clearTimeout(timeoutId);
+        if (r.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
+            return Promise.resolve({ success: false, error: 'Token expired' });
+        }
+        return r.json().catch(() => ({ success: false, error: 'Response parse error' }));
+    }).catch(err => {
+        clearTimeout(timeoutId);
+        if (err.name === 'AbortError') {
+            return { success: false, error: 'Request timeout' };
+        }
+        console.error('API Error:', err);
+        return { success: false, error: 'Network error' };
+    });
 }
 
 function formatDate(date) {
+    if (!date) return '-';
     return new Date(date).toLocaleString('zh-CN');
 }
 
 function escapeHtml(text) {
+    if (text == null) return '';
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = String(text);
     return div.innerHTML;
 }
 
@@ -66,7 +88,7 @@ function throttle(func, limit) {
 }
 
 function checkAuth() {
-    if (!token) {
+    if (!getToken()) {
         window.location.href = '/login';
         return false;
     }

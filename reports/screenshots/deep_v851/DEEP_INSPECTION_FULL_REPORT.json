@@ -1,0 +1,18 @@
+{
+  "passed": 5,
+  "failed": 1,
+  "warnings": 4,
+  "errors": [
+    {
+      "test": "Remote Server",
+      "error": "securityDetails.subject is not a function"
+    }
+  ],
+  "tests": [
+    {
+      "name": "Concurrent Requests",
+      "status": "passed",
+      "details": "20/20"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 const llmService = require('./LLMService');
+const llmConfigService = require('./LLMConfigService');
 const db = require('../utils/database');
+const logger = require('../utils/logger');
 
 class KnowledgeGraphService {
     constructor() {
@@ -19,7 +21,12 @@ class KnowledgeGraphService {
         ];
     }
 
-    async extractEntities(userId, content, providerId = 'openai') {
+    async extractEntities(userId, content, providerId = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return { entities: [] };
+        }
+        
         const messages = [
             {
                 role: 'system',
@@ -35,23 +42,33 @@ class KnowledgeGraphService {
         ];
 
         try {
-            const response = await llmService.chat(userId, providerId, messages, {
+            const response = await llmService.chat(userId, actualProvider, messages, {
                 temperature: 0.1,
                 maxTokens: 500
             });
 
             const jsonMatch = response.content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                try {
+                    return JSON.parse(jsonMatch[0]);
+                } catch (parseError) {
+                    logger.warn('解析实体提取JSON失败:', parseError.message);
+                    return { entities: [] };
+                }
             }
             return { entities: [] };
         } catch (error) {
-            console.error('Entity extraction failed:', error);
+            logger.error('Entity extraction failed:', error);
             return { entities: [] };
         }
     }
 
-    async findRelations(userId, memory1, memory2, providerId = 'openai') {
+    async findRelations(userId, memory1, memory2, providerId = null) {
+        const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
+        if (!actualProvider) {
+            return { hasRelation: false };
+        }
+        
         const messages = [
             {
                 role: 'system',
@@ -75,14 +92,19 @@ class KnowledgeGraphService {
         ];
 
         try {
-            const response = await llmService.chat(userId, providerId, messages, {
+            const response = await llmService.chat(userId, actualProvider, messages, {
                 temperature: 0.1,
                 maxTokens: 200
             });
 
             const jsonMatch = response.content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                try {
+                    return JSON.parse(jsonMatch[0]);
+                } catch (parseError) {
+                    logger.warn('解析关系分析JSON失败:', parseError.message);
+                    return { hasRelation: false };
+                }
             }
             return { hasRelation: false };
         } catch (error) {

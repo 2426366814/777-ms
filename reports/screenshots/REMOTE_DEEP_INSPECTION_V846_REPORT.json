@@ -1,0 +1,102 @@
+{
+  "phase": "Remote Deep Inspection v8.46",
+  "timestamp": "2026-03-20T15:01:02.974Z",
+  "tests": [
+    {
+      "phase": "API",
+      "name": "健康检查",
+      "url": "/health",
+      "error": "Cannot find package 'node-fetch' imported from E:\\ai本地应用\\记忆体\\777-ms\\remote-deep-inspect-v846.js",
+      "passed": false
+    },
+    {
+      "phase": "API",
+      "name": "API文档",
+      "url": "/api/v1/docs",
+      "error": "Cannot find package 'node-fetch' imported from E:\\ai本地应用\\记忆体\\777-ms\\remote-deep-inspect-v846.js",
+      "passed": false
+    },
+    {
+      "phase": "API",
+      "name": "公开状态",
+      "url": "/api/v1/public/status",
+      "error": "Cannot find package 'node-fetch' imported from E:\\ai本地应用\\记忆体\\777-ms\\remote-deep-inspect-v846.js",
+      "passed": false
+    },
+    {
+      "phase": "User Flow",
+      "name": "用户登录",
+      "passed": true,
+      "url": "https://memory.91wz.org/dashboard"
+    }
+  ],
+  "issues": [
+    {
+      "phase": "Admin Flow",
+      "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n",
+      "stack": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n\n    at takeScreenshot (E:\\ai本地应用\\记忆体\\777-ms\\remote-deep-inspect-v846.js:40:16)\n    at testAdminFlow (E:\\ai本地应用\\记忆体\\777-ms\\remote-deep-inspect-v846.js:172:15)\n    at async runTests (E:\\ai本地应用\\记忆体\\777-ms\\remote-deep-inspect-v846.js:355:9)"
+    },
+    {
+      "phase": "CRUD",
+      "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m  - waiting for fonts to load...\u001b[22m\n\u001b[2m  - fonts loaded\u001b[22m\n"
+    },
+    {
+      "phase": "Multi-User",
+      "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://memory.91wz.org/login\", waiting until \"networkidle\"\u001b[22m\n"
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "user_01_login_page",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_01_login_page.png"
+    },
+    {
+      "name": "user_02_login_filled",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_02_login_filled.png"
+    },
+    {
+      "name": "user_03_after_login",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_03_after_login.png"
+    },
+    {
+      "name": "user_tab_04_仪表盘",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_04_仪表盘.png"
+    },
+    {
+      "name": "user_tab_05_对话",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_05_对话.png"
+    },
+    {
+      "name": "user_tab_06_智能功能",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_06_智能功能.png"
+    },
+    {
+      "name": "user_tab_07_记忆复习",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_07_记忆复习.png"
+    },
+    {
+      "name": "user_tab_08_知识库",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_08_知识库.png"
+    },
+    {
+      "name": "user_tab_09_数据可视化",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_09_数据可视化.png"
+    },
+    {
+      "name": "user_tab_10_安全设置",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_10_安全设置.png"
+    },
+    {
+      "name": "user_tab_11_个人资料",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\user_tab_11_个人资料.png"
+    },
+    {
+      "name": "crud_01_add_memory_modal",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\crud_01_add_memory_modal.png"
+    },
+    {
+      "name": "crud_02_memory_filled",
+      "path": "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\remote_v846\\crud_02_memory_filled.png"
+    }
+  ]
+}

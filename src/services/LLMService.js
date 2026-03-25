@@ -1,5 +1,10 @@
 const axios = require('axios');
 const db = require('../utils/database');
+const EncryptionService = require('./EncryptionService');
+const logger = require('../utils/logger');
+const { DB_FIELDS, CONFIG } = require('../config/constants');
+
+const SYSTEM_USER_ID = CONFIG.SYSTEM_USER_ID;
 
 class LLMService {
     constructor() {
@@ -9,7 +14,7 @@ class LLMService {
 
     async loadProviders() {
         try {
-            const providers = await db.query('SELECT * FROM llm_providers WHERE is_active = 1 ORDER BY sort_order');
+            const providers = await db.query(`SELECT ${DB_FIELDS.LLM_PROVIDERS.LIST} FROM llm_providers WHERE is_active = 1 ORDER BY sort_order`);
             providers.forEach(p => {
                 let models = [];
                 try {
@@ -28,9 +33,9 @@ class LLMService {
                     icon: p.icon
                 };
             });
-            console.log(`[LLM] Loaded ${Object.keys(this.providers).length} providers`);
+            logger.info(`[LLM] Loaded ${Object.keys(this.providers).length} providers`);
         } catch (error) {
-            console.error('Failed to load providers:', error);
+            logger.error('Failed to load providers:', error);
         }
     }
 
@@ -42,9 +47,28 @@ class LLMService {
         return Object.values(this.providers);
     }
 
+    async getUserRole(userId) {
+        if (!userId) {
+            return null;
+        }
+        if (SYSTEM_USER_ID && userId === SYSTEM_USER_ID) {
+            return 'system';
+        }
+        try {
+            const user = await db.queryOne(
+                `SELECT ${DB_FIELDS.USERS.SAFE} FROM users WHERE id = ?`,
+                [userId]
+            );
+            return user?.role || null;
+        } catch (error) {
+            logger.error('Failed to get user role:', error);
+            return null;
+        }
+    }
+
     async getUserConfig(userId, providerId) {
         const config = await db.queryOne(
-            'SELECT * FROM user_llm_configs WHERE user_id = ? AND provider = ?',
+            `SELECT ${DB_FIELDS.USER_LLM_CONFIGS.FULL} FROM user_llm_configs WHERE user_id = ? AND provider = ?`,
             [userId, providerId]
         );
         return config;
@@ -53,15 +77,17 @@ class LLMService {
     async setUserConfig(userId, providerId, apiKey, customBaseUrl = null, customModel = null) {
         const existing = await this.getUserConfig(userId, providerId);
         
+        const encryptedKey = EncryptionService.encrypt(apiKey);
+        
         if (existing) {
             await db.query(
                 'UPDATE user_llm_configs SET api_key_encrypted = ?, custom_base_url = ?, custom_model = ?, updated_at = NOW() WHERE id = ?',
-                [apiKey, customBaseUrl, customModel, existing.id]
+                [encryptedKey, customBaseUrl, customModel, existing.id]
             );
         } else {
             await db.query(
                 'INSERT INTO user_llm_configs (user_id, provider, api_key_encrypted, custom_base_url, custom_model) VALUES (?, ?, ?, ?, ?)',
-                [userId, providerId, apiKey, customBaseUrl, customModel]
+                [userId, providerId, encryptedKey, customBaseUrl, customModel]
             );
         }
         
@@ -74,15 +100,48 @@ class LLMService {
             throw new Error(`Provider ${providerId} not found`);
         }
         
-        const userConfig = await this.getUserConfig(userId, providerId);
-        const apiKey = userConfig?.api_key_encrypted || process.env[`${providerId.toUpperCase()}_API_KEY`];
+        const userRole = await this.getUserRole(userId);
         
-        if (!apiKey) {
-            throw new Error(`No API key configured for ${providerId}`);
+        if (userRole === 'admin') {
+            throw new Error('管理员账户仅用于系统管理，不能使用 LLM 功能。请使用普通用户账户。');
         }
         
-        const model = options.model || userConfig?.custom_model || provider.defaultModel;
-        const baseUrl = userConfig?.custom_base_url || provider.baseUrl;
+        let apiKey;
+        let model;
+        let baseUrl;
+        
+        if (userRole === 'system') {
+            apiKey = process.env[`${providerId.toUpperCase()}_API_KEY`];
+            if (!apiKey) {
+                throw new Error(`系统服务未配置 ${providerId} 的环境变量 API Key (需设置 ${providerId.toUpperCase()}_API_KEY)`);
+            }
+            model = options.model || provider.defaultModel;
+            baseUrl = provider.baseUrl;
+        } else {
+            const userConfig = await this.getUserConfig(userId, providerId);
+            const encryptedKey = userConfig?.api_key_encrypted;
+            
+            if (encryptedKey) {
+                try {
+                    apiKey = EncryptionService.decrypt(encryptedKey);
+                } catch (decryptError) {
+                    logger.error('Failed to decrypt API key:', decryptError.message);
+                    throw new Error(`API Key 解密失败，请重新配置您的 ${providerId} API Key`);
+                }
+            }
+            
+            if (!apiKey) {
+                const poolKey = await this.getSharedApiKey(providerId);
+                if (poolKey) {
+                    apiKey = poolKey;
+                } else {
+                    throw new Error(`您尚未配置 ${providerId} 的 API Key。请在个人设置中配置您自己的 API Key，或联系管理员添加共享 API Key。`);
+                }
+            }
+            
+            model = options.model || userConfig?.custom_model || provider.defaultModel;
+            baseUrl = userConfig?.custom_base_url || provider.baseUrl;
+        }
         
         const startTime = Date.now();
         let tokensUsed = 0;
@@ -106,6 +165,32 @@ class LLMService {
         } catch (error) {
             await this.recordUsage(userId, providerId, model, 0, Date.now() - startTime, false, error.message);
             throw error;
+        }
+    }
+
+    async getSharedApiKey(providerId) {
+        try {
+            const db = require('../utils/database');
+            const sharedKey = await db.queryOne(
+                `SELECT api_key, is_active 
+                 FROM provider_api_keys 
+                 WHERE provider_id = ? AND is_active = 1 
+                 LIMIT 1`,
+                [providerId]
+            );
+            
+            if (sharedKey && sharedKey.api_key) {
+                try {
+                    return EncryptionService.decrypt(sharedKey.api_key);
+                } catch (decryptError) {
+                    logger.error('Failed to decrypt shared API key:', decryptError.message);
+                    return null;
+                }
+            }
+            return null;
+        } catch (error) {
+            logger.error('获取共享 API Key 失败:', error.message);
+            return null;
         }
     }
 
@@ -135,9 +220,9 @@ class LLMService {
             };
         } catch (error) {
             if (error.response) {
-                console.error('API Error Response:', {
+                logger.error('API Error Response:', {
                     status: error.response.status,
-                    data: error.response.data
+                    message: error.response.data?.error?.message || 'Unknown error'
                 });
             }
             throw error;
@@ -213,15 +298,48 @@ class LLMService {
             throw new Error(`Provider ${providerId} not found`);
         }
         
-        const userConfig = await this.getUserConfig(userId, providerId);
-        const apiKey = userConfig?.api_key_encrypted || process.env[`${providerId.toUpperCase()}_API_KEY`];
+        const userRole = await this.getUserRole(userId);
         
-        if (!apiKey) {
-            throw new Error(`No API key configured for ${providerId}`);
+        if (userRole === 'admin') {
+            throw new Error('管理员账户仅用于系统管理，不能使用 LLM 功能。请使用普通用户账户。');
         }
         
-        const model = options.model || userConfig?.custom_model || provider.defaultModel;
-        const baseUrl = userConfig?.custom_base_url || provider.baseUrl;
+        let apiKey;
+        let model;
+        let baseUrl;
+        
+        if (userRole === 'system') {
+            apiKey = process.env[`${providerId.toUpperCase()}_API_KEY`];
+            if (!apiKey) {
+                throw new Error(`系统服务未配置 ${providerId} 的环境变量 API Key (需设置 ${providerId.toUpperCase()}_API_KEY)`);
+            }
+            model = options.model || provider.defaultModel;
+            baseUrl = provider.baseUrl;
+        } else {
+            const userConfig = await this.getUserConfig(userId, providerId);
+            const encryptedKey = userConfig?.api_key_encrypted;
+            
+            if (encryptedKey) {
+                try {
+                    apiKey = EncryptionService.decrypt(encryptedKey);
+                } catch (decryptError) {
+                    logger.error('Failed to decrypt API key:', decryptError.message);
+                    throw new Error(`API Key 解密失败，请重新配置您的 ${providerId} API Key`);
+                }
+            }
+            
+            if (!apiKey) {
+                const poolKey = await this.getSharedApiKey(providerId);
+                if (poolKey) {
+                    apiKey = poolKey;
+                } else {
+                    throw new Error(`您尚未配置 ${providerId} 的 API Key。请在个人设置中配置您自己的 API Key，或联系管理员添加共享 API Key。`);
+                }
+            }
+            
+            model = options.model || userConfig?.custom_model || provider.defaultModel;
+            baseUrl = userConfig?.custom_base_url || provider.baseUrl;
+        }
         
         const response = await axios.post(
             `${baseUrl}/chat/completions`,
@@ -284,7 +402,7 @@ class LLMService {
                 ON DUPLICATE KEY UPDATE api_calls = api_calls + 1, tokens_used = tokens_used + VALUES(tokens_used)
             `, [userId, tokens]);
         } catch (error) {
-            console.error('Failed to record usage:', error);
+            logger.error('Failed to record usage:', error);
         }
     }
 

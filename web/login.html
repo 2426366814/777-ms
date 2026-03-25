@@ -333,6 +333,28 @@
             color: var(--text-muted);
         }
         
+        .password-toggle {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.3s ease;
+            z-index: 2;
+        }
+        
+        .password-toggle:hover {
+            color: var(--accent-secondary);
+        }
+        
+        .password-toggle i {
+            font-size: 16px;
+        }
+        
         .btn {
             width: 100%;
             padding: 16px;
@@ -598,6 +620,9 @@
                     <div class="input-wrapper">
                         <input type="password" class="form-input" id="password" placeholder="请输入密码" required autocomplete="current-password">
                         <i class="bi bi-lock"></i>
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="切换密码可见性">
+                            <i class="bi bi-eye"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -664,7 +689,12 @@
                     localStorage.setItem('user', JSON.stringify(data.data.user));
                     showToast('登录成功！', true);
                     setTimeout(() => {
-                        window.location.href = '/dashboard';
+                        const user = data.data.user;
+                        if (user.role === 'admin') {
+                            window.location.href = '/admin';
+                        } else {
+                            window.location.href = '/dashboard';
+                        }
                     }, 500);
                 } else {
                     errorText.textContent = data.message || '登录失败';
@@ -689,6 +719,17 @@
         
         document.getElementById('backHomeBtn').addEventListener('click', () => {
             window.location.href = '/';
+        });
+        
+        // Password visibility toggle
+        const passwordInput = document.getElementById('password');
+        const passwordToggle = document.getElementById('passwordToggle');
+        const passwordToggleIcon = passwordToggle.querySelector('i');
+        
+        passwordToggle.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            passwordToggleIcon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
         });
         
         const token = localStorage.getItem('token');

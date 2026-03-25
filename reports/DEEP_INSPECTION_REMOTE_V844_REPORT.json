@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-03-18T00:09:14.213Z",
+  "url": "https://memory.91wz.org",
+  "phases": {
+    "phase1": {
+      "status": "passed",
+      "message": "首页加载成功",
+      "path": "/"
+    },
+    "phase2": {
+      "status": "passed",
+      "message": "登录页面加载成功",
+      "path": "/login.html"
+    },
+    "phase3": {
+      "status": "passed",
+      "message": "仪表板加载成功",
+      "path": "/dashboard.html"
+    },
+    "phase4": {
+      "status": "passed",
+      "message": "聊天页面加载成功",
+      "path": "/chat.html"
+    },
+    "phase5": {
+      "status": "passed",
+      "message": "智能分析加载成功",
+      "path": "/intelligence.html"
+    },
+    "phase6": {
+      "status": "passed",
+      "message": "复习页面加载成功",
+      "path": "/review.html"
+    },
+    "phase7": {
+      "status": "passed",
+      "message": "知识库加载成功",
+      "path": "/knowledge.html"
+    },
+    "phase8": {
+      "status": "passed",
+      "message": "可视化加载成功",
+      "path": "/visualization.html"
+    },
+    "phase9": {
+      "status": "passed",
+      "message": "安全页面加载成功",
+      "path": "/security.html"
+    },
+    "phase10": {
+      "status": "passed",
+      "message": "供应商加载成功",
+      "path": "/providers.html"
+    },
+    "phase11": {
+      "status": "passed",
+      "message": "个人资料加载成功",
+      "path": "/profile.html"
+    },
+    "phase12": {
+      "status": "passed",
+      "message": "管理员面板加载成功",
+      "path": "/admin.html"
+    },
+    "phase13": {
+      "status": "passed",
+      "message": "API文档加载成功",
+      "path": "/api.html"
+    },
+    "phase14": {
+      "status": "passed",
+      "message": "状态页面加载成功",
+      "path": "/status.html"
+    },
+    "phase15": {
+      "status": "passed",
+      "message": "价格页面加载成功",
+      "path": "/pricing.html"
+    },
+    "phase16": {
+      "status": "passed",
+      "message": "文档页面加载成功",
+      "path": "/docs.html"
+    },
+    "complete": {
+      "status": "passed",
+      "message": "16个页面检测完成"
+    }
+  },
+  "issues": [],
+  "screenshots": [
+    "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v844_01_home.png",
+    "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v844_02_login.png",
+    "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v844_06_review.png",
+    "E:\\ai本地应用\\记忆体\\777-ms\\reports\\screenshots\\v844_12_admin.png"
+  ]
+}

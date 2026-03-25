@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档中心 - 777-MS Memory System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260314">
+    <style>
+        .docs-container { padding: 32px 24px; max-width: 1200px; margin: 0 auto; }
+        .docs-header { text-align: center; margin-bottom: 48px; padding-top: 80px; }
+        .docs-header h1 { font-size: 36px; margin-bottom: 12px; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .docs-header p { color: var(--text-secondary); font-size: 18px; }
+        
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border-color); }
+        .nav-container { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; max-width: 1200px; margin: 0 auto; }
+        .logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .logo-icon { width: 32px; height: 32px; background: var(--gradient-primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .nav-links { display: flex; align-items: center; gap: 32px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent-cyan); }
+        
+        .docs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-bottom: 48px; }
+        
+        .doc-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .doc-card:hover { border-color: var(--accent-cyan); transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.3); }
+        .doc-card-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 16px; }
+        .doc-card-icon.blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .doc-card-icon.purple { background: rgba(139, 92, 246, 0.2); color: #8b5cf6; }
+        .doc-card-icon.cyan { background: rgba(6, 182, 212, 0.2); color: #06b6d4; }
+        .doc-card-icon.green { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .doc-card h3 { font-size: 18px; margin-bottom: 8px; color: var(--text-primary); }
+        .doc-card p { color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin: 0; }
+        
+        .docs-section { margin-bottom: 48px; }
+        .docs-section h2 { font-size: 24px; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 10px; }
+        .docs-section h2 i { color: var(--accent-cyan); }
+        
+        .code-example {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+        .code-example pre { margin: 0; font-family: 'Fira Code', 'Consolas', monospace; font-size: 13px; color: #c9d1d9; white-space: pre-wrap; word-wrap: break-word; }
+        .code-example .comment { color: #8b949e; }
+        .code-example .string { color: #a5d6ff; }
+        .code-example .keyword { color: #ff7b72; }
+        .code-example .function { color: #d2a8ff; }
+        
+        .feature-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+        .feature-item { display: flex; align-items: flex-start; gap: 12px; padding: 16px; background: var(--bg-secondary); border-radius: 8px; border: 1px solid var(--border-color); }
+        .feature-item i { color: var(--accent-cyan); font-size: 20px; margin-top: 2px; flex-shrink: 0; }
+        .feature-item h4 { font-size: 15px; margin-bottom: 4px; color: var(--text-primary); }
+        .feature-item p { color: var(--text-secondary); font-size: 13px; margin: 0; line-height: 1.5; }
+        
+        .docs-footer { text-align: center; padding: 40px 24px; border-top: 1px solid var(--border-color); color: var(--text-secondary); margin-top: 48px; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon"><i class="bi bi-cpu"></i></div>
+                <span>777-MS</span>
+            </a>
+            <div class="nav-links">
+                <a href="/docs" class="active">文档</a>
+                <a href="/pricing">定价</a>
+                <a href="/api">API</a>
+                <a href="/dashboard">控制台</a>
+                <a href="/login" class="btn btn-outline">登录</a>
+                <a href="/login?register=true" class="btn btn-primary">免费开始</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="docs-container">
+        <div class="docs-header">
+            <h1><i class="bi bi-book"></i> 文档中心</h1>
+            <p>快速上手 777-MS 智能记忆管理系统</p>
+        </div>
+
+        <div class="docs-grid">
+            <a href="/api" class="doc-card">
+                <div class="doc-card-icon blue"><i class="bi bi-code-slash"></i></div>
+                <h3>API 参考</h3>
+                <p>完整的 REST API 文档，包含所有端点的详细说明和示例代码。</p>
+            </a>
+            <a href="#quickstart" class="doc-card">
+                <div class="doc-card-icon purple"><i class="bi bi-rocket-takeoff"></i></div>
+                <h3>快速开始</h3>
+                <p>5分钟快速集成指南，让您的 AI 应用拥有持久记忆能力。</p>
+            </a>
+            <a href="#features" class="doc-card">
+                <div class="doc-card-icon cyan"><i class="bi bi-gear"></i></div>
+                <h3>核心功能</h3>
+                <p>了解记忆管理、知识库、智能复习等核心功能的使用方法。</p>
+            </a>
+            <a href="#sdk" class="doc-card">
+                <div class="doc-card-icon green"><i class="bi bi-box"></i></div>
+                <h3>SDK 集成</h3>
+                <p>支持 Python、Node.js、curl 等多种方式调用，兼容 OpenAI SDK。</p>
+            </a>
+        </div>
+
+        <div class="docs-section" id="quickstart">
+            <h2><i class="bi bi-lightning"></i> 快速开始</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">只需更改 base_url，即可使用所有 OpenAI SDK：</p>
+            
+            <div class="code-example">
+                <pre><span class="comment"># cURL 示例</span>
+curl https://memory.91wz.org/api/v1/chat/completions \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"Authorization: Bearer YOUR_API_KEY"</span> \
+  -d <span class="string">'{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello!"}]}'</span></pre>
+            </div>
+
+            <div class="code-example">
+                <pre><span class="comment"># Python 示例</span>
+<span class="keyword">from</span> openai <span class="keyword">import</span> OpenAI
+
+client = <span class="function">OpenAI</span>(
+    base_url=<span class="string">"https://memory.91wz.org/api/v1"</span>,
+    api_key=<span class="string">"YOUR_API_KEY"</span>
+)
+
+response = client.chat.<span class="function">completions.create</span>(
+    model=<span class="string">"gpt-4"</span>,
+    messages=[{<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"Hello!"</span>}]
+)</pre>
+            </div>
+
+            <div class="code-example">
+                <pre><span class="comment">// Node.js 示例</span>
+<span class="keyword">const</span> { OpenAI } = <span class="function">require</span>(<span class="string">'openai'</span>);
+
+<span class="keyword">const</span> client = <span class="keyword">new</span> <span class="function">OpenAI</span>({
+    baseURL: <span class="string">'https://memory.91wz.org/api/v1'</span>,
+    apiKey: <span class="string">'YOUR_API_KEY'</span>
+});
+
+<span class="keyword">const</span> response = <span class="keyword">await</span> client.chat.<span class="function">completions.create</span>({
+    model: <span class="string">'gpt-4'</span>,
+    messages: [{ role: <span class="string">'user'</span>, content: <span class="string">'Hello!'</span> }]
+});</pre>
+            </div>
+        </div>
+
+        <div class="docs-section" id="features">
+            <h2><i class="bi bi-stars"></i> 核心功能</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i class="bi bi-brain"></i>
+                    <div>
+                        <h4>智能记忆管理</h4>
+                        <p>LLM 自动提取、分类、存储重要信息，对话时自动载入相关记忆。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-clock-history"></i>
+                    <div>
+                        <h4>艾宾浩斯复习</h4>
+                        <p>基于遗忘曲线的智能复习系统，自动安排复习计划确保长期记忆。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-database"></i>
+                    <div>
+                        <h4>知识库自动载入</h4>
+                        <p>支持多种文件格式自动转化，知识库内容自动关联对话。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-shield-check"></i>
+                    <div>
+                        <h4>数据完全隔离</h4>
+                        <p>多用户系统，用户数据完全隔离，确保隐私安全。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-infinity"></i>
+                    <div>
+                        <h4>无限上下文</h4>
+                        <p>通过智能记忆管理，实现真正无限的上下文窗口长度。</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-plug"></i>
+                    <div>
+                        <h4>OpenAI 兼容</h4>
+                        <p>完全兼容 OpenAI API 格式，无需修改现有代码即可迁移。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section" id="sdk">
+            <h2><i class="bi bi-box"></i> SDK 支持</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">支持所有兼容 OpenAI API 的 SDK 和工具：</p>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <i class="bi bi-code-square"></i>
+                    <div>
+                        <h4>Python SDK</h4>
+                        <p>openai &gt;= 1.0.0</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-node-plus"></i>
+                    <div>
+                        <h4>Node.js SDK</h4>
+                        <p>openai &gt;= 4.0.0</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-terminal"></i>
+                    <div>
+                        <h4>cURL</h4>
+                        <p>直接 HTTP 请求</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <i class="bi bi-robot"></i>
+                    <div>
+                        <h4>LangChain</h4>
+                        <p>通过 OpenAI 兼容接口</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="docs-footer">
+        <p>© 2025 777-MS Memory System. All rights reserved.</p>
+    </div>
+</body>
+</html>

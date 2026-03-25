@@ -10,6 +10,7 @@ const db = require('../utils/database');
 const fs = require('fs');
 const path = require('path');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 router.use(authenticate);
 
@@ -20,7 +21,7 @@ router.get('/list', async (req, res, next) => {
         const userId = req.user.id;
         
         const backups = await db.query(
-            'SELECT * FROM backup_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
+            `SELECT ${DB_FIELDS.BACKUP_HISTORY.LIST} FROM backup_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 20`,
             [userId]
         );
         
@@ -32,7 +33,10 @@ router.get('/list', async (req, res, next) => {
 
 router.post('/create', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const backupType = req.body.type || 'manual';
         const include = req.body.include || { memories: true, knowledge: true, sessions: true };
         const options = req.body.options || { compress: false, encrypt: false };
@@ -81,8 +85,28 @@ router.post('/create', async (req, res, next) => {
 router.post('/restore/:file', async (req, res, next) => {
     try {
         const { file } = req.params;
-        const userId = req.user?.id || 'default-user';
-        const filePath = path.join(BACKUP_DIR, file);
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
+        
+        if (!file || file.includes('..') || file.includes('/') || file.includes('\\')) {
+            return res.status(400).json({ success: false, message: '非法文件名' });
+        }
+        
+        const safeFileName = path.basename(file);
+        if (safeFileName !== file) {
+            return res.status(400).json({ success: false, message: '非法文件名' });
+        }
+        
+        const filePath = path.join(BACKUP_DIR, safeFileName);
+        const resolvedPath = path.resolve(filePath);
+        const resolvedBackupDir = path.resolve(BACKUP_DIR);
+        
+        if (!resolvedPath.startsWith(resolvedBackupDir)) {
+            logger.warn(`路径遍历攻击尝试: ${file} by user ${userId}`);
+            return res.status(400).json({ success: false, message: '非法路径' });
+        }
         
         if (!fs.existsSync(filePath)) {
             return res.status(404).json({ success: false, message: '备份文件不存在' });
@@ -133,8 +157,29 @@ router.post('/restore/:file', async (req, res, next) => {
 router.delete('/:file', async (req, res, next) => {
     try {
         const { file } = req.params;
-        const userId = req.user?.id || 'default-user';
-        const filePath = path.join(BACKUP_DIR, file);
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
+        
+        if (!file || file.includes('..') || file.includes('/') || file.includes('\\')) {
+            return res.status(400).json({ success: false, message: '非法文件名' });
+        }
+        
+        const safeFileName = path.basename(file);
+        if (safeFileName !== file) {
+            logger.warn(`路径遍历攻击尝试: ${file} by user ${userId}`);
+            return res.status(400).json({ success: false, message: '非法文件名' });
+        }
+        
+        const filePath = path.join(BACKUP_DIR, safeFileName);
+        const resolvedPath = path.resolve(filePath);
+        const resolvedBackupDir = path.resolve(BACKUP_DIR);
+        
+        if (!resolvedPath.startsWith(resolvedBackupDir)) {
+            logger.warn(`路径遍历攻击尝试: ${file} by user ${userId}`);
+            return res.status(400).json({ success: false, message: '非法路径' });
+        }
         
         if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
@@ -153,7 +198,10 @@ router.delete('/:file', async (req, res, next) => {
 
 router.get('/export', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const memories = await db.query(
             'SELECT * FROM memories WHERE user_id = ?',
@@ -195,20 +243,64 @@ router.get('/export', async (req, res, next) => {
     }
 });
 
+const MAX_IMPORT_SIZE = 50 * 1024 * 1024;
+const MAX_MEMORIES_IMPORT = 10000;
+const MAX_KNOWLEDGE_IMPORT = 5000;
+
 router.post('/import', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
+        
+        const contentLength = parseInt(req.headers['content-length'] || '0');
+        if (contentLength > MAX_IMPORT_SIZE) {
+            return res.status(413).json({ 
+                success: false, 
+                message: '导入数据过大，最大支持 50MB' 
+            });
+        }
+        
         const importData = req.body;
+        
+        if (!importData || typeof importData !== 'object') {
+            return res.status(400).json({ success: false, message: '无效的导入数据格式' });
+        }
+        
+        if (importData.memories && !Array.isArray(importData.memories)) {
+            return res.status(400).json({ success: false, message: 'memories 必须是数组' });
+        }
+        
+        if (importData.knowledge && !Array.isArray(importData.knowledge)) {
+            return res.status(400).json({ success: false, message: 'knowledge 必须是数组' });
+        }
+        
+        if (importData.memories && importData.memories.length > MAX_MEMORIES_IMPORT) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `memories 数量超出限制，最多支持 ${MAX_MEMORIES_IMPORT} 条` 
+            });
+        }
+        
+        if (importData.knowledge && importData.knowledge.length > MAX_KNOWLEDGE_IMPORT) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `knowledge 数量超出限制，最多支持 ${MAX_KNOWLEDGE_IMPORT} 条` 
+            });
+        }
         
         let memoriesImported = 0;
         let knowledgeImported = 0;
         
         if (importData.memories && Array.isArray(importData.memories)) {
             for (const memory of importData.memories) {
+                if (!memory.content || typeof memory.content !== 'string') continue;
+                
                 await db.query(
                     `INSERT INTO memories (user_id, content, importance_score, created_at) 
                      VALUES (?, ?, ?, NOW())`,
-                    [userId, memory.content, memory.importance_score || 5]
+                    [userId, memory.content.substring(0, 10000), memory.importance_score || 5]
                 );
                 memoriesImported++;
             }
@@ -216,14 +308,18 @@ router.post('/import', async (req, res, next) => {
         
         if (importData.knowledge && Array.isArray(importData.knowledge)) {
             for (const k of importData.knowledge) {
+                if (!k.title || !k.content) continue;
+                
                 await db.query(
                     `INSERT INTO knowledge (user_id, title, content, category_id, created_at) 
                      VALUES (?, ?, ?, ?, NOW())`,
-                    [userId, k.title, k.content, k.category_id]
+                    [userId, k.title.substring(0, 200), k.content.substring(0, 50000), k.category_id]
                 );
                 knowledgeImported++;
             }
         }
+        
+        logger.info(`用户 ${userId} 导入数据: memories=${memoriesImported}, knowledge=${knowledgeImported}`);
         
         res.json({ 
             success: true, 

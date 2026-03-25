@@ -5,18 +5,22 @@
 
 const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { DB_FIELDS, CONFIG } = require('../config/constants');
+
+const hashApiKey = (apiKey) => {
+    return crypto.createHash(CONFIG.HASH.ALGORITHM).update(apiKey).digest('hex');
+};
+
+const USER_SAFE_FIELDS = DB_FIELDS.USERS.SAFE;
+const USER_AUTH_FIELDS = DB_FIELDS.USERS.AUTH;
 
 class User {
-    /**
-     * 根据用户名查找用户
-     * @param {string} username - 用户名
-     * @returns {Promise<Object|null>} 用户信息或null
-     */
     static async findByUsername(username) {
         try {
-            const sql = 'SELECT * FROM users WHERE username = ?';
+            const sql = `SELECT ${USER_AUTH_FIELDS} FROM users WHERE username = ?`;
             const results = await db.query(sql, [username]);
             return results.length > 0 ? results[0] : null;
         } catch (error) {
@@ -32,7 +36,7 @@ class User {
      */
     static async findById(id) {
         try {
-            const sql = 'SELECT id, username, email, password, role, status, created_at, updated_at FROM users WHERE id = ?';
+            const sql = `SELECT ${USER_AUTH_FIELDS} FROM users WHERE id = ?`;
             const results = await db.query(sql, [id]);
             return results.length > 0 ? results[0] : null;
         } catch (error) {
@@ -57,7 +61,7 @@ class User {
             }
 
             // 加密密码
-            const hashedPassword = await bcrypt.hash(password, 10);
+            const hashedPassword = await bcrypt.hash(password, CONFIG.BCRYPT.SALT_ROUNDS);
             
             // 生成用户ID
             const id = uuidv4();
@@ -137,7 +141,7 @@ class User {
      */
     static async updatePassword(id, newPassword) {
         try {
-            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const hashedPassword = await bcrypt.hash(newPassword, CONFIG.BCRYPT.SALT_ROUNDS);
             const sql = 'UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?';
             const result = await db.query(sql, [hashedPassword, id]);
             return result.affectedRows > 0;
@@ -155,12 +159,13 @@ class User {
      */
     static async saveApiKey(userId, apiKey) {
         try {
+            const hashedKey = hashApiKey(apiKey);
             const sql = `
-                INSERT INTO user_api_keys (id, user_id, api_key, created_at, expires_at)
-                VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 1 YEAR))
+                INSERT INTO user_api_keys (id, user_id, api_key_hash, is_active, created_at, expires_at)
+                VALUES (?, ?, ?, 1, NOW(), DATE_ADD(NOW(), INTERVAL ${CONFIG.API_KEY.EXPIRES_INTERVAL}))
             `;
             const id = uuidv4();
-            await db.query(sql, [id, userId, apiKey]);
+            await db.query(sql, [id, userId, hashedKey]);
             return true;
         } catch (error) {
             logger.error('保存API Key失败:', error.message);
@@ -175,15 +180,76 @@ class User {
      */
     static async findByApiKey(apiKey) {
         try {
+            const hashedKey = hashApiKey(apiKey);
             const sql = `
-                SELECT u.* FROM users u
+                SELECT u.id, u.username, u.email, u.role, u.status, u.created_at, u.updated_at
+                FROM users u
                 JOIN user_api_keys k ON u.id = k.user_id
-                WHERE k.api_key = ? AND k.expires_at > NOW()
+                WHERE k.api_key_hash = ? AND k.is_active = 1 AND (k.expires_at IS NULL OR k.expires_at > NOW())
             `;
-            const results = await db.query(sql, [apiKey]);
+            const results = await db.query(sql, [hashedKey]);
             return results.length > 0 ? results[0] : null;
         } catch (error) {
             logger.error('查找API Key失败:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 获取用户的 API Key 信息（包含活跃和非活跃状态）
+     * @param {string} userId - 用户ID
+     * @returns {Promise<Object|null>} API Key 信息或null
+     */
+    static async getApiKeyInfo(userId) {
+        try {
+            const sql = `
+                SELECT id, user_id, api_key_hash, created_at, expires_at, is_active, last_used_at
+                FROM user_api_keys 
+                WHERE user_id = ?
+                ORDER BY is_active DESC, created_at DESC 
+                LIMIT 1
+            `;
+            const results = await db.query(sql, [userId]);
+            return results.length > 0 ? results[0] : null;
+        } catch (error) {
+            logger.error('获取API Key信息失败:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 获取用户的所有 API Keys（包含历史记录）
+     * @param {string} userId - 用户ID
+     * @returns {Promise<Array>} API Key 列表
+     */
+    static async getAllApiKeys(userId) {
+        try {
+            const sql = `
+                SELECT id, user_id, created_at, expires_at, is_active, last_used_at
+                FROM user_api_keys 
+                WHERE user_id = ?
+                ORDER BY created_at DESC
+            `;
+            return await db.query(sql, [userId]);
+        } catch (error) {
+            logger.error('获取所有API Keys失败:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 删除用户的 API Key（软删除，标记为非活跃）
+     * @param {string} userId - 用户ID
+     * @returns {Promise<boolean>} 删除结果
+     */
+    static async deleteApiKey(userId) {
+        try {
+            const sql = 'UPDATE user_api_keys SET is_active = 0, updated_at = NOW() WHERE user_id = ? AND is_active = 1';
+            const result = await db.query(sql, [userId]);
+            logger.info(`API Key 删除操作，影响行数: ${result.affectedRows}`);
+            return result.affectedRows > 0;
+        } catch (error) {
+            logger.error('删除API Key失败:', error.message);
             throw error;
         }
     }
@@ -236,19 +302,21 @@ class User {
      */
     static async updateApiKey(userId, apiKey) {
         try {
+            const hashedKey = hashApiKey(apiKey);
+            
             const checkSql = 'SELECT id FROM user_api_keys WHERE user_id = ?';
             const existing = await db.query(checkSql, [userId]);
             
             if (existing.length > 0) {
-                const updateSql = 'UPDATE user_api_keys SET api_key = ?, created_at = NOW(), expires_at = DATE_ADD(NOW(), INTERVAL 1 YEAR) WHERE user_id = ?';
-                await db.query(updateSql, [apiKey, userId]);
+                const updateSql = `UPDATE user_api_keys SET api_key_hash = ?, is_active = 1, created_at = NOW(), expires_at = DATE_ADD(NOW(), INTERVAL ${CONFIG.API_KEY.EXPIRES_INTERVAL}) WHERE user_id = ?`;
+                await db.query(updateSql, [hashedKey, userId]);
             } else {
                 const insertSql = `
-                    INSERT INTO user_api_keys (id, user_id, api_key, created_at, expires_at)
-                    VALUES (?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 1 YEAR))
+                    INSERT INTO user_api_keys (id, user_id, api_key_hash, is_active, created_at, expires_at)
+                    VALUES (?, ?, ?, 1, NOW(), DATE_ADD(NOW(), INTERVAL ${CONFIG.API_KEY.EXPIRES_INTERVAL}))
                 `;
                 const id = uuidv4();
-                await db.query(insertSql, [id, userId, apiKey]);
+                await db.query(insertSql, [id, userId, hashedKey]);
             }
             
             return true;

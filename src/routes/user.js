@@ -7,29 +7,63 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const Joi = require('joi');
 const jwt = require('jsonwebtoken');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
 const logger = require('../utils/logger');
-const { generateToken, generateRefreshToken, generateApiKey } = require('../middleware/auth');
+const { generateToken, generateRefreshToken, generateApiKey, authenticate, validateJwtSecret } = require('../middleware/auth');
+const { CONFIG, DB_FIELDS } = require('../config/constants');
 const User = require('../models/User');
+const db = require('../utils/database');
+const EncryptionService = require('../services/EncryptionService');
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-    console.error('FATAL ERROR: JWT_SECRET environment variable is not set');
-    process.exit(1);
-}
+validateJwtSecret();
 
-// 注册验证 schema
 const registerSchema = Joi.object({
     username: Joi.string().alphanum().min(3).max(30).required(),
     password: Joi.string().min(6).max(100).required(),
     email: Joi.string().email().required()
 });
 
-// 登录验证 schema
 const loginSchema = Joi.object({
     username: Joi.string().required(),
     password: Joi.string().required()
+});
+
+const checkUsernameLimiter = rateLimit({
+    windowMs: CONFIG.RATE_LIMITS.WINDOW_MS.HOUR,
+    max: 10,
+    message: { success: false, message: '检查次数过多，请稍后再试' }
+});
+
+const loginLimiter = rateLimit({
+    windowMs: CONFIG.RATE_LIMITS.WINDOW_MS.QUARTER_HOUR,
+    max: CONFIG.RATE_LIMITS.LOGIN,
+    message: { success: false, message: '登录尝试次数过多，请15分钟后再试' }
+});
+
+const registerLimiter = rateLimit({
+    windowMs: CONFIG.RATE_LIMITS.WINDOW_MS.HOUR,
+    max: CONFIG.RATE_LIMITS.REGISTER,
+    message: { success: false, message: '注册次数过多，请1小时后再试' }
+});
+
+const apiKeyLimiter = rateLimit({
+    windowMs: CONFIG.RATE_LIMITS.WINDOW_MS.HOUR,
+    max: CONFIG.RATE_LIMITS.API_KEY_GENERATE,
+    message: { success: false, message: 'API Key操作次数过多，请稍后再试' }
+});
+
+const passwordLimiter = rateLimit({
+    windowMs: CONFIG.RATE_LIMITS.WINDOW_MS.HOUR,
+    max: CONFIG.RATE_LIMITS.PASSWORD_RESET,
+    message: { success: false, message: '密码修改次数过多，请1小时后再试' }
+});
+
+const refreshTokenLimiter = rateLimit({
+    windowMs: CONFIG.RATE_LIMITS.WINDOW_MS.QUARTER_HOUR,
+    max: 10,
+    message: { success: false, message: '令牌刷新次数过多，请稍后再试' }
 });
 
 /**
@@ -37,7 +71,7 @@ const loginSchema = Joi.object({
  * @desc    用户注册
  * @access  Public
  */
-router.post('/register', async (req, res, next) => {
+router.post('/register', registerLimiter, async (req, res, next) => {
     try {
         const { error, value } = registerSchema.validate(req.body);
         if (error) {
@@ -78,7 +112,7 @@ router.post('/register', async (req, res, next) => {
  * @desc    用户登录
  * @access  Public
  */
-router.post('/login', async (req, res, next) => {
+router.post('/login', loginLimiter, async (req, res, next) => {
     try {
         const { error, value } = loginSchema.validate(req.body);
         if (error) {
@@ -110,7 +144,6 @@ router.post('/login', async (req, res, next) => {
         const token = generateToken(user);
         const refreshToken = generateRefreshToken(user);
 
-        const db = require('../utils/database');
         const logId = require('uuid').v4();
         const ipAddress = req.ip || req.connection.remoteAddress || 'unknown';
         const userAgent = req.get('User-Agent') || 'unknown';
@@ -136,7 +169,7 @@ router.post('/login', async (req, res, next) => {
                 },
                 token,
                 refreshToken,
-                expiresIn: '24h'
+                expiresIn: CONFIG.JWT.EXPIRES_IN
             }
         });
     } catch (error) {
@@ -149,7 +182,7 @@ router.post('/login', async (req, res, next) => {
  * @desc    刷新访问令牌
  * @access  Public
  */
-router.post('/refresh', async (req, res, next) => {
+router.post('/refresh', refreshTokenLimiter, async (req, res, next) => {
     try {
         const { refreshToken } = req.body;
 
@@ -162,7 +195,7 @@ router.post('/refresh', async (req, res, next) => {
 
         let decoded;
         try {
-            decoded = jwt.verify(refreshToken, JWT_SECRET);
+            decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
         } catch (err) {
             return res.status(401).json({
                 success: false,
@@ -175,6 +208,28 @@ router.post('/refresh', async (req, res, next) => {
                 success: false,
                 message: '无效的刷新令牌类型'
             });
+        }
+        
+        try {
+            const { CacheService } = require('../services/cache');
+            
+            const tokenBlacklisted = await CacheService.get(`blacklist:${refreshToken}`);
+            if (tokenBlacklisted) {
+                return res.status(401).json({
+                    success: false,
+                    message: '刷新令牌已失效'
+                });
+            }
+            
+            const userBlacklisted = await CacheService.get(`user_blacklist:${decoded.userId}`);
+            if (userBlacklisted) {
+                return res.status(401).json({
+                    success: false,
+                    message: '用户已登出，请重新登录'
+                });
+            }
+        } catch (cacheError) {
+            logger.warn('Cache check failed for refresh token:', cacheError.message);
         }
         
         const user = await User.findById(decoded.userId);
@@ -193,7 +248,7 @@ router.post('/refresh', async (req, res, next) => {
             data: {
                 token: newToken,
                 refreshToken: newRefreshToken,
-                expiresIn: '24h'
+                expiresIn: CONFIG.JWT.EXPIRES_IN
             }
         });
     } catch (error) {
@@ -206,29 +261,9 @@ router.post('/refresh', async (req, res, next) => {
  * @desc    获取用户信息
  * @access  Private
  */
-router.get('/profile', async (req, res, next) => {
+router.get('/profile', authenticate, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({
-                success: false,
-                message: '未授权访问'
-            });
-        }
-        
-        const token = authHeader.split(' ')[1];
-        
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({
-                success: false,
-                message: '令牌无效或已过期'
-            });
-        }
-        
-        const userId = decoded.userId || decoded.id;
+        const userId = req.user.id;
         const user = await User.findById(userId);
         
         if (!user) {
@@ -256,70 +291,13 @@ router.get('/profile', async (req, res, next) => {
 });
 
 /**
- * @route   POST /api/v1/users/apikey
- * @desc    生成 API Key
- * @access  Private
- */
-router.post('/apikey', async (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({
-                success: false,
-                message: '未授权访问'
-            });
-        }
-        
-        const token = authHeader.split(' ')[1];
-        
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({
-                success: false,
-                message: '令牌无效或已过期'
-            });
-        }
-        
-        const userId = decoded.userId || decoded.id;
-        const apiKey = generateApiKey();
-
-        res.json({
-            success: true,
-            message: 'API Key 生成成功',
-            data: {
-                apiKey,
-                createdAt: new Date().toISOString()
-            }
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-/**
  * @route   PUT /api/v1/users/profile
  * @desc    更新用户信息（用户名、邮箱）
  * @access  Private
  */
-router.put('/profile', async (req, res, next) => {
+router.put('/profile', authenticate, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: '未授权访问' });
-        }
-        
-        const token = authHeader.split(' ')[1];
-        
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
-        }
-        
-        const userId = decoded.userId || decoded.id;
+        const userId = req.user.id;
         const { username, email } = req.body;
         
         if (!username && !email) {
@@ -359,23 +337,9 @@ router.put('/profile', async (req, res, next) => {
  * @desc    修改用户密码
  * @access  Private
  */
-router.put('/password', async (req, res, next) => {
+router.put('/password', authenticate, passwordLimiter, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: '未授权访问' });
-        }
-        
-        const token = authHeader.split(' ')[1];
-        
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
-        }
-        
-        const userId = decoded.userId || decoded.id;
+        const userId = req.user.id;
         const { currentPassword, newPassword } = req.body;
         
         if (!currentPassword || !newPassword) {
@@ -398,7 +362,7 @@ router.put('/password', async (req, res, next) => {
         
         await User.updatePassword(userId, newPassword);
         
-        logger.info(`用户修改密码: ${userId}`);
+        logger.info(`用户修改密码: ${userId}`, { category: 'security', action: 'password_change' });
         
         res.json({ success: true, message: '密码修改成功' });
     } catch (error) {
@@ -408,24 +372,52 @@ router.put('/password', async (req, res, next) => {
 });
 
 /**
+ * @route   POST /api/v1/users/apikey
+ * @desc    生成 API Key
+ * @access  Private
+ */
+router.post('/apikey', authenticate, apiKeyLimiter, async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const apiKey = generateApiKey();
+        
+        await User.updateApiKey(userId, apiKey);
+        
+        logger.info(`用户生成 API Key: ${userId}`, { category: 'security', action: 'apikey_generate' });
+
+        res.json({
+            success: true,
+            message: 'API Key 生成成功',
+            data: {
+                apiKey,
+                createdAt: new Date().toISOString()
+            }
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
  * @route   GET /api/v1/users/apikeys
  * @desc    获取用户的 API Keys
  * @access  Private
  */
-router.get('/apikeys', async (req, res, next) => {
+router.get('/apikeys', authenticate, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({
-                success: false,
-                message: '未授权访问'
-            });
-        }
+        const userId = req.user.id;
+        
+        const keyInfo = await User.getApiKeyInfo(userId);
         
         res.json({
             success: true,
             data: {
-                apiKeys: []
+                apiKeys: keyInfo ? [{
+                    id: keyInfo.id,
+                    createdAt: keyInfo.created_at,
+                    expiresAt: keyInfo.expires_at,
+                    isActive: keyInfo.is_active
+                }] : []
             }
         });
     } catch (error) {
@@ -435,33 +427,61 @@ router.get('/apikeys', async (req, res, next) => {
 
 /**
  * @route   GET /api/v1/users/api-key
- * @desc    获取用户当前的 API Key
+ * @desc    获取用户当前的 API Key 信息
  * @access  Private
  */
-router.get('/api-key', async (req, res, next) => {
+router.get('/api-key', authenticate, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: '未授权访问' });
+        const userId = req.user.id;
+        const keyInfo = await User.getApiKeyInfo(userId);
+        
+        if (!keyInfo) {
+            return res.json({ 
+                success: true, 
+                apiKey: null, 
+                hasApiKey: false,
+                isActive: false
+            });
         }
         
-        const token = authHeader.split(' ')[1];
+        res.json({ 
+            success: true, 
+            apiKey: null,
+            hasApiKey: true,
+            isActive: keyInfo.is_active === 1,
+            createdAt: keyInfo.created_at,
+            expiresAt: keyInfo.expires_at,
+            lastUsedAt: keyInfo.last_used_at
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+/**
+ * @route   DELETE /api/v1/users/api-key
+ * @desc    删除用户的 API Key
+ * @access  Private
+ */
+router.delete('/api-key', authenticate, async (req, res, next) => {
+    try {
+        const userId = req.user.id;
         
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
+        const result = await User.deleteApiKey(userId);
+        
+        if (!result) {
+            return res.status(404).json({ 
+                success: false, 
+                message: '未找到 API Key 或已删除' 
+            });
         }
         
-        const userId = decoded.userId || decoded.id;
-        const user = await User.findById(userId);
+        logger.info(`用户删除 API Key: ${userId}`, { category: 'security', action: 'apikey_delete' });
         
-        if (!user) {
-            return res.status(404).json({ success: false, message: '用户不存在' });
-        }
-        
-        res.json({ success: true, apiKey: user.api_key || null });
+        res.json({ 
+            success: true, 
+            message: 'API Key 删除成功' 
+        });
     } catch (error) {
         next(error);
     }
@@ -472,30 +492,16 @@ router.get('/api-key', async (req, res, next) => {
  * @desc    重新生成用户的 API Key
  * @access  Private
  */
-router.post('/api-key/regenerate', async (req, res, next) => {
+router.post('/api-key/regenerate', authenticate, apiKeyLimiter, async (req, res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: '未授权访问' });
-        }
-        
-        const token = authHeader.split(' ')[1];
-        
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
-        }
-        
-        const userId = decoded.userId || decoded.id;
+        const userId = req.user.id;
         const apiKey = generateApiKey();
         
         await User.updateApiKey(userId, apiKey);
         
-        logger.info(`用户重新生成 API Key: ${userId}`);
+        logger.info(`用户重新生成 API Key: ${userId}`, { category: 'security', action: 'apikey_regenerate' });
         
-        res.json({ success: true, apiKey });
+        res.json({ success: true, data: { apiKey } });
     } catch (error) {
         next(error);
     }
@@ -506,7 +512,7 @@ router.post('/api-key/regenerate', async (req, res, next) => {
  * @desc    检查用户名是否已存在
  * @access  Public
  */
-router.get('/check-username', async (req, res, next) => {
+router.get('/check-username', checkUsernameLimiter, async (req, res, next) => {
     try {
         const { username } = req.query;
         
@@ -527,26 +533,16 @@ router.get('/check-username', async (req, res, next) => {
  * @desc    用户登出（将Token加入黑名单）
  * @access  Private
  */
-router.post('/logout', async (req, res, next) => {
+router.post('/logout', authenticate, async (req, res, next) => {
     try {
+        const userId = req.user.id;
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: '未授权访问' });
-        }
-        
         const token = authHeader.split(' ')[1];
         
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
-        }
-        
-        const userId = decoded.userId || decoded.id;
         const { CacheService } = require('../services/cache');
         
-        const tokenExp = decoded.exp || Math.floor(Date.now() / 1000) + 86400;
+        const decoded = jwt.decode(token);
+        const tokenExp = decoded?.exp || Math.floor(Date.now() / 1000) + CONFIG.JWT.DEFAULT_TTL_SECONDS;
         const ttl = tokenExp - Math.floor(Date.now() / 1000);
         
         if (ttl > 0) {
@@ -566,26 +562,16 @@ router.post('/logout', async (req, res, next) => {
  * @desc    登出所有设备（将用户所有Token加入黑名单）
  * @access  Private
  */
-router.post('/logout-all', async (req, res, next) => {
+router.post('/logout-all', authenticate, async (req, res, next) => {
     try {
+        const userId = req.user.id;
         const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ success: false, message: '未授权访问' });
-        }
-        
         const token = authHeader.split(' ')[1];
         
-        let decoded;
-        try {
-            decoded = jwt.verify(token, JWT_SECRET);
-        } catch (err) {
-            return res.status(401).json({ success: false, message: '令牌无效或已过期' });
-        }
-        
-        const userId = decoded.userId || decoded.id;
         const { CacheService } = require('../services/cache');
         
-        const tokenExp = decoded.exp || Math.floor(Date.now() / 1000) + 86400;
+        const decoded = jwt.decode(token);
+        const tokenExp = decoded?.exp || Math.floor(Date.now() / 1000) + CONFIG.JWT.DEFAULT_TTL_SECONDS;
         const ttl = tokenExp - Math.floor(Date.now() / 1000);
         
         if (ttl > 0) {

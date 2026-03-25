@@ -7,10 +7,14 @@ const express = require('express');
 const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
+const { authenticate } = require('../middleware/auth');
 
-router.get('/', async (req, res, next) => {
+router.get('/', authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const loginStats = await db.query(
             'SELECT COUNT(*) as count FROM login_logs WHERE user_id = ?', [userId]
@@ -37,9 +41,12 @@ router.get('/', async (req, res, next) => {
     }
 });
 
-router.get('/login', async (req, res, next) => {
+router.get('/login', authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const offset = (page - 1) * limit;
@@ -70,9 +77,12 @@ router.get('/login', async (req, res, next) => {
     }
 });
 
-router.get('/login/stats', async (req, res, next) => {
+router.get('/login/stats', authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const stats = await db.query(
             `SELECT 
@@ -93,7 +103,7 @@ router.get('/login/stats', async (req, res, next) => {
     }
 });
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', authenticate, async (req, res, next) => {
     try {
         const { userId, ipAddress, userAgent, deviceType, browser, os, location, status } = req.body;
         
@@ -110,9 +120,12 @@ router.post('/login', async (req, res, next) => {
     }
 });
 
-router.get('/api', async (req, res, next) => {
+router.get('/api', authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 50;
         const offset = (page - 1) * limit;
@@ -128,7 +141,7 @@ router.get('/api', async (req, res, next) => {
     }
 });
 
-router.post('/api', async (req, res, next) => {
+router.post('/api', authenticate, async (req, res, next) => {
     try {
         const { userId, endpoint, method, statusCode, responseTime } = req.body;
         
@@ -145,9 +158,12 @@ router.post('/api', async (req, res, next) => {
     }
 });
 
-router.get('/security', async (req, res, next) => {
+router.get('/security', authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const alerts = await db.query(
             'SELECT * FROM security_alerts WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
@@ -160,7 +176,7 @@ router.get('/security', async (req, res, next) => {
     }
 });
 
-router.post('/security', async (req, res, next) => {
+router.post('/security', authenticate, async (req, res, next) => {
     try {
         const { userId, alertType, severity, ipAddress, details } = req.body;
         
@@ -177,10 +193,13 @@ router.post('/security', async (req, res, next) => {
     }
 });
 
-router.put('/security/:id/resolve', async (req, res, next) => {
+router.put('/security/:id/resolve', authenticate, async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         await db.query(
             'UPDATE security_alerts SET resolved = true WHERE id = ? AND user_id = ?',

@@ -12,13 +12,16 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const LLMService = require('../services/LLMService');
+const llmConfigService = require('../services/LLMConfigService');
 const memoryService = require('../services/memoryService');
 const knowledgeService = require('../services/KnowledgeService');
 const reviewService = require('../services/ReviewService');
 const autoManager = require('../services/AutoManager');
-const { authenticate } = require('../middleware/auth');
+const providerRouter = require('../services/ProviderRouterService');
+const systemLogService = require('../services/SystemLogService');
+const { authenticateWithApiKey } = require('../middleware/auth');
 
-router.use(authenticate);
+router.use(authenticateWithApiKey);
 
 const MEMORY_COMMANDS = {
     '/save': 'saveMemory',
@@ -194,9 +197,12 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({ success: false, message: '输入数据无效', errors: error.details });
         }
 
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { message, sessionId, model, provider, providerId, stream, includeMemory, memoryOptions } = value;
-        const actualProvider = providerId || provider || 'deepseek';
+        const actualProvider = providerId || provider || await llmConfigService.getDefaultProvider();
 
         const command = parseCommand(message);
         if (command) {
@@ -267,7 +273,13 @@ router.post('/', async (req, res, next) => {
             logger.warn('加载复习内容失败:', reviewError.message);
         }
 
-        const messages = session.messages ? JSON.parse(session.messages) : [];
+        let messages = [];
+        try {
+            messages = session.messages ? JSON.parse(session.messages) : [];
+        } catch (parseError) {
+            logger.warn('解析会话消息失败:', parseError.message);
+            messages = [];
+        }
         
         const contextParts = [];
         if (memoryContext) {
@@ -357,6 +369,139 @@ router.get('/providers', async (req, res, next) => {
         res.json({ success: true, data: { providers: providers || [] } });
     } catch (error) {
         next(error);
+    }
+});
+
+/**
+ * @route   POST /api/v1/chat/completions
+ * @desc    OpenAI 兼容的 Chat Completions API
+ * @access  Private (API Key or JWT)
+ */
+router.post('/completions', async (req, res, next) => {
+    const startTime = Date.now();
+    let providerId = null;
+    let actualModel = null;
+    
+    try {
+        const userId = req.user.id;
+        const { model, messages, stream = false, temperature, max_tokens, ...options } = req.body;
+        actualModel = model;
+
+        if (!messages || !Array.isArray(messages) || messages.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: { message: 'messages is required and must be a non-empty array', type: 'invalid_request_error' }
+            });
+        }
+
+        const providers = await db.query('SELECT id, name, models, default_model FROM llm_providers WHERE is_active = 1');
+
+        for (const p of providers) {
+            try {
+                const models = typeof p.models === 'string' ? JSON.parse(p.models) : (p.models || []);
+                if (Array.isArray(models) && (models.includes(model) || p.default_model === model)) {
+                    providerId = p.id;
+                    break;
+                }
+            } catch (parseError) {
+                logger.warn(`解析提供商 ${p.id} 的 models 字段失败:`, parseError.message);
+            }
+        }
+        
+        if (!providerId) {
+            const defaultProvider = await llmConfigService.getDefaultProvider();
+            if (defaultProvider) {
+                providerId = defaultProvider;
+                actualModel = model;
+            }
+        }
+        
+        if (!providerId) {
+            await systemLogService.warn('chat', 'No provider available', { model, userId });
+            return res.status(400).json({
+                success: false,
+                error: { message: `No provider available for model ${model}`, type: 'invalid_request_error' }
+            });
+        }
+
+        let memoryContext = '';
+        let knowledgeContext = '';
+        
+        try {
+            const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+            const query = lastUserMessage?.content || '';
+            
+            memoryContext = await memoryService.buildContextForQuery(userId, query, {});
+            knowledgeContext = await knowledgeService.buildContextForQuery(userId, query, 5);
+        } catch (ctxError) {
+            logger.warn('加载上下文失败:', ctxError.message);
+        }
+
+        const systemPrompt = `你是一个智能助手，拥有持久记忆能力。
+
+${memoryContext ? `【用户相关记忆】\n${memoryContext}\n` : ''}
+${knowledgeContext ? `【用户知识库】\n${knowledgeContext}\n` : ''}
+
+请根据用户的记忆和知识库内容，提供个性化的回答。`;
+
+        const chatMessages = [
+            { role: 'system', content: systemPrompt },
+            ...messages
+        ];
+
+        const response = await LLMService.chat(userId, providerId, chatMessages, {
+            model: actualModel,
+            maxTokens: max_tokens || 2000,
+            temperature
+        });
+
+        const responseTime = Date.now() - startTime;
+        
+        await systemLogService.info('chat', 'Chat completion success', {
+            userId,
+            provider: providerId,
+            model: actualModel,
+            responseTime,
+            tokensUsed: response.totalTokens || 0
+        });
+
+        const responseId = `chatcmpl-${uuidv4()}`;
+        const created = Math.floor(Date.now() / 1000);
+
+        res.json({
+            id: responseId,
+            object: 'chat.completion',
+            created,
+            model: response.model || actualModel,
+            choices: [{
+                index: 0,
+                message: {
+                    role: 'assistant',
+                    content: response.content
+                },
+                finish_reason: 'stop'
+            }],
+            usage: {
+                prompt_tokens: response.promptTokens || 0,
+                completion_tokens: response.completionTokens || 0,
+                total_tokens: response.totalTokens || 0
+            }
+        });
+    } catch (error) {
+        const responseTime = Date.now() - startTime;
+        logger.error('Chat completions error:', error.message);
+        
+        await systemLogService.error('chat', 'Chat completion failed', {
+            provider: providerId,
+            model: actualModel,
+            responseTime,
+            error: error.message
+        });
+        
+        res.status(500).json({
+            success: false,
+            error: { message: error.message, type: 'server_error' }
+        });
     }
 });
 

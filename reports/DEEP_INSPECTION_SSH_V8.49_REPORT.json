@@ -1,0 +1,117 @@
+{
+  "startTime": "2026-03-20T09:33:55.715Z",
+  "phases": {
+    "6": {
+      "status": "completed",
+      "tests": [],
+      "ssh": {
+        "version": "OpenSSH_for_Windows_9.5p2, LibreSSL 3.8.2",
+        "keyExists": true,
+        "keySize": 3401,
+        "hasConfig": true,
+        "configuredHosts": [
+          "teacher-game",
+          "teacher-game"
+        ],
+        "serverReachable": false,
+        "connectionSuccess": false,
+        "connectionError": "Command failed: C:\\Windows\\System32\\OpenSSH\\ssh.exe -p 1022 -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o BatchMode=yes -i \"C:\\Users\\Administrator\\.ssh\\id_rsa\" root@43.167.167.211 \"echo 'SSH_OK'; hostname; uptime\"\nroot@43.167.167.211: Permission denied (publickey,password).\r\n"
+      },
+      "server": {
+        "httpAccessible": true,
+        "httpStatus": 200,
+        "apiAccessible": true,
+        "healthData": {
+          "status": "ok",
+          "timestamp": "2026-03-20T09:33:55.721Z",
+          "uptime": 30678.160087381,
+          "database": "connected",
+          "autoManager": "running",
+          "features": {
+            "autoContextLoad": true,
+            "autoExtract": true,
+            "autoLink": true,
+            "autoReview": true,
+            "autoImportance": true,
+            "autoCleanup": true,
+            "autoTag": true,
+            "autoConvert": true,
+            "autoSummarize": true,
+            "passiveReview": true,
+            "autoBackup": true,
+            "backupFrequency": "daily",
+            "backupTime": "02:00",
+            "backupRetention": "7",
+            "backupType": "full"
+          },
+          "version": "0.5.5"
+        }
+      }
+    }
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "timestamp": "2026-03-20T09:33:55.845Z",
+      "level": "WARN",
+      "message": "⚠️ SSH server check: Command failed: C:\\Windows\\System32\\OpenSSH\\ssh-keyscan.exe -p 1022 -H root@43.167.167.211 2>&1 | head -3\n'head' is not recognized as an internal or external command,\r\noperable program or batch file.\r\n",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T09:33:57.829Z",
+      "level": "WARN",
+      "message": "⚠️ SSH connection failed: Command failed: C:\\Windows\\System32\\OpenSSH\\ssh.exe -p 1022 -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o BatchMode=yes -i \"C:\\Users\\Administrator\\.ssh\\id_rsa\" root@43.167.167.211 \"echo 'SSH_OK'; hostname; uptime\"\nroot@43.167.167.211: Permission denied (publickey,password).\r\n",
+      "data": null
+    }
+  ],
+  "screenshots": [],
+  "sshTests": {
+    "status": "completed",
+    "tests": [],
+    "ssh": {
+      "version": "OpenSSH_for_Windows_9.5p2, LibreSSL 3.8.2",
+      "keyExists": true,
+      "keySize": 3401,
+      "hasConfig": true,
+      "configuredHosts": [
+        "teacher-game",
+        "teacher-game"
+      ],
+      "serverReachable": false,
+      "connectionSuccess": false,
+      "connectionError": "Command failed: C:\\Windows\\System32\\OpenSSH\\ssh.exe -p 1022 -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o BatchMode=yes -i \"C:\\Users\\Administrator\\.ssh\\id_rsa\" root@43.167.167.211 \"echo 'SSH_OK'; hostname; uptime\"\nroot@43.167.167.211: Permission denied (publickey,password).\r\n"
+    },
+    "server": {
+      "httpAccessible": true,
+      "httpStatus": 200,
+      "apiAccessible": true,
+      "healthData": {
+        "status": "ok",
+        "timestamp": "2026-03-20T09:33:55.721Z",
+        "uptime": 30678.160087381,
+        "database": "connected",
+        "autoManager": "running",
+        "features": {
+          "autoContextLoad": true,
+          "autoExtract": true,
+          "autoLink": true,
+          "autoReview": true,
+          "autoImportance": true,
+          "autoCleanup": true,
+          "autoTag": true,
+          "autoConvert": true,
+          "autoSummarize": true,
+          "passiveReview": true,
+          "autoBackup": true,
+          "backupFrequency": "daily",
+          "backupTime": "02:00",
+          "backupRetention": "7",
+          "backupType": "full"
+        },
+        "version": "0.5.5"
+      }
+    }
+  },
+  "endTime": "2026-03-20T09:34:00.021Z",
+  "duration": 4306
+}

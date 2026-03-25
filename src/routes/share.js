@@ -5,11 +5,20 @@
 
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 const router = express.Router();
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const { authenticate } = require('../middleware/auth');
+
+const generateShareCode = () => {
+    return crypto.randomBytes(16).toString('base64url').substring(0, 22);
+};
+
+const SHARE_LINK_FIELDS = 'id, code, user_id, resource_type, resource_id, expires_at, created_at';
+const MEMORY_PUBLIC_FIELDS = 'id, content, category, importance, created_at';
+const KNOWLEDGE_PUBLIC_FIELDS = 'id, title, content, category, created_at';
 
 router.use(authenticate);
 
@@ -27,7 +36,7 @@ router.post('/', async (req, res, next) => {
             return res.status(400).json({ success: false, message: '请提供分享类型和ID' });
         }
         
-        const shareCode = uuidv4().substring(0, 8);
+        const shareCode = generateShareCode();
         const expiresAt = new Date(Date.now() + expiresIn);
         
         await db.query(
@@ -60,7 +69,7 @@ router.get('/:code', async (req, res, next) => {
         const { code } = req.params;
         
         const shares = await db.query(
-            'SELECT * FROM share_links WHERE code = ? AND expires_at > NOW()',
+            `SELECT ${SHARE_LINK_FIELDS} FROM share_links WHERE code = ? AND expires_at > NOW()`,
             [code]
         );
         
@@ -72,10 +81,10 @@ router.get('/:code', async (req, res, next) => {
         
         let content = null;
         if (share.resource_type === 'memory') {
-            const memories = await db.query('SELECT * FROM memories WHERE id = ?', [share.resource_id]);
+            const memories = await db.query(`SELECT ${MEMORY_PUBLIC_FIELDS} FROM memories WHERE id = ?`, [share.resource_id]);
             content = memories && memories.length > 0 ? memories[0] : null;
         } else if (share.resource_type === 'knowledge') {
-            const knowledge = await db.query('SELECT * FROM knowledge WHERE id = ?', [share.resource_id]);
+            const knowledge = await db.query(`SELECT ${KNOWLEDGE_PUBLIC_FIELDS} FROM knowledge WHERE id = ?`, [share.resource_id]);
             content = knowledge && knowledge.length > 0 ? knowledge[0] : null;
         }
         
@@ -102,10 +111,13 @@ router.get('/:code', async (req, res, next) => {
  */
 router.get('/', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const shares = await db.query(
-            'SELECT * FROM share_links WHERE user_id = ? ORDER BY created_at DESC',
+            `SELECT ${SHARE_LINK_FIELDS} FROM share_links WHERE user_id = ? ORDER BY created_at DESC`,
             [userId]
         );
         
@@ -123,7 +135,10 @@ router.get('/', async (req, res, next) => {
 router.delete('/:code', async (req, res, next) => {
     try {
         const { code } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         await db.query('DELETE FROM share_links WHERE code = ? AND user_id = ?', [code, userId]);
         

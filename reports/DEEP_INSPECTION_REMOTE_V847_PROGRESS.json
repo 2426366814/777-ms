@@ -1,0 +1,37 @@
+{
+  "title": "777-MS 远程深度交互检测报告 v8.47",
+  "date": "2026-03-20T10:18:54.217Z",
+  "config": {
+    "project": "777-MS Memory System",
+    "version": "0.5.5",
+    "url": "https://memory.91wz.org"
+  },
+  "phases": [
+    {
+      "name": "Phase 0: 配置加载",
+      "status": "completed",
+      "details": "配置文件加载成功"
+    },
+    {
+      "name": "Phase 1: 首页检测",
+      "status": "completed",
+      "details": "首页访问成功，截图已保存"
+    },
+    {
+      "name": "Phase 2: 登录页检测",
+      "status": "completed",
+      "details": "登录页访问成功，截图已保存"
+    },
+    {
+      "name": "Phase 3: 用户登录",
+      "status": "in_progress",
+      "details": "正在使用 MCP 工具执行用户登录测试"
+    }
+  ],
+  "summary": {
+    "totalPhases": 16,
+    "completedPhases": 2,
+    "currentPhase": "Phase 3: 用户登录测试",
+    "status": "running"
+  }
+}

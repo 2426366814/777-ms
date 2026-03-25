@@ -3,6 +3,8 @@ const router = express.Router();
 const providerRouter = require('../services/ProviderRouterService');
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { authenticate, isAdmin } = require('../middleware/auth');
+const EncryptionService = require('../services/EncryptionService');
 
 router.get('/', async (req, res) => {
     try {
@@ -56,7 +58,7 @@ router.get('/providers/all', async (req, res) => {
     }
 });
 
-router.post('/providers', async (req, res) => {
+router.post('/providers', authenticate, isAdmin, async (req, res) => {
     try {
         const { name, display_name, base_url, default_model, models, api_key } = req.body;
         
@@ -72,14 +74,15 @@ router.post('/providers', async (req, res) => {
         `, [id, name, display_name || name, base_url, default_model || '', JSON.stringify(models || [])]);
         
         if (api_key) {
+            const encryptedApiKey = EncryptionService.encrypt(api_key);
             await db.query(`
                 INSERT INTO provider_api_keys (provider_id, api_key, is_active)
                 VALUES (?, ?, 1)
                 ON DUPLICATE KEY UPDATE api_key = VALUES(api_key)
-            `, [id, api_key]);
+            `, [id, encryptedApiKey]);
         }
         
-        logger.info(`创建新提供商: ${name}`);
+        logger.info(`管理员 ${req.user.username} 创建新提供商: ${name}`);
         res.json({ success: true, message: '提供商创建成功', id });
     } catch (error) {
         logger.error('创建提供商失败:', error.message);
@@ -87,7 +90,7 @@ router.post('/providers', async (req, res) => {
     }
 });
 
-router.put('/providers/:id', async (req, res) => {
+router.put('/providers/:id', authenticate, isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { display_name, base_url, default_model, models, is_active, api_key } = req.body;
@@ -107,14 +110,15 @@ router.put('/providers/:id', async (req, res) => {
         }
         
         if (api_key !== undefined) {
+            const encryptedApiKey = EncryptionService.encrypt(api_key);
             await db.query(`
                 INSERT INTO provider_api_keys (provider_id, api_key, is_active)
                 VALUES (?, ?, 1)
                 ON DUPLICATE KEY UPDATE api_key = VALUES(api_key)
-            `, [id, api_key]);
+            `, [id, encryptedApiKey]);
         }
         
-        logger.info(`更新提供商: ${id}`);
+        logger.info(`管理员 ${req.user.username} 更新提供商: ${id}`);
         res.json({ success: true, message: '提供商更新成功' });
     } catch (error) {
         logger.error('更新提供商失败:', error.message);
@@ -122,14 +126,14 @@ router.put('/providers/:id', async (req, res) => {
     }
 });
 
-router.delete('/providers/:id', async (req, res) => {
+router.delete('/providers/:id', authenticate, isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         
         await db.query('DELETE FROM provider_api_keys WHERE provider_id = ?', [id]);
         await db.query('DELETE FROM llm_providers WHERE id = ?', [id]);
         
-        logger.info(`删除提供商: ${id}`);
+        logger.info(`管理员 ${req.user.username} 删除提供商: ${id}`);
         res.json({ success: true, message: '提供商删除成功' });
     } catch (error) {
         logger.error('删除提供商失败:', error.message);
@@ -137,11 +141,22 @@ router.delete('/providers/:id', async (req, res) => {
     }
 });
 
-router.get('/providers/:id/api-key', async (req, res) => {
+router.get('/providers/:id/api-key', authenticate, isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const rows = await db.query('SELECT api_key FROM provider_api_keys WHERE provider_id = ? AND is_active = 1', [id]);
-        res.json({ success: true, apiKey: rows && rows.length > 0 ? rows[0].api_key : null });
+        
+        if (rows && rows.length > 0 && rows[0].api_key) {
+            try {
+                const decryptedKey = EncryptionService.decrypt(rows[0].api_key);
+                const maskedKey = EncryptionService.mask(decryptedKey, 4);
+                return res.json({ success: true, apiKey: maskedKey, hasKey: true });
+            } catch (e) {
+                logger.error('Failed to decrypt provider API key:', e.message);
+                return res.json({ success: true, apiKey: null, hasKey: true });
+            }
+        }
+        res.json({ success: true, apiKey: null, hasKey: false });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -163,7 +178,7 @@ router.get('/models', async (req, res) => {
     }
 });
 
-router.post('/models', async (req, res) => {
+router.post('/models', authenticate, isAdmin, async (req, res) => {
     try {
         const { provider_id, model_id, display_name, context_length } = req.body;
         
@@ -206,7 +221,7 @@ router.get('/logs', async (req, res) => {
     }
 });
 
-router.post('/circuit/reset/:providerId', async (req, res) => {
+router.post('/circuit/reset/:providerId', authenticate, isAdmin, async (req, res) => {
     try {
         const { providerId } = req.params;
         providerRouter.resetCircuitBreaker(providerId);

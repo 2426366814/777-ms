@@ -8,6 +8,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 router.use(authenticate);
 
@@ -15,7 +16,7 @@ router.get('/', async (req, res, next) => {
     try {
         const userId = req.user.id;
         const sessions = await db.query(
-            'SELECT * FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
+            `SELECT ${DB_FIELDS.SESSIONS.LIST} FROM sessions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
             [userId]
         );
         res.json({ success: true, data: { sessions: sessions || [] } });
@@ -26,7 +27,10 @@ router.get('/', async (req, res, next) => {
 
 router.post('/', async (req, res, next) => {
     try {
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const { title } = req.body;
         const id = require('uuid').v4();
         await db.query(
@@ -56,9 +60,12 @@ router.post('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         const sessions = await db.query(
-            'SELECT * FROM sessions WHERE id = ? AND user_id = ?',
+            `SELECT ${DB_FIELDS.SESSIONS.FULL} FROM sessions WHERE id = ? AND user_id = ?`,
             [id, userId]
         );
         if (!sessions || sessions.length === 0) {
@@ -74,7 +81,10 @@ router.put('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
         const { title, messages } = req.body;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         await db.query(
             'UPDATE sessions SET title = ?, messages = ? WHERE id = ? AND user_id = ?',
             [title, JSON.stringify(messages || []), id, userId]
@@ -88,7 +98,10 @@ router.put('/:id', async (req, res, next) => {
 router.delete('/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         await db.query('DELETE FROM sessions WHERE id = ? AND user_id = ?', [id, userId]);
         res.json({ success: true, message: '会话删除成功' });
     } catch (error) {
@@ -100,7 +113,10 @@ router.post('/:id/messages', async (req, res, next) => {
     try {
         const { id } = req.params;
         const { role, content } = req.body;
-        const userId = req.user?.id || 'default-user';
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json({ success: false, message: '未授权访问' });
+        }
         
         const sessions = await db.query(
             'SELECT messages FROM sessions WHERE id = ? AND user_id = ?',
@@ -111,7 +127,12 @@ router.post('/:id/messages', async (req, res, next) => {
             return res.status(404).json({ success: false, message: '会话不存在' });
         }
         
-        const messages = JSON.parse(sessions[0].messages || '[]');
+        let messages = [];
+        try {
+            messages = JSON.parse(sessions[0].messages || '[]');
+        } catch (parseError) {
+            messages = [];
+        }
         messages.push({ role, content, timestamp: new Date().toISOString() });
         
         await db.query(

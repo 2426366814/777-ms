@@ -1,0 +1,524 @@
+{
+  "startTime": "2026-03-20T07:06:08.016Z",
+  "phases": {
+    "0": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "Config file exists",
+          "status": "pass"
+        },
+        {
+          "name": "package.json valid",
+          "status": "pass",
+          "data": {
+            "name": "777-ms-memory-system",
+            "version": "0.1.0"
+          }
+        },
+        {
+          "name": ".env file exists",
+          "status": "pass"
+        },
+        {
+          "name": "Node.js version",
+          "status": "pass",
+          "data": {
+            "version": "v24.13.0"
+          }
+        },
+        {
+          "name": "Source files count",
+          "status": "pass",
+          "data": {
+            "jsFiles": 54
+          }
+        }
+      ]
+    },
+    "1": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "server.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/utils/database.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/middleware/auth.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/routes/user.js syntax",
+          "status": "pass"
+        },
+        {
+          "name": "src/routes/admin.js syntax",
+          "status": "pass"
+        }
+      ],
+      "issues": [
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\middleware\\auth.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\admin.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\advanced.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\backup.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\batch.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\chat.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\knowledge.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\reminders.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\share.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\usage.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\user.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\AutoManager.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\BackupService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\ForgettingCurveService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\KnowledgeGraphService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\KnowledgeService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\LLMService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\MemoryExtractor.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\MemoryLinker.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\memoryService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\MemorySummarizer.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\ProviderRouterService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\ReviewService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\SystemLogService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        },
+        {
+          "file": "E:\\ai本地应用\\记忆体\\777-ms\\src\\services\\VisualizationService.js",
+          "type": "sql-injection-risk",
+          "message": "Possible SQL injection risk"
+        }
+      ]
+    },
+    "2": {
+      "status": "completed",
+      "features": [
+        {
+          "name": "user",
+          "status": "implemented"
+        },
+        {
+          "name": "admin",
+          "status": "implemented"
+        },
+        {
+          "name": "memory",
+          "status": "implemented"
+        },
+        {
+          "name": "chat",
+          "status": "implemented"
+        },
+        {
+          "name": "knowledge",
+          "status": "implemented"
+        },
+        {
+          "name": "review",
+          "status": "implemented"
+        },
+        {
+          "name": "tags",
+          "status": "implemented"
+        },
+        {
+          "name": "backup",
+          "status": "implemented"
+        },
+        {
+          "name": "settings",
+          "status": "implemented"
+        },
+        {
+          "name": "system",
+          "status": "implemented"
+        },
+        {
+          "name": "Frontend pages",
+          "status": "implemented",
+          "count": 20
+        }
+      ]
+    },
+    "1.5": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "admin.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "advanced.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "backup.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "batch.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "categories.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "chat.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "ide.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "intelligence.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "knowledge.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "llm.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "logs.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "memory.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "providers.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "recommendations.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "reminders.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "review.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "session.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "settings.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "share.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "system.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "tags.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "templates.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "usage.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "user.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "versions.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "visualization.js exports",
+          "status": "pass"
+        },
+        {
+          "name": "express installed",
+          "status": "pass",
+          "version": "^4.18.2"
+        },
+        {
+          "name": "mysql2 installed",
+          "status": "pass",
+          "version": "^3.6.5"
+        },
+        {
+          "name": "jsonwebtoken installed",
+          "status": "pass",
+          "version": "^9.0.2"
+        },
+        {
+          "name": "bcryptjs installed",
+          "status": "pass",
+          "version": "^2.4.3"
+        },
+        {
+          "name": "joi installed",
+          "status": "pass",
+          "version": "^17.11.0"
+        }
+      ],
+      "conflicts": []
+    },
+    "1.6": {
+      "status": "completed",
+      "checks": [
+        {
+          "name": "Database config exists",
+          "status": "pass"
+        }
+      ],
+      "tables": [
+        "users",
+        "user_api_keys",
+        "memories",
+        "knowledge",
+        "sessions",
+        "llm_providers",
+        "login_logs",
+        "api_key_pool",
+        "announcements",
+        "user_permissions",
+        "system_logs",
+        "permission_value",
+        "backup_history",
+        "memory_tags",
+        "categories",
+        "review_queue",
+        "memory_entities",
+        "memory_relations",
+        "memory_relation",
+        "user_llm_configs",
+        "provider_models",
+        "llm_usage_logs",
+        "api_logs",
+        "security_alerts",
+        "provider_api_keys",
+        "llm_models",
+        "api_key",
+        "display_name",
+        "reminders",
+        "memory_reviews",
+        "user_settings",
+        "share_links",
+        "system_settings",
+        "setting_value",
+        "BackupService",
+        "memory_templates",
+        "usage_stats",
+        "memory_versions",
+        "database",
+        "memory_links",
+        "pending_extractions",
+        "pending_conversions",
+        "notifications",
+        "content",
+        "LLM",
+        "memory_reminders",
+        "next_review",
+        "next_review_at",
+        "review_count",
+        "confidence",
+        "api_calls",
+        "similarity",
+        "provider_metrics",
+        "user_routing_preferences",
+        "routing_decision_logs",
+        "success_rate",
+        "metrics",
+        "strategy",
+        "review_items"
+      ],
+      "mismatches": []
+    },
+    "3-10": {
+      "status": "pending",
+      "note": "These phases require running server and browser automation"
+    }
+  },
+  "errors": [],
+  "warnings": [
+    {
+      "timestamp": "2026-03-20T07:06:08.062Z",
+      "level": "WARN",
+      "message": "⚠️ Found 25 potential issues",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.063Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\middleware\\auth.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.063Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\admin.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.063Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\advanced.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.063Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\backup.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.063Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\batch.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.063Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\chat.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.064Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\knowledge.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.064Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\reminders.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.064Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\share.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    },
+    {
+      "timestamp": "2026-03-20T07:06:08.064Z",
+      "level": "WARN",
+      "message": "  - E:\\ai本地应用\\记忆体\\777-ms\\src\\routes\\usage.js: sql-injection-risk - Possible SQL injection risk",
+      "data": null
+    }
+  ],
+  "screenshots": [],
+  "endTime": "2026-03-20T07:06:08.090Z",
+  "duration": 74
+}

@@ -9,6 +9,16 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
+const { sanitizeHtml, detectXSS } = require('../utils/security');
+
+const sanitizeContent = (content, userId) => {
+    if (!content || typeof content !== 'string') return '';
+    const xssResult = detectXSS(content);
+    if (xssResult.isXSS) {
+        logger.warn(`XSS detected in import for user ${userId}: ${xssResult.patterns.join(', ')}`);
+    }
+    return sanitizeHtml(content.substring(0, 10000));
+};
 
 router.post('/create', authenticate, async (req, res) => {
     try {
@@ -277,10 +287,11 @@ router.post('/import', authenticate, async (req, res) => {
             try {
                 const memory = memories[i];
                 const id = uuidv4();
+                const sanitizedContent = sanitizeContent(memory.content, userId);
                 
                 await db.query(
                     'INSERT INTO memories (id, user_id, content, type, category, importance, tags, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
-                    [id, userId, memory.content || '', memory.type || 'general', memory.category || null, memory.importance || 5, JSON.stringify(memory.tags || [])]
+                    [id, userId, sanitizedContent, memory.type || 'general', memory.category || null, memory.importance || 5, JSON.stringify(memory.tags || [])]
                 );
                 
                 results.push({ index: i, id, success: true });

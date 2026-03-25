@@ -248,7 +248,7 @@
         }
 
         async function loadApiKeys() {
-            const data = await api('/user/apikeys');
+            const data = await api('/users/apikeys');
             const apiKeys = data.data?.apiKeys || [];
             const el = document.getElementById('apiKeysList');
             el.className = 'list-container';
@@ -269,7 +269,7 @@
         }
 
         async function generateApiKey() {
-            const data = await api('/user/apikey', { method: 'POST' });
+            const data = await api('/users/apikey', { method: 'POST' });
             if (data.success) {
                 const apiKey = data.data?.apiKey || data.apiKey;
                 if (apiKey) {
@@ -288,7 +288,7 @@
 
         async function revokeApiKey(id) {
             if (!confirm('确定撤销此密钥？')) return;
-            const data = await api('/user/apikeys/' + id, { method: 'DELETE' });
+            const data = await api('/users/apikeys/' + id, { method: 'DELETE' });
             if (data.success) { showToast('已撤销'); loadApiKeys(); }
         }
 
