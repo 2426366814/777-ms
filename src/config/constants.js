@@ -55,14 +55,19 @@ const DB_FIELDS = {
     },
     
     USER_API_KEYS: {
-        SAFE: 'id, user_id, created_at, expires_at, is_active',
-        AUTH: 'id, user_id, api_key_hash, created_at, expires_at, is_active'
+        SAFE: 'id, user_id, name, created_at, expires_at, is_active, last_used_at',
+        AUTH: 'id, user_id, api_key_hash, name, created_at, expires_at, is_active',
+        LIST: 'id, name, created_at, expires_at, is_active, last_used_at'
     },
     
     LLM_PROVIDERS: {
-        FULL: 'id, user_id, provider, model, api_key_encrypted, base_url, is_default, is_active, created_at, updated_at',
-        LIST: 'id, provider, model, base_url, is_default, is_active, created_at',
-        ADMIN: 'id, name, display_name, provider, default_model, base_url, models, icon, is_active, sort_order'
+        FULL: 'id, name, display_name, base_url, default_model, models, icon, is_active, sort_order, created_at, updated_at',
+        LIST: 'id, name, display_name, base_url, default_model, models, icon, is_active, sort_order',
+        ADMIN: 'id, name, display_name, base_url, default_model, models, icon, is_active, sort_order',
+        PUBLIC: 'id, name, display_name, models',
+        WITH_MODELS: 'id, name, models, default_model',
+        BASIC: 'id, name, display_name, base_url, default_model, models, is_active',
+        URL_MODEL: 'base_url, default_model'
     },
     
     LLM_USAGE_LOGS: {

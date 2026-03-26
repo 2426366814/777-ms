@@ -251,16 +251,45 @@
                 </div>
                 
                 <div class="api-key-section">
-                    <h3>您的 API Key</h3>
-                    <p>使用此 API Key 进行身份验证，请妥善保管</p>
-                    <div class="api-key-display">
-                        <code id="apiKey">加载中...</code>
-                        <button class="copy-btn" id="copyApiKeyBtn">复制</button>
-                        <button class="copy-btn" id="regenerateApiKeyBtn" style="background: var(--accent-red);">重新生成</button>
-                        <button class="copy-btn" id="deleteApiKeyBtn" style="background: #da3633; display: none;">删除</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="margin: 0;">您的 API Keys</h3>
+                        <button class="copy-btn" id="createApiKeyBtn" style="background: var(--accent-green);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            创建新 Key
+                        </button>
                     </div>
-                    <div id="apiKeyInfo" style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); display: none;">
-                        <span id="apiKeyCreatedAt"></span> · <span id="apiKeyExpiresAt"></span> · <span id="apiKeyLastUsed"></span>
+                    <p style="color: var(--text-secondary); margin-bottom: 16px;">您可以创建多个 API Key 用于不同场景，每个 Key 都可以独立管理</p>
+                    
+                    <div id="apiKeysList" style="margin-top: 16px;">
+                        <div style="text-align: center; padding: 20px; color: var(--text-secondary);">加载中...</div>
+                    </div>
+                </div>
+                
+                <div id="createKeyModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;">
+                        <h3 style="margin-bottom: 16px;">创建新 API Key</h3>
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; margin-bottom: 8px; color: var(--text-secondary);">Key 名称（可选）</label>
+                            <input type="text" id="newKeyName" placeholder="例如：Trae IDE、Cursor..." style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary);">
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button class="copy-btn" id="cancelCreateKeyBtn" style="background: var(--bg-tertiary);">取消</button>
+                            <button class="copy-btn" id="confirmCreateKeyBtn" style="background: var(--accent-green);">创建</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="showKeyModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center;">
+                    <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 24px; max-width: 500px; width: 90%;">
+                        <h3 style="margin-bottom: 8px; color: var(--accent-green);">✅ API Key 创建成功</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;">请立即复制保存，此 Key 仅显示一次！</p>
+                        <div style="background: rgba(46, 160, 67, 0.1); border: 1px solid var(--accent-green); border-radius: 6px; padding: 12px; margin-bottom: 16px; word-break: break-all; font-family: monospace;">
+                            <code id="newApiKeyDisplay" style="color: var(--accent-green); font-size: 14px;"></code>
+                        </div>
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button class="copy-btn" id="copyNewKeyBtn" style="background: var(--accent-cyan);">复制 Key</button>
+                            <button class="copy-btn" id="closeShowKeyBtn" style="background: var(--bg-tertiary);">关闭</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -700,104 +729,128 @@ curl -X GET "{{baseUrl}}/api/memories" \
         
         const API_BASE = '/api/v1/users';
         
-        async function loadApiKey() {
+        async function loadApiKeys() {
             if (!token) {
-                document.getElementById('apiKey').textContent = '请登录后查看';
+                document.getElementById('apiKeysList').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">请登录后查看</div>';
                 return;
             }
             try {
-                const response = await fetch(`${API_BASE}/api-key`, {
+                const response = await fetch(`${API_BASE}/api-keys`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
                 
-                if (data.success && data.hasApiKey) {
-                    const isActive = data.isActive === true;
-                    
-                    if (isActive) {
-                        document.getElementById('apiKey').textContent = '777_****（已隐藏，重新生成可获取新Key）';
-                        document.getElementById('deleteApiKeyBtn').style.display = 'inline-block';
-                    } else {
-                        document.getElementById('apiKey').textContent = 'API Key 已失效（点击重新生成）';
-                        document.getElementById('deleteApiKeyBtn').style.display = 'none';
-                    }
-                    
-                    const infoDiv = document.getElementById('apiKeyInfo');
-                    infoDiv.style.display = 'block';
-                    
-                    const createdAt = data.createdAt ? new Date(data.createdAt).toLocaleString('zh-CN') : '未知';
-                    const expiresAt = data.expiresAt ? new Date(data.expiresAt).toLocaleString('zh-CN') : '未知';
-                    const lastUsed = data.lastUsedAt ? new Date(data.lastUsedAt).toLocaleString('zh-CN') : '从未使用';
-                    const statusText = isActive ? '✅ 有效' : '❌ 已失效';
-                    
-                    document.getElementById('apiKeyCreatedAt').textContent = `创建: ${createdAt}`;
-                    document.getElementById('apiKeyExpiresAt').textContent = `过期: ${expiresAt}`;
-                    document.getElementById('apiKeyLastUsed').textContent = `状态: ${statusText} · 最后使用: ${lastUsed}`;
+                if (data.success && data.data?.apiKeys) {
+                    renderApiKeys(data.data.apiKeys);
                 } else {
-                    document.getElementById('apiKey').textContent = '未生成';
-                    document.getElementById('deleteApiKeyBtn').style.display = 'none';
-                    document.getElementById('apiKeyInfo').style.display = 'none';
+                    document.getElementById('apiKeysList').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">加载失败</div>';
                 }
             } catch (err) {
-                console.error('加载 API Key 失败:', err);
-                document.getElementById('apiKey').textContent = '加载失败';
+                console.error('加载 API Keys 失败:', err);
+                document.getElementById('apiKeysList').innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">加载失败</div>';
             }
         }
         
-        loadApiKey();
+        function renderApiKeys(keys) {
+            const container = document.getElementById('apiKeysList');
+            
+            if (!keys || keys.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; background: rgba(255,255,255,0.02); border-radius: 8px; border: 1px dashed var(--border-color);">
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">您还没有创建任何 API Key</p>
+                        <button class="copy-btn" id="createFirstKeyBtn" style="background: var(--accent-green);">创建第一个 Key</button>
+                    </div>
+                `;
+                document.getElementById('createFirstKeyBtn')?.addEventListener('click', showCreateModal);
+                return;
+            }
+            
+            const html = keys.map(key => {
+                const statusClass = key.isActive ? 'var(--accent-green)' : 'var(--accent-red)';
+                const statusText = key.isActive ? '✅ 有效' : '❌ 已失效';
+                const createdAt = key.createdAt ? new Date(key.createdAt).toLocaleString('zh-CN') : '未知';
+                const lastUsed = key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString('zh-CN') : '从未使用';
+                
+                return `
+                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <div>
+                                <span style="font-weight: 500; font-size: 15px;">${key.name || '未命名'}</span>
+                                <span style="margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 12px; background: ${key.isActive ? 'rgba(46, 160, 67, 0.2)' : 'rgba(248, 81, 73, 0.2)'}; color: ${statusClass};">${statusText}</span>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="copy-btn" onclick="deleteApiKey('${key.id}')" style="background: #da3633; padding: 4px 12px; font-size: 12px;">删除</button>
+                            </div>
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">
+                            <span>创建: ${createdAt}</span>
+                            <span style="margin-left: 16px;">最后使用: ${lastUsed}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = html;
+        }
         
-        async function copyApiKey() {
+        function showCreateModal() {
+            document.getElementById('createKeyModal').style.display = 'flex';
+            document.getElementById('newKeyName').value = '';
+            document.getElementById('newKeyName').focus();
+        }
+        
+        function hideCreateModal() {
+            document.getElementById('createKeyModal').style.display = 'none';
+        }
+        
+        function showKeyModal(apiKey) {
+            document.getElementById('newApiKeyDisplay').textContent = apiKey;
+            document.getElementById('showKeyModal').style.display = 'flex';
+        }
+        
+        function hideKeyModal() {
+            document.getElementById('showKeyModal').style.display = 'none';
+        }
+        
+        async function createApiKey() {
+            const name = document.getElementById('newKeyName').value.trim() || null;
+            
             try {
                 const response = await fetch(`${API_BASE}/apikey`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name })
                 });
                 const data = await response.json();
+                
                 if (data.success && data.data?.apiKey) {
-                    navigator.clipboard.writeText(data.data.apiKey);
-                    alert('API Key 已复制到剪贴板');
+                    hideCreateModal();
+                    showKeyModal(data.data.apiKey);
+                    loadApiKeys();
                 } else {
-                    alert('获取 API Key 失败');
+                    alert(data.message || '创建失败');
                 }
             } catch (err) {
-                console.error('复制 API Key 失败:', err);
-                alert('复制失败');
+                console.error('创建 API Key 失败:', err);
+                alert('创建失败');
             }
         }
         
-        async function regenerateApiKey() {
-            if (!confirm('重新生成 API Key 后，旧的 Key 将失效，确定继续？')) return;
+        async function deleteApiKey(keyId) {
+            if (!confirm('确定要删除此 API Key 吗？删除后无法恢复。')) return;
+            
             try {
-                const response = await fetch(`${API_BASE}/api-key/regenerate`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json();
-                if (data.success && data.data?.apiKey) {
-                    navigator.clipboard.writeText(data.data.apiKey);
-                    alert('API Key 已重新生成并复制到剪贴板');
-                    loadApiKey();
-                } else {
-                    alert(data.message || '重新生成失败');
-                }
-            } catch (err) {
-                console.error('重新生成 API Key 失败:', err);
-                alert('重新生成失败');
-            }
-        }
-        
-        async function deleteApiKey() {
-            if (!confirm('删除 API Key 后，您将无法使用 API 功能，确定继续？')) return;
-            if (!confirm('再次确认：删除后需要重新生成才能使用 API，确定删除？')) return;
-            try {
-                const response = await fetch(`${API_BASE}/api-key`, {
+                const response = await fetch(`${API_BASE}/api-key/${keyId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await response.json();
+                
                 if (data.success) {
-                    alert('API Key 已删除');
-                    loadApiKey();
+                    loadApiKeys();
                 } else {
                     alert(data.message || '删除失败');
                 }
@@ -805,6 +858,12 @@ curl -X GET "{{baseUrl}}/api/memories" \
                 console.error('删除 API Key 失败:', err);
                 alert('删除失败');
             }
+        }
+        
+        function copyNewKey() {
+            const key = document.getElementById('newApiKeyDisplay').textContent;
+            navigator.clipboard.writeText(key);
+            alert('API Key 已复制到剪贴板');
         }
         
         function copyBaseUrl() {
@@ -839,9 +898,11 @@ curl -X GET "{{baseUrl}}/api/memories" \
         });
 
         document.getElementById('logoutBtn').addEventListener('click', logout);
-        document.getElementById('copyApiKeyBtn').addEventListener('click', copyApiKey);
-        document.getElementById('regenerateApiKeyBtn').addEventListener('click', regenerateApiKey);
-        document.getElementById('deleteApiKeyBtn').addEventListener('click', deleteApiKey);
+        document.getElementById('createApiKeyBtn').addEventListener('click', showCreateModal);
+        document.getElementById('cancelCreateKeyBtn').addEventListener('click', hideCreateModal);
+        document.getElementById('confirmCreateKeyBtn').addEventListener('click', createApiKey);
+        document.getElementById('copyNewKeyBtn').addEventListener('click', copyNewKey);
+        document.getElementById('closeShowKeyBtn').addEventListener('click', hideKeyModal);
         document.getElementById('copyBaseUrlBtn').addEventListener('click', copyBaseUrl);
 
         document.querySelectorAll('.endpoint-header').forEach(header => {
@@ -855,6 +916,8 @@ curl -X GET "{{baseUrl}}/api/memories" \
         document.querySelectorAll('.tutorial-tab').forEach(tab => {
             tab.addEventListener('click', () => switchTab(tab, tab.dataset.tab));
         });
+        
+        loadApiKeys();
     </script>
 </body>
 </html>

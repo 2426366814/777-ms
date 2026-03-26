@@ -203,7 +203,7 @@ class User {
     static async getApiKeyInfo(userId) {
         try {
             const sql = `
-                SELECT id, user_id, api_key_hash, created_at, expires_at, is_active, last_used_at
+                SELECT ${DB_FIELDS.USER_API_KEYS.AUTH}
                 FROM user_api_keys 
                 WHERE user_id = ?
                 ORDER BY is_active DESC, created_at DESC 
@@ -218,17 +218,51 @@ class User {
     }
 
     /**
-     * 获取用户的所有 API Keys（包含历史记录）
+     * 创建新的 API Key（支持多个）
+     * @param {string} userId - 用户ID
+     * @param {string} apiKey - API Key
+     * @param {string} name - API Key 名称（可选）
+     * @returns {Promise<Object>} 创建结果
+     */
+    static async createApiKey(userId, apiKey, name = null) {
+        try {
+            const hashedKey = hashApiKey(apiKey);
+            const id = uuidv4();
+            const keyName = name || `API Key ${new Date().toLocaleDateString('zh-CN')}`;
+            const keyPrefix = apiKey.substring(0, 8);
+            
+            const sql = `
+                INSERT INTO user_api_keys (id, user_id, api_key, api_key_hash, name, is_active, created_at, expires_at)
+                VALUES (?, ?, ?, ?, ?, 1, NOW(), DATE_ADD(NOW(), INTERVAL ${CONFIG.API_KEY.EXPIRES_INTERVAL}))
+            `;
+            await db.query(sql, [id, userId, keyPrefix, hashedKey, keyName]);
+            
+            logger.info(`用户创建新 API Key: ${userId}, 名称: ${keyName}`);
+            
+            return {
+                id,
+                name: keyName,
+                apiKey,
+                createdAt: new Date().toISOString()
+            };
+        } catch (error) {
+            logger.error('创建API Key失败:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 获取用户的所有 API Keys
      * @param {string} userId - 用户ID
      * @returns {Promise<Array>} API Key 列表
      */
     static async getAllApiKeys(userId) {
         try {
             const sql = `
-                SELECT id, user_id, created_at, expires_at, is_active, last_used_at
+                SELECT ${DB_FIELDS.USER_API_KEYS.LIST}
                 FROM user_api_keys 
                 WHERE user_id = ?
-                ORDER BY created_at DESC
+                ORDER BY is_active DESC, created_at DESC
             `;
             return await db.query(sql, [userId]);
         } catch (error) {
@@ -238,18 +272,37 @@ class User {
     }
 
     /**
-     * 删除用户的 API Key（软删除，标记为非活跃）
+     * 删除指定的 API Key
      * @param {string} userId - 用户ID
+     * @param {string} keyId - API Key ID
      * @returns {Promise<boolean>} 删除结果
      */
-    static async deleteApiKey(userId) {
+    static async deleteApiKeyById(userId, keyId) {
         try {
-            const sql = 'UPDATE user_api_keys SET is_active = 0, updated_at = NOW() WHERE user_id = ? AND is_active = 1';
-            const result = await db.query(sql, [userId]);
-            logger.info(`API Key 删除操作，影响行数: ${result.affectedRows}`);
+            const sql = 'UPDATE user_api_keys SET is_active = 0, updated_at = NOW() WHERE id = ? AND user_id = ?';
+            const result = await db.query(sql, [keyId, userId]);
+            logger.info(`API Key 删除操作，用户: ${userId}, Key ID: ${keyId}, 影响行数: ${result.affectedRows}`);
             return result.affectedRows > 0;
         } catch (error) {
             logger.error('删除API Key失败:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 彻底删除指定的 API Key（硬删除）
+     * @param {string} userId - 用户ID
+     * @param {string} keyId - API Key ID
+     * @returns {Promise<boolean>} 删除结果
+     */
+    static async hardDeleteApiKey(userId, keyId) {
+        try {
+            const sql = 'DELETE FROM user_api_keys WHERE id = ? AND user_id = ?';
+            const result = await db.query(sql, [keyId, userId]);
+            logger.info(`API Key 硬删除操作，用户: ${userId}, Key ID: ${keyId}, 影响行数: ${result.affectedRows}`);
+            return result.affectedRows > 0;
+        } catch (error) {
+            logger.error('硬删除API Key失败:', error.message);
             throw error;
         }
     }

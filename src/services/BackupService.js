@@ -121,7 +121,7 @@ class BackupService {
             }
             
             for (const user of users) {
-                await this.backupUser(user.user_id, 'auto');
+                await this.backupUser(user.user_id, 'scheduled');
             }
             
             await this.cleanupOldBackups(parseInt(this.currentConfig.backupRetention) || 7);

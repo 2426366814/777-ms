@@ -1,5 +1,6 @@
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { DB_FIELDS } = require('../config/constants');
 
 class ProviderRouterService {
     constructor() {
@@ -223,7 +224,7 @@ class ProviderRouterService {
     async getAvailableProviders(model) {
         try {
             const rows = await db.query(`
-                SELECT id, name, display_name, base_url, default_model, models
+                SELECT ${DB_FIELDS.LLM_PROVIDERS.LIST}
                 FROM llm_providers
                 WHERE is_active = 1
             `);
@@ -342,7 +343,7 @@ class ProviderRouterService {
     async getAllProviders() {
         try {
             const rows = await db.query(`
-                SELECT id, name, display_name, base_url, default_model, models, is_active, sort_order
+                SELECT ${DB_FIELDS.LLM_PROVIDERS.ADMIN}
                 FROM llm_providers
                 WHERE is_active = 1
                 ORDER BY sort_order

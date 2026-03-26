@@ -18,6 +18,7 @@ const knowledgeService = require('../services/KnowledgeService');
 const reviewService = require('../services/ReviewService');
 const autoManager = require('../services/AutoManager');
 const providerRouter = require('../services/ProviderRouterService');
+const { DB_FIELDS } = require('../config/constants');
 const systemLogService = require('../services/SystemLogService');
 const { authenticateWithApiKey } = require('../middleware/auth');
 
@@ -365,7 +366,7 @@ router.get('/models', async (req, res, next) => {
  */
 router.get('/providers', async (req, res, next) => {
     try {
-        const providers = await db.query('SELECT id, name, display_name, models FROM llm_providers WHERE is_active = 1');
+        const providers = await db.query(`SELECT ${DB_FIELDS.LLM_PROVIDERS.PUBLIC} FROM llm_providers WHERE is_active = 1`);
         res.json({ success: true, data: { providers: providers || [] } });
     } catch (error) {
         next(error);
@@ -394,7 +395,7 @@ router.post('/completions', async (req, res, next) => {
             });
         }
 
-        const providers = await db.query('SELECT id, name, models, default_model FROM llm_providers WHERE is_active = 1');
+        const providers = await db.query(`SELECT ${DB_FIELDS.LLM_PROVIDERS.WITH_MODELS} FROM llm_providers WHERE is_active = 1`);
 
         for (const p of providers) {
             try {

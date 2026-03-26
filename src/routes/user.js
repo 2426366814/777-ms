@@ -373,24 +373,27 @@ router.put('/password', authenticate, passwordLimiter, async (req, res, next) =>
 
 /**
  * @route   POST /api/v1/users/apikey
- * @desc    生成 API Key
+ * @desc    创建新的 API Key（支持多个）
  * @access  Private
  */
 router.post('/apikey', authenticate, apiKeyLimiter, async (req, res, next) => {
     try {
         const userId = req.user.id;
+        const { name } = req.body;
         const apiKey = generateApiKey();
         
-        await User.updateApiKey(userId, apiKey);
+        const result = await User.createApiKey(userId, apiKey, name);
         
-        logger.info(`用户生成 API Key: ${userId}`, { category: 'security', action: 'apikey_generate' });
+        logger.info(`用户创建 API Key: ${userId}`, { category: 'security', action: 'apikey_create' });
 
         res.json({
             success: true,
-            message: 'API Key 生成成功',
+            message: 'API Key 创建成功',
             data: {
+                id: result.id,
+                name: result.name,
                 apiKey,
-                createdAt: new Date().toISOString()
+                createdAt: result.createdAt
             }
         });
     } catch (error) {
@@ -399,26 +402,27 @@ router.post('/apikey', authenticate, apiKeyLimiter, async (req, res, next) => {
 });
 
 /**
- * @route   GET /api/v1/users/apikeys
- * @desc    获取用户的 API Keys
+ * @route   GET /api/v1/users/api-keys
+ * @desc    获取用户的所有 API Keys
  * @access  Private
  */
-router.get('/apikeys', authenticate, async (req, res, next) => {
+router.get('/api-keys', authenticate, async (req, res, next) => {
     try {
         const userId = req.user.id;
+        const keys = await User.getAllApiKeys(userId);
         
-        const keyInfo = await User.getApiKeyInfo(userId);
+        const apiKeys = keys.map(k => ({
+            id: k.id,
+            name: k.name || '未命名',
+            createdAt: k.created_at,
+            expiresAt: k.expires_at,
+            lastUsedAt: k.last_used_at,
+            isActive: k.is_active === 1
+        }));
         
         res.json({
             success: true,
-            data: {
-                apiKeys: keyInfo ? [{
-                    id: keyInfo.id,
-                    createdAt: keyInfo.created_at,
-                    expiresAt: keyInfo.expires_at,
-                    isActive: keyInfo.is_active
-                }] : []
-            }
+            data: { apiKeys }
         });
     } catch (error) {
         next(error);
@@ -426,57 +430,25 @@ router.get('/apikeys', authenticate, async (req, res, next) => {
 });
 
 /**
- * @route   GET /api/v1/users/api-key
- * @desc    获取用户当前的 API Key 信息
+ * @route   DELETE /api/v1/users/api-key/:id
+ * @desc    删除指定的 API Key
  * @access  Private
  */
-router.get('/api-key', authenticate, async (req, res, next) => {
+router.delete('/api-key/:id', authenticate, async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const keyInfo = await User.getApiKeyInfo(userId);
+        const keyId = req.params.id;
         
-        if (!keyInfo) {
-            return res.json({ 
-                success: true, 
-                apiKey: null, 
-                hasApiKey: false,
-                isActive: false
-            });
-        }
-        
-        res.json({ 
-            success: true, 
-            apiKey: null,
-            hasApiKey: true,
-            isActive: keyInfo.is_active === 1,
-            createdAt: keyInfo.created_at,
-            expiresAt: keyInfo.expires_at,
-            lastUsedAt: keyInfo.last_used_at
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-/**
- * @route   DELETE /api/v1/users/api-key
- * @desc    删除用户的 API Key
- * @access  Private
- */
-router.delete('/api-key', authenticate, async (req, res, next) => {
-    try {
-        const userId = req.user.id;
-        
-        const result = await User.deleteApiKey(userId);
+        const result = await User.deleteApiKeyById(userId, keyId);
         
         if (!result) {
             return res.status(404).json({ 
                 success: false, 
-                message: '未找到 API Key 或已删除' 
+                message: '未找到 API Key 或无权删除' 
             });
         }
         
-        logger.info(`用户删除 API Key: ${userId}`, { category: 'security', action: 'apikey_delete' });
+        logger.info(`用户删除 API Key: ${userId}, Key ID: ${keyId}`, { category: 'security', action: 'apikey_delete' });
         
         res.json({ 
             success: true, 
@@ -488,20 +460,30 @@ router.delete('/api-key', authenticate, async (req, res, next) => {
 });
 
 /**
- * @route   POST /api/v1/users/api-key/regenerate
- * @desc    重新生成用户的 API Key
+ * @route   DELETE /api/v1/users/api-key/:id/permanent
+ * @desc    彻底删除指定的 API Key（硬删除）
  * @access  Private
  */
-router.post('/api-key/regenerate', authenticate, apiKeyLimiter, async (req, res, next) => {
+router.delete('/api-key/:id/permanent', authenticate, async (req, res, next) => {
     try {
         const userId = req.user.id;
-        const apiKey = generateApiKey();
+        const keyId = req.params.id;
         
-        await User.updateApiKey(userId, apiKey);
+        const result = await User.hardDeleteApiKey(userId, keyId);
         
-        logger.info(`用户重新生成 API Key: ${userId}`, { category: 'security', action: 'apikey_regenerate' });
+        if (!result) {
+            return res.status(404).json({ 
+                success: false, 
+                message: '未找到 API Key 或无权删除' 
+            });
+        }
         
-        res.json({ success: true, data: { apiKey } });
+        logger.info(`用户彻底删除 API Key: ${userId}, Key ID: ${keyId}`, { category: 'security', action: 'apikey_hard_delete' });
+        
+        res.json({ 
+            success: true, 
+            message: 'API Key 已彻底删除' 
+        });
     } catch (error) {
         next(error);
     }

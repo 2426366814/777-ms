@@ -33,9 +33,10 @@ class LLMService {
                     icon: p.icon
                 };
             });
-            logger.info(`[LLM] Loaded ${Object.keys(this.providers).length} providers`);
+            logger.info(`[LLM] Loaded ${Object.keys(this.providers).length} providers from database`);
         } catch (error) {
-            logger.error('Failed to load providers:', error);
+            logger.error('Failed to load providers from database:', error.message);
+            logger.error('SQL used:', `SELECT ${DB_FIELDS.LLM_PROVIDERS.LIST} FROM llm_providers WHERE is_active = 1 ORDER BY sort_order`);
         }
     }
 

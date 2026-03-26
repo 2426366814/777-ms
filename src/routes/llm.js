@@ -12,6 +12,7 @@ const db = require('../utils/database');
 const LLMService = require('../services/LLMService');
 const EncryptionService = require('../services/EncryptionService');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 const configSchema = Joi.object({
     provider: Joi.string().required(),
@@ -93,7 +94,7 @@ router.post('/configs', authenticate, async (req, res, next) => {
 router.get('/providers', async (req, res, next) => {
     try {
         const providers = await db.query(
-            'SELECT id, name, display_name, base_url, default_model, models, is_active FROM llm_providers WHERE is_active = 1 ORDER BY sort_order'
+            `SELECT ${DB_FIELDS.LLM_PROVIDERS.BASIC} FROM llm_providers WHERE is_active = 1 ORDER BY sort_order`
         );
         
         const result = providers.map(p => {
@@ -301,7 +302,7 @@ router.get('/config/:provider', authenticate, async (req, res, next) => {
         );
         
         const providerInfo = await db.queryOne(
-            'SELECT id, name, display_name, base_url, default_model, models FROM llm_providers WHERE id = ?',
+            `SELECT ${DB_FIELDS.LLM_PROVIDERS.BASIC} FROM llm_providers WHERE id = ?`,
             [provider]
         );
         
@@ -362,7 +363,7 @@ router.post('/test/:provider', authenticate, async (req, res, next) => {
         
         if (!testBaseUrl) {
             const providerInfo = await db.queryOne(
-                'SELECT base_url, default_model FROM llm_providers WHERE id = ?',
+                `SELECT ${DB_FIELDS.LLM_PROVIDERS.URL_MODEL} FROM llm_providers WHERE id = ?`,
                 [provider]
             );
             if (providerInfo) {
