@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const LLMService = require('./LLMService');
 const llmConfigService = require('./LLMConfigService');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 const AUTO_TAG_ENABLED = process.env.AUTO_TAG_ENABLED !== 'false';
 
@@ -96,13 +97,7 @@ class MemoryService {
             memories: memories.map(m => ({
                 ...m,
                 tags: m.tags ? m.tags.split(',') : [],
-                metadata: (() => {
-                    try {
-                        return m.metadata ? JSON.parse(m.metadata) : {};
-                    } catch (e) {
-                        return {};
-                    }
-                })()
+                metadata: safeJsonParse(m.metadata, {}, 'memoryService.js:getMemories')
             })),
             pagination: {
                 page,

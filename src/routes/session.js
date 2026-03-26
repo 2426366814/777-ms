@@ -9,6 +9,7 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 router.use(authenticate);
 
@@ -127,12 +128,7 @@ router.post('/:id/messages', async (req, res, next) => {
             return res.status(404).json({ success: false, message: '会话不存在' });
         }
         
-        let messages = [];
-        try {
-            messages = JSON.parse(sessions[0].messages || '[]');
-        } catch (parseError) {
-            messages = [];
-        }
+        let messages = safeJsonParse(sessions[0].messages, [], 'session.js:addMessage');
         messages.push({ role, content, timestamp: new Date().toISOString() });
         
         await db.query(

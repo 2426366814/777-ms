@@ -3,6 +3,7 @@ const db = require('../utils/database');
 const EncryptionService = require('./EncryptionService');
 const logger = require('../utils/logger');
 const { DB_FIELDS, CONFIG } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 const SYSTEM_USER_ID = CONFIG.SYSTEM_USER_ID;
 
@@ -16,10 +17,8 @@ class LLMService {
         try {
             const providers = await db.query(`SELECT ${DB_FIELDS.LLM_PROVIDERS.LIST} FROM llm_providers WHERE is_active = 1 ORDER BY sort_order`);
             providers.forEach(p => {
-                let models = [];
-                try {
-                    models = JSON.parse(p.models || '[]');
-                } catch (e) {
+                let models = safeJsonParse(p.models, [], 'LLMService.js:loadProviders');
+                if (!Array.isArray(models)) {
                     models = (p.models || '').split(',').map(m => m.trim()).filter(m => m);
                 }
                 
@@ -371,15 +370,13 @@ class LLMService {
                         const data = line.slice(6);
                         if (data === '[DONE]') continue;
                         
-                        try {
-                            const parsed = JSON.parse(data);
+                        const parsed = safeJsonParse(data, null, 'LLMService.js:streamChat');
+                        if (parsed) {
                             const content = parsed.choices[0]?.delta?.content || '';
                             if (content) {
                                 fullContent += content;
                                 onChunk(content);
                             }
-                        } catch (e) {
-                            logger.warn('Failed to parse SSE data chunk', { data: data.substring(0, 100), error: e.message });
                         }
                     }
                 }

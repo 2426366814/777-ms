@@ -11,6 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const { authenticate } = require('../middleware/auth');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 router.use(authenticate);
 
@@ -112,7 +113,16 @@ router.post('/restore/:file', async (req, res, next) => {
             return res.status(404).json({ success: false, message: '备份文件不存在' });
         }
         
-        const backupData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        let backupData;
+        try {
+            const fileContent = fs.readFileSync(filePath, 'utf8');
+            backupData = safeJsonParse(fileContent, null, 'backup.js:restore');
+            if (!backupData) {
+                return res.status(400).json({ success: false, message: '备份文件格式无效' });
+            }
+        } catch (readError) {
+            return res.status(500).json({ success: false, message: '读取备份文件失败' });
+        }
         
         if (backupData.memories && backupData.memories.length > 0) {
             for (const memory of backupData.memories) {

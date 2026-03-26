@@ -1,6 +1,7 @@
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 class ProviderRouterService {
     constructor() {
@@ -247,20 +248,8 @@ class ProviderRouterService {
                 const row = rows[0] || rows;
                 return {
                     strategy: row.strategy || 'balanced',
-                    preferredProviders: (() => {
-                        try {
-                            return row.preferred_providers ? JSON.parse(row.preferred_providers) : [];
-                        } catch (e) {
-                            return [];
-                        }
-                    })(),
-                    blockedProviders: (() => {
-                        try {
-                            return row.blocked_providers ? JSON.parse(row.blocked_providers) : [];
-                        } catch (e) {
-                            return [];
-                        }
-                    })()
+                    preferredProviders: safeJsonParse(row.preferred_providers, [], 'ProviderRouterService.js:getUserPreferences'),
+                    blockedProviders: safeJsonParse(row.blocked_providers, [], 'ProviderRouterService.js:getUserPreferences')
                 };
             }
         } catch (e) {

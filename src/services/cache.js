@@ -4,6 +4,7 @@
 
 const redis = require('redis');
 const logger = require('../utils/logger');
+const { safeJsonParse } = require('../utils/safeJson');
 
 let client = null;
 let reconnectAttempts = 0;
@@ -69,7 +70,7 @@ class CacheService {
         
         try {
             const data = await client.get(key);
-            return data ? JSON.parse(data) : null;
+            return safeJsonParse(data, null, 'cache.js:get');
         } catch (error) {
             logger.error('缓存获取失败:', error);
             return null;

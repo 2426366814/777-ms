@@ -7,6 +7,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
+const { safeJsonParse } = require('../utils/safeJson');
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
 const CONVERTED_DIR = process.env.CONVERTED_DIR || './converted';
@@ -192,7 +193,10 @@ class DocumentConverter {
 
     async convertJson(buffer) {
         try {
-            const json = JSON.parse(buffer.toString('utf-8'));
+            const json = safeJsonParse(buffer.toString('utf-8'), null, 'DocumentConverter.js:convertJson');
+            if (!json) {
+                throw new Error('JSON解析失败: 无效的JSON格式');
+            }
             return '```json\n' + JSON.stringify(json, null, 2) + '\n```';
         } catch (error) {
             throw new Error('JSON解析失败: ' + error.message);

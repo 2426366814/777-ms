@@ -21,6 +21,7 @@ const providerRouter = require('../services/ProviderRouterService');
 const { DB_FIELDS } = require('../config/constants');
 const systemLogService = require('../services/SystemLogService');
 const { authenticateWithApiKey } = require('../middleware/auth');
+const { safeJsonParse } = require('../utils/safeJson');
 
 router.use(authenticateWithApiKey);
 
@@ -275,12 +276,7 @@ router.post('/', async (req, res, next) => {
         }
 
         let messages = [];
-        try {
-            messages = session.messages ? JSON.parse(session.messages) : [];
-        } catch (parseError) {
-            logger.warn('解析会话消息失败:', parseError.message);
-            messages = [];
-        }
+        messages = safeJsonParse(session.messages, [], 'chat.js:loadSessionMessages');
         
         const contextParts = [];
         if (memoryContext) {
@@ -399,7 +395,7 @@ router.post('/completions', async (req, res, next) => {
 
         for (const p of providers) {
             try {
-                const models = typeof p.models === 'string' ? JSON.parse(p.models) : (p.models || []);
+                const models = safeJsonParse(p.models, [], 'chat.js:getProviderForModel');
                 if (Array.isArray(models) && (models.includes(model) || p.default_model === model)) {
                     providerId = p.id;
                     break;

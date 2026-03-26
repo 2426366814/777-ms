@@ -13,6 +13,7 @@ const LLMService = require('../services/LLMService');
 const EncryptionService = require('../services/EncryptionService');
 const { authenticate } = require('../middleware/auth');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 const configSchema = Joi.object({
     provider: Joi.string().required(),
@@ -98,11 +99,9 @@ router.get('/providers', async (req, res, next) => {
         );
         
         const result = providers.map(p => {
-            let models = [];
-            try {
-                models = p.models ? (typeof p.models === 'string' ? JSON.parse(p.models) : p.models) : [];
-            } catch (e) {
-                models = [];
+            let models = safeJsonParse(p.models, [], 'llm.js:getProviders');
+            if (typeof p.models !== 'string' && Array.isArray(p.models)) {
+                models = p.models;
             }
             return {
                 id: p.id,
@@ -308,10 +307,9 @@ router.get('/config/:provider', authenticate, async (req, res, next) => {
         
         let providerModels = [];
         if (providerInfo && providerInfo.models) {
-            try {
-                providerModels = typeof providerInfo.models === 'string' ? JSON.parse(providerInfo.models) : providerInfo.models;
-            } catch (e) {
-                providerModels = [];
+            providerModels = safeJsonParse(providerInfo.models, [], 'llm.js:getUserConfig');
+            if (typeof providerInfo.models !== 'string' && Array.isArray(providerInfo.models)) {
+                providerModels = providerInfo.models;
             }
         }
         

@@ -1,54 +1,56 @@
 /**
- * Safe JSON Parse Utility
- * Provides error handling for JSON.parse operations
- */
-
-const logger = require('./logger');
-
-/**
- * Safely parse JSON string with error handling
+ * Safe JSON parsing utility with error handling
  * @param {string} jsonString - JSON string to parse
  * @param {*} defaultValue - Default value if parsing fails
- * @param {string} context - Context for logging
- * @returns {*} Parsed object or default value
+ * @param {string} context - Context for logging (optional)
+ * @returns {*} Parsed value or default value
  */
-function safeJsonParse(jsonString, defaultValue = null, context = 'unknown') {
+function safeJsonParse(jsonString, defaultValue = null, context = '') {
     if (!jsonString) {
         return defaultValue;
     }
-
+    
+    if (typeof jsonString !== 'string') {
+        return jsonString;
+    }
+    
     try {
         return JSON.parse(jsonString);
     } catch (error) {
-        logger.warn(`JSON parse error at ${context}:`, error.message);
+        const logger = require('./logger');
+        logger.warn('JSON parse failed', {
+            context,
+            error: error.message,
+            inputPreview: jsonString.substring(0, 100)
+        });
         return defaultValue;
     }
 }
 
 /**
- * Safely parse JSON with array default
- * @param {string} jsonString - JSON string to parse
- * @param {string} context - Context for logging
- * @returns {Array} Parsed array or empty array
+ * Safe JSON stringify with error handling
+ * @param {*} value - Value to stringify
+ * @param {string} context - Context for logging (optional)
+ * @returns {string} JSON string or empty string
  */
-function safeJsonArray(jsonString, context = 'unknown') {
-    const result = safeJsonParse(jsonString, [], context);
-    return Array.isArray(result) ? result : [];
-}
-
-/**
- * Safely parse JSON with object default
- * @param {string} jsonString - JSON string to parse
- * @param {string} context - Context for logging
- * @returns {Object} Parsed object or empty object
- */
-function safeJsonObject(jsonString, context = 'unknown') {
-    const result = safeJsonParse(jsonString, {}, context);
-    return (result && typeof result === 'object' && !Array.isArray(result)) ? result : {};
+function safeJsonStringify(value, context = '') {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    
+    try {
+        return JSON.stringify(value);
+    } catch (error) {
+        const logger = require('./logger');
+        logger.warn('JSON stringify failed', {
+            context,
+            error: error.message
+        });
+        return '';
+    }
 }
 
 module.exports = {
     safeJsonParse,
-    safeJsonArray,
-    safeJsonObject
+    safeJsonStringify
 };

@@ -9,6 +9,7 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 const VALID_THEMES = ['dark', 'light', 'auto'];
 const VALID_LANGUAGES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR'];
@@ -84,13 +85,7 @@ router.get('/', authenticate, async (req, res) => {
                 notifications_enabled: settings.notifications_enabled ?? true,
                 shortcuts_enabled: settings.shortcuts_enabled ?? true,
                 onboarding_completed: settings.onboarding_completed ?? false,
-                custom_settings: (() => {
-                    try {
-                        return JSON.parse(settings.custom_settings || '{}');
-                    } catch (e) {
-                        return {};
-                    }
-                })()
+                custom_settings: safeJsonParse(settings.custom_settings, {}, 'settings.js:getSettings')
             }
         });
     } catch (error) {

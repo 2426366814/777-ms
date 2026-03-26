@@ -2,6 +2,7 @@ const llmService = require('./LLMService');
 const llmConfigService = require('./LLMConfigService');
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { safeJsonParse } = require('../utils/safeJson');
 
 class MemoryExtractor {
     constructor() {
@@ -120,13 +121,7 @@ class MemoryExtractor {
                 jsonStr = jsonMatch[0];
             }
             
-            let memories;
-            try {
-                memories = JSON.parse(jsonStr);
-            } catch (parseError) {
-                logger.warn('解析提取的记忆JSON失败:', parseError.message);
-                memories = [];
-            }
+            let memories = safeJsonParse(jsonStr, [], 'MemoryExtractor.js:parseExtraction');
             
             return memories.filter(m => 
                 m.content && 

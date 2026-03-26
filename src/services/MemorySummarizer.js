@@ -8,6 +8,7 @@ const db = require('../utils/database');
 const logger = require('../utils/logger');
 const LLMService = require('./LLMService');
 const llmConfigService = require('./LLMConfigService');
+const { safeJsonParse } = require('../utils/safeJson');
 
 class MemorySummarizer {
     constructor() {
@@ -239,7 +240,7 @@ ${periodText}总结：`;
             content: s.content,
             type: s.category,
             importance: s.importance,
-            metadata: s.metadata ? JSON.parse(s.metadata) : {},
+            metadata: safeJsonParse(s.metadata, {}, 'MemorySummarizer.js:getSummaries'),
             createdAt: s.created_at
         }));
     }

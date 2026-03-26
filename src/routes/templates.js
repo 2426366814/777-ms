@@ -10,6 +10,7 @@ const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 const presetTemplates = [
     {
@@ -85,7 +86,7 @@ router.get('/', authenticate, async (req, res) => {
         const templates = [
             ...presetTemplates,
             ...userTemplates.map(t => ({
-                ...JSON.parse(t.template_data || '{}'),
+                ...safeJsonParse(t.template_data, {}, 'templates.js:getTemplates'),
                 id: t.id,
                 isPreset: false,
                 userId: t.user_id
@@ -132,7 +133,7 @@ router.get('/:id', authenticate, async (req, res) => {
         res.json({
             success: true,
             data: {
-                ...JSON.parse(template.template_data || '{}'),
+                ...safeJsonParse(template.template_data, {}, 'templates.js:getTemplateById'),
                 id: template.id,
                 isPreset: false
             }
@@ -269,7 +270,7 @@ router.post('/:id/use', authenticate, async (req, res) => {
                     message: '模板不存在'
                 });
             }
-            template = JSON.parse(t.template_data || '{}');
+            template = safeJsonParse(t.template_data, {}, 'templates.js:useTemplate');
         }
         
         let content = template.template;

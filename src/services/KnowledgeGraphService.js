@@ -3,6 +3,7 @@ const llmConfigService = require('./LLMConfigService');
 const db = require('../utils/database');
 const { DB_FIELDS } = require('../config/constants');
 const logger = require('../utils/logger');
+const { safeJsonParse } = require('../utils/safeJson');
 
 class KnowledgeGraphService {
     constructor() {
@@ -50,12 +51,12 @@ class KnowledgeGraphService {
 
             const jsonMatch = response.content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                try {
-                    return JSON.parse(jsonMatch[0]);
-                } catch (parseError) {
-                    logger.warn('解析实体提取JSON失败:', parseError.message);
-                    return { entities: [] };
+                const parsed = safeJsonParse(jsonMatch[0], null, 'KnowledgeGraphService.js:extractEntities');
+                if (parsed) {
+                    return parsed;
                 }
+                logger.warn('解析实体提取JSON失败');
+                return { entities: [] };
             }
             return { entities: [] };
         } catch (error) {
@@ -100,12 +101,12 @@ class KnowledgeGraphService {
 
             const jsonMatch = response.content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-                try {
-                    return JSON.parse(jsonMatch[0]);
-                } catch (parseError) {
-                    logger.warn('解析关系分析JSON失败:', parseError.message);
-                    return { hasRelation: false };
+                const parsed = safeJsonParse(jsonMatch[0], null, 'KnowledgeGraphService.js:findRelations');
+                if (parsed) {
+                    return parsed;
                 }
+                logger.warn('解析关系分析JSON失败');
+                return { hasRelation: false };
             }
             return { hasRelation: false };
         } catch (error) {

@@ -9,6 +9,7 @@ const path = require('path');
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const { DB_FIELDS } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 class BackupService {
     constructor() {
@@ -217,49 +218,54 @@ class BackupService {
             throw new Error('Backup file not found');
         }
         
+        let backupData;
         try {
-            const backupData = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-            
-            if (backupData.data.memories) {
-                for (const memory of backupData.data.memories) {
-                    await db.query(
-                        `INSERT IGNORE INTO memories 
-                         (id, user_id, content, importance_score, access_count, created_at) 
-                         VALUES (?, ?, ?, ?, ?, ?)`,
-                        [memory.id, userId, memory.content, memory.importance_score || 5, memory.access_count || 0, memory.created_at]
-                    );
-                }
+            const fileContent = fs.readFileSync(filePath, 'utf8');
+            backupData = safeJsonParse(fileContent, null, 'BackupService.js:restoreUserBackup');
+            if (!backupData || !backupData.data) {
+                throw new Error('Invalid backup file format');
             }
-            
-            if (backupData.data.knowledge) {
-                for (const k of backupData.data.knowledge) {
-                    await db.query(
-                        `INSERT IGNORE INTO knowledge 
-                         (id, user_id, title, content, category_id, created_at) 
-                         VALUES (?, ?, ?, ?, ?, ?)`,
-                        [k.id, userId, k.title, k.content, k.category_id, k.created_at]
-                    );
-                }
-            }
-            
-            await db.query(
-                'UPDATE backup_history SET status = ? WHERE file_path = ?',
-                ['restored', filePath]
-            );
-            
-            logger.info(`Backup restored for user ${userId}: ${backupFile}`);
-            
-            return {
-                success: true,
-                stats: {
-                    memories: backupData.data.memories?.length || 0,
-                    knowledge: backupData.data.knowledge?.length || 0
-                }
-            };
-        } catch (error) {
-            logger.error(`Restore failed for user ${userId}:`, error.message);
-            throw error;
+        } catch (readError) {
+            logger.error('Failed to read backup file:', readError.message);
+            throw new Error('Failed to read backup file');
         }
+        
+        if (backupData.data.memories) {
+            for (const memory of backupData.data.memories) {
+                await db.query(
+                    `INSERT IGNORE INTO memories 
+                     (id, user_id, content, importance_score, access_count, created_at) 
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [memory.id, userId, memory.content, memory.importance_score || 5, memory.access_count || 0, memory.created_at]
+                );
+            }
+        }
+        
+        if (backupData.data.knowledge) {
+            for (const k of backupData.data.knowledge) {
+                await db.query(
+                    `INSERT IGNORE INTO knowledge 
+                     (id, user_id, title, content, category_id, created_at) 
+                     VALUES (?, ?, ?, ?, ?, ?)`,
+                    [k.id, userId, k.title, k.content, k.category_id, k.created_at]
+                );
+            }
+        }
+        
+        await db.query(
+            'UPDATE backup_history SET status = ? WHERE file_path = ?',
+            ['restored', filePath]
+        );
+        
+        logger.info(`Backup restored for user ${userId}: ${backupFile}`);
+        
+        return {
+            success: true,
+            stats: {
+                memories: backupData.data.memories?.length || 0,
+                knowledge: backupData.data.knowledge?.length || 0
+            }
+        };
     }
     
     async cleanupOldBackups(daysToKeep = 30) {

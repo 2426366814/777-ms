@@ -7,6 +7,7 @@ const { v4: uuidv4 } = require('uuid');
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const { DB_FIELDS, safeParseInt } = require('../config/constants');
+const { safeJsonParse } = require('../utils/safeJson');
 
 class PublicKnowledgeService {
     static async create(data, adminId) {
@@ -86,8 +87,8 @@ class PublicKnowledgeService {
         const knowledge = results[0];
         return {
             ...knowledge,
-            tags: typeof knowledge.tags === 'string' ? JSON.parse(knowledge.tags) : knowledge.tags,
-            metadata: typeof knowledge.metadata === 'string' ? JSON.parse(knowledge.metadata) : knowledge.metadata
+            tags: safeJsonParse(knowledge.tags, [], 'PublicKnowledgeService.js:getById'),
+            metadata: safeJsonParse(knowledge.metadata, {}, 'PublicKnowledgeService.js:getById')
         };
     }
     
@@ -133,7 +134,7 @@ class PublicKnowledgeService {
         return {
             items: results.map(item => ({
                 ...item,
-                tags: typeof item.tags === 'string' ? JSON.parse(item.tags) : item.tags
+                tags: safeJsonParse(item.tags, [], 'PublicKnowledgeService.js:list')
             })),
             pagination: {
                 page: safePage,
@@ -171,7 +172,7 @@ class PublicKnowledgeService {
         
         return results.map(item => ({
             ...item,
-            tags: typeof item.tags === 'string' ? JSON.parse(item.tags) : item.tags,
+            tags: safeJsonParse(item.tags, [], 'PublicKnowledgeService.js:searchForContext'),
             source: 'public_knowledge'
         }));
     }
@@ -270,8 +271,8 @@ class PublicKnowledgeService {
         return {
             items: results.map(item => ({
                 ...item,
-                tags: typeof item.tags === 'string' ? JSON.parse(item.tags) : item.tags,
-                metadata: typeof item.metadata === 'string' ? JSON.parse(item.metadata) : item.metadata
+                tags: safeJsonParse(item.tags, [], 'PublicKnowledgeService.js:adminList'),
+                metadata: safeJsonParse(item.metadata, {}, 'PublicKnowledgeService.js:adminList')
             })),
             pagination: {
                 page: safePage,
