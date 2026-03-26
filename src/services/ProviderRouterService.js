@@ -191,7 +191,7 @@ class ProviderRouterService {
         if (!metrics) {
             try {
                 const rows = await db.query(
-                    'SELECT * FROM provider_metrics WHERE provider_id = ?',
+                    `SELECT ${DB_FIELDS.PROVIDER_METRICS.FULL} FROM provider_metrics WHERE provider_id = ?`,
                     [providerId]
                 );
                 
@@ -239,7 +239,7 @@ class ProviderRouterService {
     async getUserPreferences(userId) {
         try {
             const rows = await db.query(
-                'SELECT * FROM user_routing_preferences WHERE user_id = ?',
+                `SELECT ${DB_FIELDS.USER_ROUTING_PREFERENCES.FULL} FROM user_routing_preferences WHERE user_id = ?`,
                 [userId]
             );
 
@@ -366,7 +366,7 @@ class ProviderRouterService {
     async getRoutingLogs(limit = 50) {
         try {
             const rows = await db.query(`
-                SELECT * FROM routing_decision_logs
+                SELECT ${DB_FIELDS.ROUTING_DECISION_LOGS.FULL} FROM routing_decision_logs
                 ORDER BY created_at DESC
                 LIMIT ?
             `, [limit]);

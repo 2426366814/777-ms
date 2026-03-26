@@ -10,6 +10,7 @@ const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
 const { sanitizeHtml, detectXSS } = require('../utils/security');
+const { DB_FIELDS } = require('../config/constants');
 
 const sanitizeContent = (content, userId) => {
     if (!content || typeof content !== 'string') return '';
@@ -216,12 +217,12 @@ router.post('/export', authenticate, async (req, res) => {
         if (ids && Array.isArray(ids) && ids.length > 0) {
             const placeholders = ids.map(() => '?').join(',');
             memories = await db.query(
-                `SELECT * FROM memories WHERE id IN (${placeholders}) AND user_id = ?`,
+                `SELECT ${DB_FIELDS.MEMORIES.FULL} FROM memories WHERE id IN (${placeholders}) AND user_id = ?`,
                 [...ids, userId]
             );
         } else {
             memories = await db.query(
-                'SELECT * FROM memories WHERE user_id = ? ORDER BY created_at DESC',
+                `SELECT ${DB_FIELDS.MEMORIES.FULL} FROM memories WHERE user_id = ? ORDER BY created_at DESC`,
                 [userId]
             );
         }

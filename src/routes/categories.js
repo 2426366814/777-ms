@@ -8,6 +8,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 router.use(authenticate);
 
@@ -145,7 +146,7 @@ router.put('/:id', async (req, res, next) => {
         const { name, parentId, sortOrder } = req.body;
         
         const existing = await db.query(
-            'SELECT * FROM categories WHERE id = ? AND user_id = ?',
+            `SELECT ${DB_FIELDS.CATEGORIES.FULL} FROM categories WHERE id = ? AND user_id = ?`,
             [id, userId]
         );
         
@@ -204,7 +205,7 @@ router.delete('/:id', async (req, res, next) => {
         }
         
         const existing = await db.query(
-            'SELECT * FROM categories WHERE id = ? AND user_id = ?',
+            `SELECT ${DB_FIELDS.CATEGORIES.FULL} FROM categories WHERE id = ? AND user_id = ?`,
             [id, userId]
         );
         
@@ -259,7 +260,7 @@ router.get('/:id/memories', async (req, res, next) => {
         const categoryName = category[0].name;
         
         const memories = await db.query(
-            `SELECT * FROM memories 
+            `SELECT ${DB_FIELDS.MEMORIES.FULL} FROM memories 
              WHERE category = ? AND user_id = ? 
              ORDER BY created_at DESC 
              LIMIT ? OFFSET ?`,

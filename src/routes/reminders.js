@@ -11,6 +11,7 @@ const router = express.Router();
 const db = require('../utils/database');
 const logger = require('../utils/logger');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 router.use(authenticate);
 
@@ -100,7 +101,7 @@ router.put('/:id', async (req, res, next) => {
         }
         const { remindAt, message, isCompleted } = req.body;
         
-        const existing = await db.query('SELECT * FROM reminders WHERE id = ? AND user_id = ?', [id, userId]);
+        const existing = await db.query(`SELECT ${DB_FIELDS.REMINDERS.FULL} FROM reminders WHERE id = ? AND user_id = ?`, [id, userId]);
         if (!existing || existing.length === 0) {
             return res.status(404).json({ success: false, message: '提醒不存在' });
         }

@@ -9,6 +9,7 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
 const { v4: uuidv4 } = require('uuid');
+const { DB_FIELDS } = require('../config/constants');
 
 const presetTemplates = [
     {
@@ -77,7 +78,7 @@ router.get('/', authenticate, async (req, res) => {
         const userId = req.user.id;
         
         const userTemplates = await db.query(
-            'SELECT * FROM memory_templates WHERE user_id = ? OR is_public = 1 ORDER BY created_at DESC',
+            `SELECT ${DB_FIELDS.MEMORY_TEMPLATES.FULL} FROM memory_templates WHERE user_id = ? OR is_public = 1 ORDER BY created_at DESC`,
             [userId]
         );
         
@@ -117,7 +118,7 @@ router.get('/:id', authenticate, async (req, res) => {
         }
         
         const template = await db.queryOne(
-            'SELECT * FROM memory_templates WHERE id = ?',
+            `SELECT ${DB_FIELDS.MEMORY_TEMPLATES.FULL} FROM memory_templates WHERE id = ?`,
             [id]
         );
         
@@ -186,7 +187,7 @@ router.put('/:id', authenticate, async (req, res) => {
         const { name, description, category, fields, template } = req.body;
         
         const existing = await db.queryOne(
-            'SELECT * FROM memory_templates WHERE id = ? AND user_id = ?',
+            `SELECT ${DB_FIELDS.MEMORY_TEMPLATES.FULL} FROM memory_templates WHERE id = ? AND user_id = ?`,
             [id, userId]
         );
         
@@ -259,7 +260,7 @@ router.post('/:id/use', authenticate, async (req, res) => {
             template = preset;
         } else {
             const t = await db.queryOne(
-                'SELECT * FROM memory_templates WHERE id = ?',
+                `SELECT ${DB_FIELDS.MEMORY_TEMPLATES.FULL} FROM memory_templates WHERE id = ?`,
                 [id]
             );
             if (!t) {

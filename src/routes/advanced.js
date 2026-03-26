@@ -13,6 +13,7 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate, requireAuth } = require('../middleware/auth');
 const { sanitizeHtml, detectXSS } = require('../utils/security');
+const { DB_FIELDS } = require('../config/constants');
 
 const importLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
@@ -112,15 +113,15 @@ router.get('/export', exportLimiter, async (req, res, next) => {
         };
         
         if (type === 'all' || type === 'memories') {
-            exportData.memories = await db.query('SELECT * FROM memories WHERE user_id = ?', [userId]);
+            exportData.memories = await db.query(`SELECT ${DB_FIELDS.MEMORIES.FULL} FROM memories WHERE user_id = ?`, [userId]);
         }
         
         if (type === 'all' || type === 'knowledge') {
-            exportData.knowledge = await db.query('SELECT * FROM knowledge WHERE user_id = ?', [userId]);
+            exportData.knowledge = await db.query(`SELECT ${DB_FIELDS.KNOWLEDGE.FULL} FROM knowledge WHERE user_id = ?`, [userId]);
         }
         
         if (type === 'all' || type === 'sessions') {
-            exportData.sessions = await db.query('SELECT * FROM sessions WHERE user_id = ?', [userId]);
+            exportData.sessions = await db.query(`SELECT ${DB_FIELDS.SESSIONS.FULL} FROM sessions WHERE user_id = ?`, [userId]);
         }
         
         logger.info(`用户 ${userId} 导出数据`);

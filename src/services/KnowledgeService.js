@@ -5,6 +5,7 @@
 
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { DB_FIELDS } = require('../config/constants');
 
 class KnowledgeService {
     constructor() {
@@ -31,7 +32,7 @@ class KnowledgeService {
         const { page = 1, limit = 20, category, search } = options;
         const offset = (page - 1) * limit;
         
-        let sql = `SELECT * FROM knowledge WHERE user_id = ?`;
+        let sql = `SELECT ${DB_FIELDS.KNOWLEDGE.FULL} FROM knowledge WHERE user_id = ?`;
         const params = [userId];
         
         if (category) {

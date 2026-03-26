@@ -8,6 +8,7 @@ const logger = require('../utils/logger');
 const LLMService = require('./LLMService');
 const llmConfigService = require('./LLMConfigService');
 const crypto = require('crypto');
+const { DB_FIELDS } = require('../config/constants');
 
 const REVIEW_INTERVALS = [1, 2, 4, 7, 15, 30, 60, 120];
 
@@ -77,7 +78,7 @@ class ReviewService {
 
     async completeReview(userId, reviewId, success = true) {
         const review = await db.query(
-            `SELECT * FROM review_items WHERE id = ? AND user_id = ?`,
+            `SELECT ${DB_FIELDS.REVIEW_ITEMS.FULL} FROM review_items WHERE id = ? AND user_id = ?`,
             [reviewId, userId]
         );
         

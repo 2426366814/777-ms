@@ -14,6 +14,7 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const DocumentConverter = require('../services/DocumentConverter');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 router.use(authenticate);
 
@@ -79,7 +80,7 @@ router.get('/', async (req, res, next) => {
         }
         const offset = (page - 1) * limit;
 
-        let sql = 'SELECT * FROM knowledge WHERE user_id = ?';
+        let sql = `SELECT ${DB_FIELDS.KNOWLEDGE.FULL} FROM knowledge WHERE user_id = ?`;
         const params = [userId];
 
         if (category) {
@@ -129,7 +130,7 @@ router.get('/:id', async (req, res, next) => {
         }
 
         const knowledge = await db.query(
-            'SELECT * FROM knowledge WHERE id = ? AND user_id = ?',
+            `SELECT ${DB_FIELDS.KNOWLEDGE.FULL} FROM knowledge WHERE id = ? AND user_id = ?`,
             [id, userId]
         );
 

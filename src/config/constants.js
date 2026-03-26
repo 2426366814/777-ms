@@ -153,6 +153,16 @@ const DB_FIELDS = {
     ROUTING_DECISION_LOGS: {
         FULL: 'id, user_id, request_id, selected_provider, reason, created_at',
         LIST: 'id, selected_provider, reason, created_at'
+    },
+    
+    MEMORY_TAGS: {
+        FULL: 'id, memory_id, tag_name, created_at',
+        LIST: 'id, tag_name, created_at'
+    },
+    
+    PROVIDER_API_KEYS: {
+        FULL: 'id, provider_id, api_key_encrypted, is_active, created_at, updated_at',
+        LIST: 'id, provider_id, is_active, created_at'
     }
 };
 

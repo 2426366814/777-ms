@@ -131,7 +131,7 @@ router.get('/providers/:id/models', async (req, res, next) => {
         const { id } = req.params;
         
         const models = await db.query(
-            'SELECT * FROM provider_models WHERE provider_id = ? AND is_available = 1',
+            `SELECT ${DB_FIELDS.PROVIDER_MODELS.LIST} FROM provider_models WHERE provider_id = ? AND is_available = 1`,
             [id]
         );
         

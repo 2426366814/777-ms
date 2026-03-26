@@ -8,6 +8,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 const VALID_THEMES = ['dark', 'light', 'auto'];
 const VALID_LANGUAGES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR'];
@@ -60,7 +61,7 @@ router.get('/', authenticate, async (req, res) => {
         const userId = req.user.id;
         
         const settings = await db.queryOne(
-            'SELECT * FROM user_settings WHERE user_id = ?',
+            `SELECT ${DB_FIELDS.USER_SETTINGS.FULL} FROM user_settings WHERE user_id = ?`,
             [userId]
         );
         
@@ -116,7 +117,7 @@ router.put('/', authenticate, async (req, res) => {
         }
         
         const settings = await db.queryOne(
-            'SELECT * FROM user_settings WHERE user_id = ?',
+            `SELECT ${DB_FIELDS.USER_SETTINGS.FULL} FROM user_settings WHERE user_id = ?`,
             [userId]
         );
         

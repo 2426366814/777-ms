@@ -1,6 +1,7 @@
 const llmService = require('./LLMService');
 const llmConfigService = require('./LLMConfigService');
 const db = require('../utils/database');
+const { DB_FIELDS } = require('../config/constants');
 const logger = require('../utils/logger');
 
 class KnowledgeGraphService {
@@ -164,7 +165,7 @@ class KnowledgeGraphService {
 
     async getRelatedMemories(userId, memoryId, depth = 2) {
         const relations = await db.query(`
-            SELECT * FROM memory_relations 
+            SELECT ${DB_FIELDS.MEMORY_RELATIONS.FULL} FROM memory_relations 
             WHERE (source_id = ? OR target_id = ?) AND user_id = ?
         `, [memoryId, memoryId, userId]);
 

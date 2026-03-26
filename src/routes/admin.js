@@ -14,7 +14,7 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const EncryptionService = require('../services/EncryptionService');
 const { validateJwtSecret } = require('../middleware/auth');
-const { CONFIG } = require('../config/constants');
+const { CONFIG, DB_FIELDS } = require('../config/constants');
 
 validateJwtSecret();
 
@@ -298,7 +298,7 @@ router.get('/logs', adminAuth, async (req, res, next) => {
         const { page = 1, limit = 50, type, userId } = req.query;
         const offset = (page - 1) * limit;
         
-        let sql = 'SELECT * FROM login_logs WHERE 1=1';
+        let sql = `SELECT ${DB_FIELDS.LOGIN_LOGS.ADMIN} FROM login_logs WHERE 1=1`;
         const params = [];
         
         if (userId) {
@@ -334,7 +334,7 @@ router.get('/logs', adminAuth, async (req, res, next) => {
 
 router.get('/providers', adminAuth, async (req, res, next) => {
     try {
-        const providers = await db.query('SELECT * FROM llm_providers ORDER BY sort_order');
+        const providers = await db.query(`SELECT ${DB_FIELDS.LLM_PROVIDERS.ADMIN} FROM llm_providers ORDER BY sort_order`);
         res.json({ success: true, data: { providers: providers || [] } });
     } catch (error) {
         next(error);
@@ -734,7 +734,7 @@ router.get('/system-logs', adminAuth, async (req, res, next) => {
         const { page = 1, limit = 50, level, category } = req.query;
         const offset = (page - 1) * limit;
         
-        let sql = 'SELECT * FROM system_logs WHERE 1=1';
+        let sql = `SELECT ${DB_FIELDS.SYSTEM_LOGS.ADMIN} FROM system_logs WHERE 1=1`;
         const params = [];
         
         if (level) {

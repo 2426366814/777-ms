@@ -4,6 +4,7 @@ const llmConfigService = require('./LLMConfigService');
 const { v4: uuidv4 } = require('uuid');
 const { safeJsonObject } = require('../utils/safeJson');
 const logger = require('../utils/logger');
+const { DB_FIELDS } = require('../config/constants');
 
 class ForgettingCurveService {
     constructor() {
@@ -111,7 +112,7 @@ class ForgettingCurveService {
     async recordReview(userId, memoryId, quality, providerId = null) {
         const actualProvider = await llmConfigService.getProviderOrDefault(userId, providerId);
         const existing = await db.query(
-            'SELECT * FROM review_items WHERE user_id = ? AND memory_id = ?',
+            `SELECT ${DB_FIELDS.REVIEW_ITEMS.FULL} FROM review_items WHERE user_id = ? AND memory_id = ?`,
             [userId, memoryId]
         );
 

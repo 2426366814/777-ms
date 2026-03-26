@@ -56,9 +56,9 @@ router.post('/create', async (req, res, next) => {
             backupType,
             include,
             options,
-            memories: include.memories ? await db.query('SELECT * FROM memories WHERE user_id = ?', [userId]) : [],
-            knowledge: include.knowledge ? await db.query('SELECT * FROM knowledge WHERE user_id = ?', [userId]) : [],
-            sessions: include.sessions ? await db.query('SELECT * FROM sessions WHERE user_id = ?', [userId]) : []
+            memories: include.memories ? await db.query(`SELECT ${DB_FIELDS.MEMORIES.FULL} FROM memories WHERE user_id = ?`, [userId]) : [],
+            knowledge: include.knowledge ? await db.query(`SELECT ${DB_FIELDS.KNOWLEDGE.FULL} FROM knowledge WHERE user_id = ?`, [userId]) : [],
+            sessions: include.sessions ? await db.query(`SELECT ${DB_FIELDS.SESSIONS.FULL} FROM sessions WHERE user_id = ?`, [userId]) : []
         };
         
         const jsonData = JSON.stringify(backupData, null, 2);
@@ -204,22 +204,22 @@ router.get('/export', async (req, res, next) => {
         }
         
         const memories = await db.query(
-            'SELECT * FROM memories WHERE user_id = ?',
+            `SELECT ${DB_FIELDS.MEMORIES.FULL} FROM memories WHERE user_id = ?`,
             [userId]
         );
         
         const knowledge = await db.query(
-            'SELECT * FROM knowledge WHERE user_id = ?',
+            `SELECT ${DB_FIELDS.KNOWLEDGE.FULL} FROM knowledge WHERE user_id = ?`,
             [userId]
         );
         
         const sessions = await db.query(
-            'SELECT * FROM sessions WHERE user_id = ?',
+            `SELECT ${DB_FIELDS.SESSIONS.FULL} FROM sessions WHERE user_id = ?`,
             [userId]
         );
         
         const tags = await db.query(
-            `SELECT mt.* FROM memory_tags mt 
+            `SELECT ${DB_FIELDS.MEMORY_TAGS.FULL} FROM memory_tags mt 
              JOIN memories m ON mt.memory_id = m.id 
              WHERE m.user_id = ?`,
             [userId]

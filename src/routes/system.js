@@ -9,6 +9,7 @@ const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate, isAdmin } = require('../middleware/auth');
 const backupService = require('../services/BackupService');
+const { DB_FIELDS } = require('../config/constants');
 
 // 默认自动任务设置
 const defaultAutoSettings = {
@@ -32,7 +33,7 @@ const defaultAutoSettings = {
 // 获取所有系统设置（管理员）
 router.get('/all', authenticate, isAdmin, async (req, res) => {
     try {
-        const settings = await db.query('SELECT * FROM system_settings ORDER BY setting_key');
+        const settings = await db.query(`SELECT ${DB_FIELDS.SYSTEM_SETTINGS.FULL} FROM system_settings ORDER BY setting_key`);
         
         const result = {};
         for (const s of settings) {
@@ -62,7 +63,7 @@ router.get('/all', authenticate, isAdmin, async (req, res) => {
 // 获取公开的系统设置（所有用户）
 router.get('/public', async (req, res) => {
     try {
-        const settings = await db.query('SELECT * FROM system_settings ORDER BY setting_key');
+        const settings = await db.query(`SELECT ${DB_FIELDS.SYSTEM_SETTINGS.FULL} FROM system_settings ORDER BY setting_key`);
         
         const result = {};
         for (const s of settings) {

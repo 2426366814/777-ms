@@ -1,5 +1,6 @@
 const db = require('../utils/database');
 const logger = require('../utils/logger');
+const { DB_FIELDS } = require('../config/constants');
 
 /**
  * System Log Service - 系统日志服务
@@ -80,7 +81,7 @@ class SystemLogService {
         const safeLimit = Math.max(1, Math.min(1000, parseInt(limit) || 100));
         const safeOffset = Math.max(0, parseInt(offset) || 0);
         
-        let sql = 'SELECT * FROM system_logs WHERE 1=1';
+        let sql = `SELECT ${DB_FIELDS.SYSTEM_LOGS.FULL} FROM system_logs WHERE 1=1`;
         const params = [];
 
         if (level) {

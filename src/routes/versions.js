@@ -3,12 +3,13 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 router.use(authenticate);
 
 router.get('/:memoryId', async (req, res) => {
   try {
-    const versions = await db.query('SELECT * FROM memory_versions WHERE memory_id = ? ORDER BY created_at DESC', [req.params.memoryId]);
+    const versions = await db.query(`SELECT ${DB_FIELDS.MEMORY_VERSIONS.FULL} FROM memory_versions WHERE memory_id = ? ORDER BY created_at DESC`, [req.params.memoryId]);
     res.json(versions || []);
   } catch (error) {
     logger.error('Get versions error:', error);

@@ -221,7 +221,7 @@ router.post('/', async (req, res, next) => {
 
         let session = null;
         if (sessionId) {
-            const sessions = await db.query('SELECT * FROM sessions WHERE id = ? AND user_id = ?', [sessionId, userId]);
+            const sessions = await db.query(`SELECT ${DB_FIELDS.SESSIONS.FULL} FROM sessions WHERE id = ? AND user_id = ?`, [sessionId, userId]);
             session = sessions && sessions.length > 0 ? sessions[0] : null;
         }
 

@@ -8,6 +8,7 @@ const router = express.Router();
 const logger = require('../utils/logger');
 const db = require('../utils/database');
 const { authenticate } = require('../middleware/auth');
+const { DB_FIELDS } = require('../config/constants');
 
 router.get('/', authenticate, async (req, res, next) => {
     try {
@@ -52,7 +53,7 @@ router.get('/login', authenticate, async (req, res, next) => {
         const offset = (page - 1) * limit;
         
         const logs = await db.query(
-            'SELECT * FROM login_logs WHERE user_id = ? ORDER BY login_at DESC LIMIT ? OFFSET ?',
+            `SELECT ${DB_FIELDS.LOGIN_LOGS.LIST} FROM login_logs WHERE user_id = ? ORDER BY login_at DESC LIMIT ? OFFSET ?`,
             [userId, limit, offset]
         );
         
@@ -131,7 +132,7 @@ router.get('/api', authenticate, async (req, res, next) => {
         const offset = (page - 1) * limit;
         
         const logs = await db.query(
-            'SELECT * FROM api_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+            `SELECT ${DB_FIELDS.API_LOGS.LIST} FROM api_logs WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?`,
             [userId, limit, offset]
         );
         
@@ -166,7 +167,7 @@ router.get('/security', authenticate, async (req, res, next) => {
         }
         
         const alerts = await db.query(
-            'SELECT * FROM security_alerts WHERE user_id = ? ORDER BY created_at DESC LIMIT 50',
+            `SELECT ${DB_FIELDS.SECURITY_ALERTS.LIST} FROM security_alerts WHERE user_id = ? ORDER BY created_at DESC LIMIT 50`,
             [userId]
         );
         
